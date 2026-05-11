@@ -1,0 +1,25 @@
+{
+  "name": "bookllm",
+  "private": true,
+  "packageManager": "pnpm@10.2.0",
+  "engines": {
+    "node": ">=20.9.0",
+    "pnpm": ">=10.2.0"
+  },
+  "scripts": {
+    "test": "pnpm run test:backend && pnpm run test:frontend && pnpm run test:ocr",
+    "test:backend": "pnpm --dir backend test",
+    "test:frontend": "pnpm --dir frontend test",
+    "test:ocr": "./.venv/bin/python -m pytest ocr-service/test_main.py",
+    "lint": "pnpm run lint:backend && pnpm run lint:frontend",
+    "lint:backend": "pnpm --dir backend lint",
+    "lint:frontend": "pnpm --dir frontend lint",
+    "build": "pnpm run build:backend && pnpm run build:frontend",
+    "build:backend": "pnpm --dir backend build",
+    "build:frontend": "pnpm --dir frontend build",
+    "typecheck": "pnpm --dir frontend exec tsc --noEmit",
+    "prisma:generate": "pnpm --dir backend exec prisma generate",
+    "test:e2e:baseline": "pnpm --dir frontend run test:e2e:baseline",
+    "verify:release": "pnpm run prisma:generate && pnpm run test && pnpm run lint && pnpm run typecheck && pnpm run build && pnpm run test:e2e:baseline"
+  }
+}

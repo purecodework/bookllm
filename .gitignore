@@ -1,0 +1,68 @@
+# BookLLM root gitignore
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# Node
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+.pnpm-store/
+.playwright-cli/
+
+# Build outputs
+dist/
+build/
+coverage/
+frontend/.next/
+frontend/out/
+frontend/.swc/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment (keep .env.example, ignore real values)
+.env
+.env.local
+.env.*.local
+
+# Prisma generated client
+backend/prisma/generated/
+
+# Agent / AI assistant files — not for public repositories
+[Cc][Ll][Aa][Uu][Dd][Ee].md
+AGENTS.md
+progress.md
+CLAUDE_CODE_HANDOVER*.md
+.claudeignore
+.claude/
+
+# Test artifacts (keep source, ignore results)
+test-results/
+playwright-report/
+frontend/test-results/
+frontend/playwright-report/
+
+# Local test data and one-off scripts
+test-files/
+test-*.mjs
+backend/data/
+backend/undefined/
+backend/uploads/
+backend/output/
+
+# Internal agent audit and planning docs
+docs/

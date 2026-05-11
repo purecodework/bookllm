@@ -1,0 +1,68 @@
+# Development compose file.
+#
+# Use this when running frontend/backend from pnpm on the host machine:
+#   docker compose -f docker-compose.dev.yml up -d
+#
+# It starts only shared infrastructure and OCR. The app services are
+# intentionally omitted so local dev can use hot reload:
+#   pnpm --dir backend start:dev
+#   pnpm --dir frontend dev
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bookllm-dev-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-bookllm}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bookllm}
+      POSTGRES_DB: ${POSTGRES_DB:-bookllm}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bookllm} -d ${POSTGRES_DB:-bookllm}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: bookllm-dev-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_dev_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  ocr-service:
+    image: ${OCR_IMAGE:-bookllm-ocr:latest}
+    build:
+      context: ./ocr-service
+      dockerfile: Dockerfile
+    container_name: bookllm-dev-ocr
+    restart: unless-stopped
+    environment:
+      OCR_HOST: 0.0.0.0
+      OCR_PORT: 8000
+    ports:
+      - "${OCR_PORT:-8001}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:

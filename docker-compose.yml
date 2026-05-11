@@ -1,0 +1,146 @@
+# ============================================================
+# BookLLM — production-ready compose
+#
+# Single-machine local use: docker compose up -d  (no .env needed)
+#   LLM is configured via the Settings UI after first launch.
+#
+# LAN / remote access: create a .env file from .env.example,
+#   set API_URL and CORS_ORIGIN in .env, then:
+#   docker compose up -d --build frontend
+#
+# Port assignments:
+#   3000  -> Frontend (Next.js)
+#   3001  -> Backend  (NestJS)
+#   5432  -> PostgreSQL
+#   6379  -> Redis
+#   8001  -> OCR service
+# ============================================================
+
+services:
+  # --- Infrastructure ---------------------------------------------------
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: bookllm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-bookllm}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bookllm}
+      POSTGRES_DB: ${POSTGRES_DB:-bookllm}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bookllm} -d ${POSTGRES_DB:-bookllm}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: bookllm-redis
+    restart: unless-stopped
+    # AOF persistence: translation jobs survive container restarts
+    command: redis-server --appendonly yes
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # --- OCR service (port 8001; leaves 8000 free for local Ollama/OMLX) -
+
+  ocr-service:
+    image: ${OCR_IMAGE:-bookllm-ocr:latest}
+    build:
+      context: ./ocr-service
+      dockerfile: Dockerfile
+    container_name: bookllm-ocr
+    restart: unless-stopped
+    environment:
+      OCR_HOST: 0.0.0.0
+      OCR_PORT: 8000
+    ports:
+      - "8001:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # --- Backend (NestJS) -------------------------------------------------
+
+  backend:
+    image: ${BACKEND_IMAGE:-bookllm-backend:latest}
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: bookllm-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-bookllm}:${POSTGRES_PASSWORD:-bookllm}@postgres:5432/${POSTGRES_DB:-bookllm}?schema=public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      OCR_SERVICE_URL: http://ocr-service:8000
+      # Must point to the mounted volume. Avoid relying on process.cwd().
+      ORIGINAL_ASSET_DIR: /app/data/original-assets
+      RUNNING_IN_DOCKER: "true"
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      # Unset by default (localhost only). Set CORS_ORIGIN=* in .env for open LAN access.
+      CORS_ORIGIN: ${CORS_ORIGIN:-}
+      # OPENAI_* are initial fallbacks only — configure LLM in the Settings UI instead.
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-http://host.docker.internal:11434/v1}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-local-dev-key}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
+      BOOK_CONTEXT_CACHE_TTL_SECONDS: ${BOOK_CONTEXT_CACHE_TTL_SECONDS:-604800}
+    volumes:
+      - book_assets:/app/data/original-assets
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ocr-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health', r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # --- Frontend (Next.js) -----------------------------------------------
+
+  frontend:
+    image: ${FRONTEND_IMAGE:-bookllm-frontend:latest}
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: bookllm-frontend
+    restart: unless-stopped
+    environment:
+      # Injected at container start — no rebuild needed when changing the API URL.
+      API_URL: ${API_URL:-http://localhost:3001}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
+  book_assets:

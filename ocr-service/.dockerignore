@@ -1,0 +1,23 @@
+# ocr-service/.dockerignore — build context: ./ocr-service
+
+.DS_Store
+
+# Documentation / repo-only files
+README.md
+README_*.md
+docs/
+
+# Python cache (rebuilt in container)
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Test files — not needed in production image
+test_main.py
+
+# Local venv (container uses its own)
+.venv/
+
+# Logs
+*.log

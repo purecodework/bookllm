@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model Book {
+  id         String   @id @default(cuid())
+  title      String
+  sourceLang String
+  targetLang String
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  glossary      Json     @default("{}")
+  usageInputTokens  Int      @default(0)
+  usageOutputTokens Int      @default(0)
+  usageByStage      Json     @default("{}")
+
+  chapters      Chapter[]
+  pages         Page[]
+  originalAsset BookOriginalAsset?
+}
+model Chapter {
+  id            String   @id @default(cuid())
+  bookId        String
+  chapterNumber Int
+  title         String?
+  status              String @default("pending")
+  translationProgress Int    @default(0)
+  translationStartedAt DateTime?
+  tokensPerSecond      Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  book  Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  pages Page[]
+
+  @@unique([bookId, chapterNumber])
+}
+model Page {
+  id         String  @id @default(cuid())
+  bookId     String
+  chapterId  String?
+  pageNumber Int
+
+  sourceText String?
+  targetText String?
+  ocrStatus         String @default("pending")
+  translationStatus String @default("pending")
+  retryCount   Int     @default(0)
+  errorMessage String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  book    Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  chapter Chapter? @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+
+  @@unique([bookId, pageNumber])
+  @@index([chapterId])
+  @@index([bookId, translationStatus])
+}
+model Settings {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+model BookOriginalAsset {
+  id        String   @id @default(cuid())
+  bookId    String   @unique
+  filePath  String
+  fileName  String
+  mimeType  String
+  fileSize  Int
+  sha256    String
+  hasImages Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+}

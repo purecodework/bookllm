@@ -1,0 +1,41 @@
+# frontend/.dockerignore — build context: ./frontend
+
+.DS_Store
+.idea/
+.vscode/
+
+# Env files
+.env
+.env.*
+.env.local
+.env.*.local
+
+# Documentation / repo-only files
+README.md
+README_*.md
+docs/
+
+# Dependencies (reinstalled in Docker)
+node_modules/
+
+# Build output (rebuilt in Docker)
+.next/
+out/
+.swc/
+coverage/
+*.tsbuildinfo
+
+# Test source & artifacts — not needed in production image
+e2e/
+__tests__/
+playwright.config.ts
+jest.config.js
+test-results/
+playwright-report/
+BookLLMReadme/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*

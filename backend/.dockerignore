@@ -1,0 +1,38 @@
+# backend/.dockerignore — build context: ./backend
+
+.DS_Store
+.idea/
+.vscode/
+
+# Env files
+.env
+.env.*
+
+# Documentation / repo-only files
+README.md
+README_*.md
+docs/
+
+# Dependencies (reinstalled in Docker)
+node_modules/
+
+# Build output (rebuilt in Docker)
+dist/
+coverage/
+
+# Test files — not needed in production image
+**/*.spec.ts
+**/*.spec.js
+jest.config.ts
+jest.config.js
+
+# Local data
+data/
+undefined/
+uploads/
+output/
+original-assets/
+BookLLMReadme/
+
+# Logs
+*.log

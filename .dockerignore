@@ -1,0 +1,79 @@
+# Root .dockerignore — applies when build context is the repo root
+.git
+.gitignore
+.DS_Store
+.idea/
+.vscode/
+
+# Environment files — injected at runtime, never baked into images
+.env
+.env.*
+
+# Documentation / screenshots — publish to GitHub, not into runtime images
+README.md
+README_*.md
+docs/
+.github/
+
+# Python / venv
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# OCR is built from its own service context, not from the Node images
+ocr-service/
+
+# Node
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+.pnpm-store/
+*.tsbuildinfo
+
+# Build outputs (rebuilt inside Docker)
+backend/dist/
+backend/coverage/
+frontend/.next/
+frontend/out/
+frontend/.swc/
+frontend/coverage/
+
+# Test artifacts and local test data
+test-results/
+playwright-report/
+frontend/test-results/
+frontend/playwright-report/
+test-files/
+BookLLMReadme/
+
+# Runtime/user assets — never bake uploaded books into images
+backend/data/
+backend/undefined/
+backend/uploads/
+backend/output/
+backend/original-assets/
+
+# Test source not needed in runtime images
+backend/**/*.spec.ts
+backend/**/*.spec.js
+frontend/e2e/
+frontend/__tests__/
+frontend/playwright.config.ts
+frontend/jest.config.js
+
+# One-off scripts
+test-translation.mjs
+
+# Agent / AI assistant files — no value inside a container
+[Cc][Ll][Aa][Uu][Dd][Ee].md
+AGENTS.md
+progress.md
+CLAUDE_CODE_HANDOVER*.md
+.claude/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
