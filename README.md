@@ -12,9 +12,9 @@
   </a>
 </p>
 
-BookLLM is a document and book translation app built for long-form reading and iterative translation workflows.
+BookLLM is a self-hosted book translation app with glossary, review, and polish pipelines.
 
-It supports OpenAI-compatible APIs and local LLM runtimes, with a multi-stage pipeline for glossary extraction, translation, review, and polishing.
+It supports OpenAI-compatible APIs and local LLM runtimes for long-form reading and iterative translation workflows.
 
 Current language options support translation between Chinese, English, Japanese, Korean, French, German, Spanish, and Russian. Source language can also be set to auto-detect.
 
