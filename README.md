@@ -95,7 +95,7 @@ Current language options support translation between Chinese, English, Japanese,
 Run BookLLM locally with Docker Compose. No `.env` file is required for single-machine use.
 
 ```bash
-git clone https://github.com/purecodework/llm-test-private.git
+git clone https://github.com/purecodework/bookllm.git
 cd BookLLM
 docker compose up -d --build
 ```

@@ -95,7 +95,7 @@ BookLLM 是一个面向长文本阅读和迭代式翻译流程的文档与图书
 使用 Docker Compose 在本地运行 BookLLM。
 
 ```bash
-git clone https://github.com/purecodework/llm-test-private.git
+git clone https://github.com/purecodework/bookllm.git
 cd BookLLM
 docker compose up -d --build
 ```
