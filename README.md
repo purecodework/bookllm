@@ -4,7 +4,7 @@
   <a href="README.md">
     <img src="https://img.shields.io/badge/lang-English-blue" alt="English" />
   </a>
-  <a href="README_CN.md">
+  <a href="README_ZH.md">
     <img src="https://img.shields.io/badge/lang-%E4%B8%AD%E6%96%87-red" alt="中文" />
   </a>
   <a href="#license">
@@ -144,8 +144,6 @@ Next.js frontend
 
 ## Known Limitations
 
-- EPUB layout fidelity depends on the structure of the source file.
-- BookLLM prioritizes readable output and image preservation over pixel-perfect reproduction of publisher styling.
 - Token usage shown in the UI is approximate. Provider dashboards remain the billing source of truth.
 - OCR does not preserve the original layout.
 
