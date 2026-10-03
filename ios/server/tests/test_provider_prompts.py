@@ -118,3 +118,58 @@ def test_document_kind_and_layout_options():
     assert "technical accuracy" in prompt and "Markdown code fences and tables" in prompt
     payload["options"]["layout"] = "reading"
     assert "tidy spacing" in translation_messages(TranslationRequest.model_validate(payload))[0]["content"]
+
+
+@pytest.mark.parametrize("genre,required", [
+    ("poetry", ("verse, stanza and line boundaries", "source imagery", "deliberate repetition", "without adding imagery")),
+    ("script", ("speaker names", "scene and act markers", "stage directions", "Do not invent dialogue")),
+    ("academic", ("citation and reference numbers", "quotations", "equations", "source precision", "objective academic register", "fabricate references")),
+])
+@pytest.mark.parametrize("stage", ["translate", "proofread", "linguist", "editor"])
+def test_new_genres_preserve_source_structure_across_entire_pipeline(genre, required, stage):
+    payload = body()
+    payload.update(stage=stage, draft="" if stage == "translate" else "Reviewed draft")
+    payload["options"].update(quality="publication", documentKind=genre, layout="reading")
+    request = TranslationRequest.model_validate(payload)
+    prompt = translation_messages(request)[0]["content"]
+    for phrase in required:
+        assert phrase in prompt
+    assert "Genre-specific structural rules take precedence" in prompt
+    assert "alter facts" in prompt
+    # The source remains data, independent of genre and selected pipeline role.
+    import json
+    assert json.loads(translation_messages(request)[1]["content"])["source"] == payload["source"]
+
+
+def test_unknown_genre_rejected_and_original_document_kinds_remain_valid():
+    from pydantic import ValidationError
+    for genre in ("fiction", "general", "technical", "poetry", "script", "academic"):
+        payload = body()
+        payload["options"]["documentKind"] = genre
+        assert TranslationRequest.model_validate(payload).options.documentKind == genre
+    payload["options"]["documentKind"] = "unsupported-genre"
+    with pytest.raises(ValidationError, match="Unknown document kind"):
+        TranslationRequest.model_validate(payload)
+
+
+@pytest.mark.parametrize("style", [
+    {"id": "xu-zhimo", "name": "徐志摩诗意", "subtitle": "轻盈", "instruction": "Express a lyrical poetic cadence with imagery from the source."},
+    {"id": "xiangsheng", "name": "相声幽默", "subtitle": "机趣", "instruction": "Use lively conversational rhythm and comic timing already present in the source."},
+    {"id": "water-margin", "name": "水浒说书", "subtitle": "说书", "instruction": "Use restrained storyteller cadence while preserving every source event."},
+])
+def test_new_style_instructions_remain_bounded_by_source_fidelity(style):
+    payload = body()
+    payload["options"].update(style=style, documentKind="poetry")
+    prompt = translation_messages(TranslationRequest.model_validate(payload))[0]["content"]
+    assert style["instruction"] in prompt
+    assert "Do not add imagery, jokes, events or dialogue absent from the source" in prompt
+    assert "source imagery and deliberate repetition" in prompt
+
+
+def test_fiction_neighbors_are_continuity_references_without_importing_events():
+    payload = body()
+    payload["options"]["documentKind"] = "fiction"
+    payload["context"] = "Opening tone: a quiet narrator. Previous source: a character arrives. Previous-stage neighbor: 他抵达了。"
+    prompt = translation_messages(TranslationRequest.model_validate(payload))[0]["content"]
+    for phrase in ("plot chronology and causality", "character aliases", "narrative perspective and tense", "distinct character dialogue", "deliberate ambiguity", "foreshadowing", "intentional register shifts", "continuity references only", "never import their events or text"):
+        assert phrase in prompt

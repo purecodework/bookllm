@@ -169,8 +169,10 @@ class Ledger:
                     raise ServiceError(409, "requestID 已用于不同内容；请使用新的 requestID。")
                 if row["status"] == "completed":
                     return json.loads(row["response_json"])
+                if row["status"] in ("reserved", "dispatched"):
+                    raise ServiceError(409, "此请求仍在后台处理中，请稍后使用原 requestID 重试；不会再次扣点。", 1)
                 if row["status"] != "refunded":
-                    raise ServiceError(409, "此请求正在处理或结果待核对；重复提交不会再次扣点。可查看 /v1/requests/{requestID}，请勿更换 ID 重复提交。", 3)
+                    raise ServiceError(409, "此请求结果待核对；重复提交不会再次扣点。可查看 /v1/requests/{requestID}，请勿更换 ID 重复提交。")
             active = db.execute("SELECT account_id,COUNT(*) AS n FROM requests WHERE status IN ('reserved','dispatched') GROUP BY account_id").fetchall()
             account_active = sum(r["n"] for r in active if r["account_id"] == account_id)
             global_active = sum(r["n"] for r in active)

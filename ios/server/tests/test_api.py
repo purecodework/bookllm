@@ -139,7 +139,9 @@ def test_definite_failure_refunds_while_ambiguous_failure_stays_pending(settings
         assert response.status_code == 503
         assert app.state.ledger.account(owner)["points"] == 99
         assert app.state.ledger.request_status(owner, "doc:0:translate")["status"] == "uncertain"
-        assert client.post("/v1/translate", json=body(), headers=headers).status_code == 409
+        uncertain_replay = client.post("/v1/translate", json=body(), headers=headers)
+        assert uncertain_replay.status_code == 409
+        assert "Retry-After" not in uncertain_replay.headers  # This is operator reconciliation, not active background work.
         assert model.calls == 2
 
 

@@ -116,4 +116,66 @@ final class StructuredChunkerTests: XCTestCase {
         XCTAssertEqual(chunks.map(\.text).joined(), source)
         XCTAssertTrue(chunks.allSatisfy { $0.text.reduce(0) { $0 + Chunker.tokenCost($1) } <= 64.001 })
     }
+
+    func testPoetryKeepsFittingStanzasAndPoemSectionsTogether() {
+        let stanza = "月亮照着远山也照着长路\n露珠落在窗前也落在手心\n夜风经过河岸又经过桥头\n\n"
+        let source = "# 夜曲\n\n" + stanza + stanza + "# 晨歌\n\n清晨来到树梢\n星光渐渐隐去\n"
+        let plan = Chunker.plan(text: source, kind: .poetry, budget: 80)
+        XCTAssertEqual(plan.sections.map(\.title), ["夜曲", "晨歌"])
+        XCTAssertEqual(plan.chunks.filter { $0.text.contains(stanza) }.count, 2)
+        assertLossless(plan, source: source, budget: 80)
+    }
+
+    func testOversizedStanzaKeepsEachFittingVerseLineWhole() {
+        let verses = (1...6).map { "Verse \($0). " + String(repeating: "夜", count: 32) + "\n" }
+        let source = verses.joined()
+        let plan = Chunker.plan(text: source, kind: .poetry, budget: 64)
+        for verse in verses { XCTAssertTrue(plan.chunks.contains { $0.text.contains(verse) }) }
+        XCTAssertTrue(plan.chunks.allSatisfy { $0.text.hasSuffix("\n") })
+        assertLossless(plan, source: source, budget: 64)
+    }
+
+    func testScriptRecognizesActsScenesAndKeepsSpeakerTurnsTogether() {
+        let firstTurn = "ALICE\n(quietly)\n" + String(repeating: "夜", count: 37) + "\n"
+        let secondTurn = "BOB: " + String(repeating: "灯", count: 37) + "\n"
+        let source = "ACT I\nSCENE 1\n" + firstTurn + secondTurn + "第二幕\n第一场 窗边\n林：我们回家吧。\nINT. LIBRARY - NIGHT\nALICE: Wait.\n"
+        let plan = Chunker.plan(text: source, kind: .script, budget: 80)
+        XCTAssertEqual(plan.sections.map(\.title), ["ACT I", "SCENE 1", "第二幕", "第一场 窗边", "INT. LIBRARY - NIGHT"])
+        XCTAssertTrue(plan.chunks.contains { $0.text.contains(firstTurn) })
+        XCTAssertTrue(plan.chunks.contains { $0.text.contains(secondTurn) })
+        assertLossless(plan, source: source, budget: 80)
+    }
+
+    func testAcademicRecognizesPlainPDFHeadingsAndProtectsCitationEntries() {
+        let firstCitation = "[1] Smith, J. (2020). " + String(repeating: "结果", count: 16) + ".\n"
+        let secondCitation = "2. Doe, A. (2022). " + String(repeating: "方法", count: 16) + ".\n"
+        let source = "Paper title\n\nAbstract\nWe evaluate a model.\n\n1.Introduction\nContext [1, 2].\n1.1 Methods\nMeasurements.\nReferences\n" + firstCitation + secondCitation
+        let plan = Chunker.plan(text: source, kind: .academic, budget: 80)
+        XCTAssertEqual(plan.sections.map(\.title), ["正文", "Abstract", "1.Introduction", "1.1 Methods", "References"])
+        XCTAssertTrue(plan.chunks.contains { $0.text.contains(firstCitation) })
+        XCTAssertTrue(plan.chunks.contains { $0.text.contains(secondCitation) })
+        assertLossless(plan, source: source, budget: 80)
+    }
+
+    func testAcademicKeepsFittingCodeAndTablesWhole() {
+        let code = "```python\nprint('result')\n# not a heading\n```\n"
+        let table = "| Trial | Score |\n| --- | --- |\n| 1 | 0.8 |\n| 2 | 0.9 |\n"
+        let source = "Abstract\nFindings.\n\n2.Methods\n" + String(repeating: "P", count: 150) + "\n\n" + code + "\n" + table
+        let plan = Chunker.plan(text: source, kind: .academic, budget: 80)
+        XCTAssertTrue(plan.chunks.contains { $0.text.contains(code) })
+        XCTAssertTrue(plan.chunks.contains { $0.text.contains(table) })
+        assertLossless(plan, source: source, budget: 80)
+    }
+
+    func testEveryDocumentKindIsOrderedBoundedAndLossless() {
+        let source = "# 第一部分\r\n" + String(repeating: "ALICE: 她读着 cafe\u{301} 👨‍👩‍👧‍👦。\r\n\r\n", count: 40) + "## 第二部分\r\n结束。\r\n"
+        for kind in DocumentKind.allCases {
+            let plan = Chunker.plan(text: source, kind: kind, budget: 100)
+            XCTAssertEqual(plan.sectionForChunk, plan.sectionForChunk.sorted())
+            assertLossless(plan, source: source, budget: 100)
+        }
+        XCTAssertEqual(DocumentKind.poetry.defaultBudget, 900)
+        XCTAssertEqual(DocumentKind.script.defaultBudget, 1300)
+        XCTAssertEqual(DocumentKind.academic.defaultBudget, 1400)
+    }
 }

@@ -1,11 +1,28 @@
 import Foundation
 
 public enum DocumentKind: String, Codable, Sendable, Hashable, CaseIterable, Identifiable {
-    case fiction, general, technical
+    case fiction, general, technical, poetry, script, academic
     public var id: String { rawValue }
-    public var title: String { switch self { case .fiction: "小说"; case .general: "通用文档"; case .technical: "技术文档" } }
+    public var title: String {
+        switch self {
+        case .fiction: "小说"
+        case .general: "通用文档"
+        case .technical: "技术文档"
+        case .poetry: "诗集"
+        case .script: "剧本"
+        case .academic: "论文"
+        }
+    }
     /// Leave room for a longer translation, glossary, and later editorial passes.
-    public var defaultBudget: Double { switch self { case .fiction: 1800; case .general: 1400; case .technical: 1100 } }
+    public var defaultBudget: Double {
+        switch self {
+        case .fiction: 1800
+        case .general, .academic: 1400
+        case .technical: 1100
+        case .poetry: 900
+        case .script: 1300
+        }
+    }
 }
 
 public enum LayoutPolicy: String, Codable, Sendable, Hashable, CaseIterable, Identifiable {
@@ -42,15 +59,15 @@ public enum Chunker {
         return makeChunks(splitRaw(text, budget: safeBudget(budget)))
     }
 
-    /// Fiction stays within chapters; documents follow headings; technical documents
-    /// keep complete code fences and Markdown tables together whenever they fit.
+    /// Follow chapters, poems, scenes, or document headings. Keep fitting stanzas,
+    /// speaker turns, citations, code fences, and Markdown tables together.
     /// Neither section detection nor chunking inserts, trims, or normalizes source text.
     public static func plan(text: String, kind: DocumentKind, budget: Double? = nil) -> ChunkPlan {
         let limit = safeBudget(budget ?? kind.defaultBudget)
         let sections = makeSections(text, kind: kind)
         var pieces: [String] = [], sectionForChunk: [Int] = []
         for section in sections {
-            let sectionPieces = pack(blocks(in: section.text, technical: kind == .technical), budget: limit)
+            let sectionPieces = pack(blocks(in: section.text, kind: kind), budget: limit)
             pieces.append(contentsOf: sectionPieces)
             sectionForChunk.append(contentsOf: repeatElement(section.index, count: sectionPieces.count))
         }
@@ -140,13 +157,38 @@ public enum Chunker {
                 .trimmingCharacters(in: .whitespaces)
             return title.isEmpty ? "未命名章节" : title
         }
-        guard kind == .fiction else { return nil }
         let title = raw.trimmingCharacters(in: .whitespaces)
-        let chinese = #"^第[零〇一二三四五六七八九十百千万两壹贰叁肆伍陆柒捌玖拾佰仟0-9０-９]+[章卷回](?:.*)$"#
-        let english = #"^Chapter[ \t]+(?:[0-9]+|[IVXLCDM]+)(?:[ \t]+.*|[.:：—–-].*)?$"#
-        if title.range(of: chinese, options: .regularExpression) != nil ||
-            title.range(of: english, options: [.regularExpression, .caseInsensitive]) != nil { return title }
+        let number = "[零〇一二三四五六七八九十百千万两壹贰叁肆伍陆柒捌玖拾佰仟0-9０-９]+"
+        switch kind {
+        case .fiction:
+            if matches(title, "^第" + number + "[章卷回].*$") || matches(title, #"^Chapter[ \t]+(?:[0-9]+|[IVXLCDM]+)(?:[ \t]+.*|[.:：—–-].*)?$"#) { return title }
+        case .script:
+            if matches(title, "^第" + number + "[幕场].*$") ||
+                matches(title, #"^(?:ACT|SCENE)[ \t]+(?:[0-9]+|[IVXLCDM]+)(?:[ \t]+.*|[.:：—–-].*)?$"#) ||
+                matches(title, #"^(?:INT|EXT|INT\./EXT|I/E)\.[ \t]+.+$"#) { return title }
+        case .academic:
+            if matches(title, #"^(?:Abstract|Introduction|Methods?|Results|Discussion|Conclusions?|References|摘要|引言|方法|结果|讨论|结论|参考文献)[：:]?$"#) { return title }
+            if !isCitationEntry(title), matches(title, #"^[1-9][0-9]?(?:\.[0-9]{1,2})*(?:\.[ \t]*|[ \t]+)[^\d\[\]].{0,100}$"#) { return title }
+        case .general, .technical, .poetry: break
+        }
         return nil
+    }
+
+    private static func matches(_ text: String, _ pattern: String) -> Bool {
+        text.range(of: pattern, options: [.regularExpression, .caseInsensitive]) != nil
+    }
+
+    private static func isSpeaker(_ line: String) -> Bool {
+        let title = content(line).trimmingCharacters(in: .whitespaces)
+        let inline = #"^(?:[\p{Han}·]{1,12}|[A-Za-z][A-Za-z ._'’\-]{0,30})[：:][ \t]*(?!//).*$"#
+        let standalone = #"^[A-Z][A-Z ._'’\-]{0,30}(?:[ \t]+\((?:V\.O\.|O\.S\.|CONT'D)\))?$"#
+        return matches(title, inline) || title.range(of: standalone, options: .regularExpression) != nil
+    }
+
+    private static func isCitationEntry(_ line: String) -> Bool {
+        let title = content(line).trimmingCharacters(in: .whitespaces)
+        return matches(title, #"^\[[0-9]{1,4}\][ \t]+.+$"#) ||
+            matches(title, #"^[0-9]{1,4}\.[ \t]+.+(?:\b(?:19|20)[0-9]{2}\b|doi[:/]).*$"#)
     }
 
     private static func makeSections(_ text: String, kind: DocumentKind) -> [DocumentSection] {
@@ -180,13 +222,17 @@ public enum Chunker {
         return !cells.isEmpty && cells.allSatisfy { $0.range(of: #"^:?-{3,}:?$"#, options: .regularExpression) != nil }
     }
 
-    private static func blocks(in text: String, technical: Bool) -> [Block] {
+    private static func blocks(in text: String, kind: DocumentKind) -> [Block] {
         let sourceLines = lines(in: text)
         var result: [Block] = [], prose = "", index = 0
+        let technical = kind == .technical || kind == .academic
+        let wholeLines = kind == .poetry || kind == .script
+        var proseProtected = wholeLines
         while index < sourceLines.count {
             let line = sourceLines[index]
             if technical, let opening = fence(in: line) {
-                if !prose.isEmpty { result.append(Block(text: prose, protected: false)); prose = "" }
+                if !prose.isEmpty { result.append(Block(text: prose, protected: proseProtected)); prose = "" }
+                proseProtected = wholeLines
                 var code = line; index += 1
                 while index < sourceLines.count {
                     let next = sourceLines[index]; code += next; index += 1
@@ -197,7 +243,8 @@ public enum Chunker {
             }
             if technical, index + 1 < sourceLines.count, line.contains("|"), !isBlank(line),
                isTableDelimiter(sourceLines[index + 1]) {
-                if !prose.isEmpty { result.append(Block(text: prose, protected: false)); prose = "" }
+                if !prose.isEmpty { result.append(Block(text: prose, protected: proseProtected)); prose = "" }
+                proseProtected = wholeLines
                 var table = line + sourceLines[index + 1]; index += 2
                 while index < sourceLines.count {
                     let next = sourceLines[index]
@@ -208,10 +255,17 @@ public enum Chunker {
                 result.append(Block(text: table, protected: true))
                 continue
             }
+            let citation = kind == .academic && isCitationEntry(line)
+            if (kind == .script && isSpeaker(line)) || citation {
+                if !prose.isEmpty { result.append(Block(text: prose, protected: proseProtected)); prose = "" }
+                proseProtected = wholeLines || citation
+            }
             prose += line; index += 1
-            if isBlank(line) { result.append(Block(text: prose, protected: false)); prose = "" }
+            if isBlank(line) {
+                result.append(Block(text: prose, protected: proseProtected)); prose = ""; proseProtected = wholeLines
+            }
         }
-        if !prose.isEmpty { result.append(Block(text: prose, protected: false)) }
+        if !prose.isEmpty { result.append(Block(text: prose, protected: proseProtected)) }
         return result
     }
 
@@ -224,8 +278,8 @@ public enum Chunker {
                 buffer += block.text; used += blockCost
             } else {
                 if !buffer.isEmpty { result.append(buffer); buffer = ""; used = 0 }
-                // Oversized fences and tables are the only case in which their
-                // contents split; preserve existing lines and add no wrappers.
+                // Hard fallback for oversized structures, preferring complete
+                // verse, dialogue, citation, code, and table lines over sentences.
                 let pieces = splitRaw(block.text, budget: budget, sentences: !block.protected)
                 result.append(contentsOf: pieces.dropLast())
                 if let last = pieces.last { buffer = last; used = cost(last) }

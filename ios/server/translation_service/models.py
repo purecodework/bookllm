@@ -64,7 +64,7 @@ class Options(StrictModel):
     @field_validator("documentKind")
     @classmethod
     def document_kind(cls, value):
-        if value not in ("fiction", "general", "technical"):
+        if value not in ("fiction", "general", "technical", "poetry", "script", "academic"):
             raise ValueError("Unknown document kind")
         return value
 

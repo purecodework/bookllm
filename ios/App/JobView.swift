@@ -23,7 +23,7 @@ struct JobView: View {
                         }
                         if job.status != .complete { action(job) }
                         if !job.terms.isEmpty && job.status != .reviewing { Button { sheet = .glossary } label: { Label("查看本书术语 · \(job.terms.count) 个", systemImage: "text.book.closed").font(.system(size: 13)) }.padding(.top, 3) }
-                        Text("译稿在本机保存。退到后台会暂停，回到前台可继续。额外审校增加处理时间与 API 用量，质量提升随文本而异。").font(.system(size: 11)).foregroundStyle(Ink.muted).lineSpacing(5)
+                        Text("译稿在本机保存。退到后台会暂停，回到前台可继续。云端已开始的段落会完成并缓存，恢复时不重复扣点。额外审校增加处理时间与 API 用量，质量提升随文本而异。").font(.system(size: 11)).foregroundStyle(Ink.muted).lineSpacing(5)
                     }.padding(24)
                 }.background(Ink.paper)
             } else { ContentUnavailableView("作品不存在", systemImage: "book.closed") }
@@ -48,9 +48,17 @@ struct JobView: View {
         VStack(alignment: .leading, spacing: 24) {
             PaperCard {
                 VStack(spacing: 9) {
-                    Picker("内容类型", selection: binding(\.options.documentKind)) { ForEach(DocumentKind.allCases) { Text($0.title).tag($0) } }
+                    HStack {
+                        if job.options.documentKind != .general { Label((job.genreWasCorrected ? "文稿类型 · " : "自动识别 · ") + job.options.documentKind.title, systemImage: "text.viewfinder").font(.system(size: 12, weight: .medium)) }
+                        else { Text("文稿排版").font(.system(size: 13, weight: .medium)) }
+                        Spacer()
+                        Menu {
+                            ForEach(DocumentKind.allCases.filter { $0 != .general }) { kind in Button(kind.title) { studio.update(id) { $0.options.documentKind = kind; $0.genreWasCorrected = true } } }
+                            Button("重新自动识别") { studio.update(id) { $0.options.documentKind = DocumentClassifier.detect(text: job.source, title: job.title, format: job.format); $0.genreWasCorrected = false } }
+                        } label: { Image(systemName: "ellipsis").padding(6).foregroundStyle(Ink.muted) }.accessibilityLabel("纠正文稿类型")
+                    }
                     Picker("排版", selection: binding(\.options.layout)) { ForEach(LayoutPolicy.allCases) { Text($0.title).tag($0) } }
-                    Text("小说按章节与自然段，文档按标题与列表，技术内容尽量保持代码块和表格完整。保留排版指保留内容结构；复杂 PDF 页布局近似重排。").font(.system(size: 11)).foregroundStyle(Ink.muted).lineSpacing(4)
+                    Text("按文稿内容自动组织诗行、对白、引用、章节或代码。保留排版指保留内容结构；复杂 PDF 页布局近似重排。").font(.system(size: 11)).foregroundStyle(Ink.muted).lineSpacing(4)
                 }
             }
             HStack { Text("翻译为").font(.system(size: 14)); Spacer(); Picker("目标语言", selection: binding(\.options.targetLanguage)) { ForEach(["简体中文", "繁體中文", "English", "日本語", "한국어", "Français", "Deutsch", "Español", "Русский"], id: \.self) { Text($0).tag($0) } }.tint(Ink.text) }
@@ -66,6 +74,7 @@ struct JobView: View {
                         }.buttonStyle(.plain).foregroundStyle(Ink.text).accessibilityAddTraits(job.options.quality == quality ? .isSelected : [])
                     }
                 }
+                if job.options.documentKind == .fiction { Text("小说按章处理。精译和出版档逐轮审校，让相邻段落在人物口吻、视角与叙事节奏上保持连贯。").font(.system(size: 11)).foregroundStyle(Ink.muted).lineSpacing(4) }
                 Text(job.options.quality.detail + (job.options.quality == .fast ? " · 实时流式阅读" : " · 每章审校完即可阅读")).font(.system(size: 11)).foregroundStyle(Ink.muted)
             }
             PaperCard {
@@ -98,13 +107,13 @@ struct JobView: View {
     private func pipeline(_ job: BookJob) -> some View {
         PaperCard {
             VStack(alignment: .leading, spacing: 22) {
-                HStack { Text("你的翻译团队").font(.system(size: 15, weight: .semibold)); Spacer(); if job.status == .translating || job.status == .extracting { ThinkingDots() } }
+                HStack { Text(job.options.documentKind == .fiction ? "你的小说编辑部" : "你的翻译团队").font(.system(size: 15, weight: .semibold)); Spacer(); if job.status == .translating || job.status == .extracting { ThinkingDots() } }
                 if job.status == .extracting { Label("术语整理 · 全文提取中", systemImage: "text.magnifyingglass").font(.system(size: 13)).foregroundStyle(Ink.orange) }
                 ForEach(job.options.stages, id: \.rawValue) { stage in
                     let count = job.checkpoints.filter { $0.stage == stage }.count
                     HStack(spacing: 13) {
                         Image(systemName: count == job.chunkCount ? "checkmark.circle.fill" : "circle.dotted").font(.system(size: 20)).foregroundStyle(count == job.chunkCount ? Ink.green : Ink.orange.opacity(count > 0 ? 1 : 0.4))
-                        VStack(alignment: .leading, spacing: 4) { Text(stage.title).font(.system(size: 14, weight: .medium)); Text(stageDescription(stage)).font(.system(size: 10)).foregroundStyle(Ink.muted) }
+                        VStack(alignment: .leading, spacing: 4) { Text(stage.title).font(.system(size: 14, weight: .medium)); Text(stageDescription(stage, kind: job.options.documentKind)).font(.system(size: 10)).foregroundStyle(Ink.muted) }
                         Spacer(); Text("\(count) / \(job.chunkCount)").font(.system(size: 10, design: .monospaced)).foregroundStyle(Ink.muted)
                     }
                 }
@@ -120,7 +129,16 @@ struct JobView: View {
             else { PrimaryButton(title: job.status == .reviewing ? "确认术语，开始翻译" : job.status == .draft ? "开始翻译" : "继续翻译", icon: "sparkle") { studio.begin(id, account: account, purchases: purchases, approved: job.status == .reviewing) }.disabled(studio.task != nil) }
         }
     }
-    private func stageDescription(_ stage: Stage) -> String { switch stage { case .translate: "忠实传达原作，保留段落与声音"; case .proofread: "核对遗漏、误译、数字与术语"; case .linguist: "审校外语、习语、语气与编者注"; case .editor: "统一风格、节奏与最终表达" } }
+    private func stageDescription(_ stage: Stage, kind: DocumentKind) -> String {
+        if kind == .fiction {
+            switch stage {
+            case .translate: return "保留叙述视角、场景与人物对白"
+            case .proofread: return "核对人名、别名、因果、遗漏与误译"
+            case .linguist: return "审校人物口吻、指代、语气与多语对白"
+            case .editor: return "参考相邻译稿，统一本章衔接与表达"
+            }
+        }
+        switch stage { case .translate: "忠实传达原作，保留段落与声音"; case .proofread: "核对遗漏、误译、数字与术语"; case .linguist: "审校外语、习语、语气与编者注"; case .editor: "统一风格、节奏与最终表达" } }
 }
 struct PreferencesSheet: View {
     @Binding var preferences: TranslationPreferences

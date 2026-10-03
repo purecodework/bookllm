@@ -22,6 +22,7 @@ struct BookJob: Codable, Identifiable, Sendable {
     var result = ""
     var error: String?
     var usesOwnAPI = false
+    var genreWasCorrected = false
     var chapters: [ReadingChapter] = []
     var chunkCount = 0
     var basePoints = 0
@@ -99,7 +100,7 @@ struct BookJob: Codable, Identifiable, Sendable {
     }
     func add(_ imported: ImportedText) -> String {
         var job = BookJob(title: imported.title, source: imported.text, format: imported.format); job.options.preferences = defaultPreferences
-        job.options.documentKind = imported.format == "EPUB" || imported.format == "TXT" ? .fiction : imported.format == "MD" || imported.format == "MARKDOWN" ? .technical : .general
+        job.options.documentKind = DocumentClassifier.detect(text: imported.text, title: imported.title, format: imported.format)
         job.replan()
         job.glossaryPoints = job.sourceBatches.reduce(0) { $0 + max(1, Int(ceil(Double($1.unicodeScalars.count) / 1000))) }
         jobs.insert(job, at: 0); persist(); return job.id

@@ -35,7 +35,11 @@ public struct APIProvider: TranslationProvider {
         let (bytes, response) = try await URLSession.shared.bytes(for: network)
         guard let http = response as? HTTPURLResponse else { throw TranslationError.transient("网络响应无效。") }
         if http.statusCode == 429 { throw TranslationError.rateLimited(Double(http.value(forHTTPHeaderField: "Retry-After") ?? "2") ?? 2) }
-        if http.statusCode == 409 || http.statusCode >= 500 { throw TranslationError.transient("服务正在处理或暂时不可用。") }
+        if http.statusCode == 409 {
+            if let retry = http.value(forHTTPHeaderField: "Retry-After") { throw TranslationError.pending(Double(retry) ?? 1) }
+            throw TranslationError.message("此段任务需要核对。请保留当前任务并联系支持，避免重新导入重复扣点。")
+        }
+        if http.statusCode >= 500 { throw TranslationError.transient("服务暂时不可用。") }
         guard (200..<300).contains(http.statusCode) else { throw TranslationError.message(http.statusCode == 402 ? "翻译点数不足，请充值。" : "流式请求失败（\(http.statusCode)）。") }
         var result = "", stopped = false
         for try await line in bytes.lines {
@@ -46,6 +50,7 @@ public struct APIProvider: TranslationProvider {
             guard let data = payload.data(using: .utf8), let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw TranslationError.message("流式响应格式无效。") }
             if let error = json["error"] as? String {
                 if json["status"] as? Int == 429 { throw TranslationError.rateLimited((json["retryAfter"] as? Double) ?? 2) }
+                if json["status"] as? Int == 409, let retry = json["retryAfter"] as? Double { throw TranslationError.pending(retry) }
                 if (json["status"] as? Int ?? 0) >= 500 { throw TranslationError.transient(error) }
                 throw TranslationError.message(error)
             }
@@ -91,7 +96,11 @@ public struct APIProvider: TranslationProvider {
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let response = response as? HTTPURLResponse else { throw TranslationError.transient("网络响应无效。") }
         if response.statusCode == 429 { throw TranslationError.rateLimited(Double(response.value(forHTTPHeaderField: "Retry-After") ?? "2") ?? 2) }
-        if response.statusCode == 409 || response.statusCode >= 500 { throw TranslationError.transient("服务正在处理或暂时不可用。") }
+        if response.statusCode == 409 {
+            if let retry = response.value(forHTTPHeaderField: "Retry-After") { throw TranslationError.pending(Double(retry) ?? 1) }
+            throw TranslationError.message("此段任务需要核对。请保留当前任务并联系支持，避免重新导入重复扣点。")
+        }
+        if response.statusCode >= 500 { throw TranslationError.transient("服务暂时不可用。") }
         guard (200..<300).contains(response.statusCode) else {
             let messages = [401: "登录或 API 密钥已失效。", 402: "翻译点数不足，请充值。", 403: "请先购买自带 API 解锁。"]
             throw TranslationError.message(messages[response.statusCode] ?? "请求失败（\(response.statusCode)）。")

@@ -19,6 +19,7 @@ class Settings:
     per_account_concurrency: int = 4
     global_concurrency: int = 32
     request_timeout_seconds: float = 180
+    stream_shutdown_grace_seconds: float = 10
 
     @classmethod
     def from_env(cls):
@@ -57,11 +58,14 @@ class Settings:
             per_account_concurrency=int(os.environ.get("PER_ACCOUNT_CONCURRENCY", "4")),
             global_concurrency=int(os.environ.get("GLOBAL_CONCURRENCY", "32")),
             request_timeout_seconds=float(os.environ.get("REQUEST_TIMEOUT_SECONDS", "180")),
+            stream_shutdown_grace_seconds=float(os.environ.get("STREAM_SHUTDOWN_GRACE_SECONDS", "10")),
         )
         if not 300 <= settings.session_ttl_seconds <= 604800:
             raise RuntimeError("SESSION_TTL_SECONDS must be 300–604800")
         if not 1 <= settings.per_account_concurrency <= settings.global_concurrency <= 256:
             raise RuntimeError("Invalid account/global concurrency limits")
+        if not 0 <= settings.stream_shutdown_grace_seconds <= 300:
+            raise RuntimeError("STREAM_SHUTDOWN_GRACE_SECONDS must be 0–300")
         if settings.apple_app_id <= 0 or not 10 <= settings.request_timeout_seconds <= 300:
             raise RuntimeError("Invalid app ID or request timeout")
         return settings

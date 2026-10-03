@@ -26,6 +26,7 @@ actor StreamingFake: TranslationProvider {
     }
     func extractTerms(source: String, target: String, requestID: String) async throws -> [Term] { [] }
 }
+actor PendingAttempts { var count = 0; func next() -> Int { count += 1; return count } }
 actor StreamEvents { var events: [String] = []; func add(_ text: String) { events.append(text) } }
 final class EngineTests: XCTestCase, @unchecked Sendable {
     func testLosslessUnicodeAndBudget() {
@@ -98,13 +99,24 @@ final class EngineTests: XCTestCase, @unchecked Sendable {
         let result = try await TranslationEngine().run(jobID: "live", source: "source", options: .init(quality: .fast), provider: StreamingFake(), onPartial: { _, text in await events.add("partial:" + text) }) { checkpoint in await events.add("saved:" + checkpoint.text) }
         XCTAssertEqual(result, "first")
         let seen = await events.events
-        XCTAssertEqual(seen, ["partial:", "partial:fir", "partial:first", "saved:first"])
+        XCTAssertEqual(seen, ["partial:fir", "partial:first", "saved:first"])
     }
     func testRefinedNeverPublishesIntermediateDraftPartials() async throws {
         let events = StreamEvents()
         _ = try await TranslationEngine().run(jobID: "review", source: "source", options: .init(quality: .refined), provider: StreamingFake(), onPartial: { _, text in await events.add(text) }) { _ in }
         let seen = await events.events
         XCTAssertTrue(seen.isEmpty)
+    }
+
+    func testPendingResumeWaitsBeyondTransientRetryBudget() async throws {
+        let attempts = PendingAttempts(), throughput = Throughput(maximum: 4)
+        let result = try await TranslationEngine.retry(throughput: throughput) {
+            if await attempts.next() < 6 { throw TranslationError.pending(0.001) }
+            return "cached"
+        }
+        XCTAssertEqual(result, "cached")
+        let count = await attempts.count, window = await throughput.current()
+        XCTAssertEqual(count, 6); XCTAssertEqual(window, 2)
     }
 
 }
