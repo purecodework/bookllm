@@ -2,6 +2,7 @@ name: iOS
 
 on:
   push:
+    branches: ['main', 'master']
     paths: ['ios/**', '.github/workflows/ios.yml']
   pull_request:
     paths: ['ios/**', '.github/workflows/ios.yml']

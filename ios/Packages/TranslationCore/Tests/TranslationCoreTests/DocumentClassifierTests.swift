@@ -8,6 +8,49 @@ final class DocumentClassifierTests: XCTestCase {
         XCTAssertEqual(DocumentClassifier.detect(text: "We will discuss Chapter 3 during the meeting."), .general)
     }
 
+    func testEnglishChapterNamesBeyondTenIdentifyFictionAndSections() {
+        for title in ["Chapter Eleven", "Chapter TWENTY-ONE: The River", "Chapter Twenty‑One — The River", "Chapter Ninety Nine — Home"] {
+            let source = title + "\nAlice stepped through the doorway."
+            XCTAssertEqual(DocumentClassifier.detect(text: source), .fiction, title)
+            XCTAssertEqual(Chunker.plan(text: source, kind: .fiction).sections.map(\.title), [title])
+        }
+    }
+
+    func testAllEnglishChapterNamesOneThroughNinetyNineAgreeWithChunker() {
+        let smallNumbers = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"]
+        let tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
+        var titles: [String] = []
+        for number in 1...99 {
+            let spelling = number < 20 ? smallNumbers[number] :
+                tens[number / 10] + (number % 10 == 0 ? "" : "-" + smallNumbers[number % 10])
+            for variant in Set([spelling, spelling.replacingOccurrences(of: "-", with: " ")]).sorted() {
+                let title = "Chapter \(variant): The River"
+                titles.append(title)
+                let source = title + "\nAlice reads a letter.\n\n"
+                XCTAssertEqual(DocumentClassifier.detect(text: source), .fiction, title)
+                XCTAssertEqual(Chunker.plan(text: source, kind: .fiction).sections.map(\.title), [title])
+            }
+        }
+        let book = titles.map { $0 + "\nAlice reads a letter.\n\n" }.joined()
+        let plan = Chunker.plan(text: book, kind: .fiction)
+        XCTAssertEqual(DocumentClassifier.detect(text: book), .fiction)
+        XCTAssertEqual(plan.sections.map(\.title), titles)
+        XCTAssertEqual(plan.sections.map(\.text).joined(), book)
+    }
+
+    func testEnglishChapterNamesInsideCodeOrBodyProseDoNotBecomeSections() {
+        let fenced = "````text\nChapter Eleven\nChapter TWENTY-ONE\n```\nChapter Ninety Nine\n````\nA plain explanation follows."
+        XCTAssertEqual(DocumentClassifier.detect(text: fenced), .technical)
+        XCTAssertEqual(Chunker.plan(text: fenced, kind: .fiction).sections.map(\.title), ["正文"])
+        for prose in ["The notes mention Chapter Eleven and Chapter Twenty-One in one paragraph.",
+                      "We will discuss Chapter Ninety Nine during the meeting.",
+                      "There are ninety nine reasons to read this general document.",
+                      "Chapter elevenfold", "Chapter twenty-ten", "Chapter twenty-one-year-old"] {
+            XCTAssertEqual(DocumentClassifier.detect(text: prose), .general)
+            XCTAssertEqual(Chunker.plan(text: prose, kind: .fiction).sections.map(\.title), ["正文"])
+        }
+    }
+
     func testPoetryTitleRequiresVerseStructure() {
         let english = "The light slips past the willow,\nA silver thread of rain,\nThe river keeps its counsel,\nAnd calls us home again."
         let chinese = "床前明月光，\n疑是地上霜。\n举头望明月，\n低头思故乡。"

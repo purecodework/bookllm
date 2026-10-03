@@ -161,7 +161,7 @@ public enum Chunker {
         let number = "[零〇一二三四五六七八九十百千万两壹贰叁肆伍陆柒捌玖拾佰仟0-9０-９]+"
         switch kind {
         case .fiction:
-            if matches(title, "^第" + number + "[章卷回].*$") || matches(title, #"^Chapter[ \t]+(?:[0-9]+|[IVXLCDM]+|one|two|three|four|five|six|seven|eight|nine|ten)(?:[ \t]+.*|[.:：—–-].*)?$"#) { return title }
+            if FictionChapterHeading.matches(title) { return title }
         case .script:
             if matches(title, "^第" + number + "[幕场].*$") ||
                 matches(title, #"^(?:ACT|SCENE)[ \t]+(?:[0-9]+|[IVXLCDM]+)(?:[ \t]+.*|[.:：—–-].*)?$"#) ||

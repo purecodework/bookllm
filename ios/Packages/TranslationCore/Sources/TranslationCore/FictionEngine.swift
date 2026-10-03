@@ -1,9 +1,10 @@
 import Foundation
 
 /// Bounded background for a novel chunk. Neighboring passages stay within the
-/// current chapter; the opening excerpt is an author-voice sample only.
+/// current chapter; the opening excerpt and completed prior chapter translation
+/// are voice samples only, never additional events for the current passage.
 public enum FictionContext {
-    public static func make(source: String, plan: ChunkPlan, index: Int, priorDrafts: [Int: String] = [:]) -> String {
+    public static func make(source: String, plan: ChunkPlan, index: Int, priorDrafts: [Int: String] = [:], previousChapterFinal: String? = nil) -> String {
         let position: Int?
         if plan.chunks.indices.contains(index), plan.chunks[index].index == index { position = index }
         else { position = plan.chunks.firstIndex { $0.index == index } }
@@ -25,6 +26,9 @@ public enum FictionContext {
             let previousChapter = plan.sectionForChunk[position - 1]
             let previousText = plan.sections.first { $0.index == previousChapter }?.text ?? plan.chunks[position - 1].text
             parts.append("PREVIOUS CHAPTER END (background only; source may intentionally change time/place; do not inject prior events):\n" + tail(previousText, 350))
+            if let previousChapterFinal, !previousChapterFinal.isEmpty {
+                parts.append("PREVIOUS CHAPTER FINAL TRANSLATION (completed final pass; voice and transitions only, never copy its text or introduce its facts or events):\n" + tail(previousChapterFinal, 350))
+            }
         }
         if position + 1 < plan.chunks.count, plan.sectionForChunk.indices.contains(position + 1), plan.sectionForChunk[position + 1] == chapter {
             let next = plan.chunks[position + 1]
@@ -63,11 +67,15 @@ public struct FictionEngine: Sendable {
         var cached: [PassKey: String] = [:]
         for checkpoint in checkpoints { cached[PassKey(index: checkpoint.index, stage: checkpoint.stage)] = checkpoint.text }
         var output: [Int: String] = [:]
+        var previousCompletedChapterFinal: String?
 
         for chapter in plan.sections {
             try Task.checkCancellation()
             let chunks = plan.chunks.enumerated().filter { plan.sectionForChunk[$0.offset] == chapter.index }.map(\.element)
             var priorDrafts: [Int: String] = [:]
+            // Freeze this chapter's background before any concurrent requests.
+            // Future or partial chapter checkpoints never supply the sample.
+            let chapterBackground = options.quality == .fast ? nil : previousCompletedChapterFinal
 
             for stage in options.stages {
                 try Task.checkCancellation()
@@ -91,7 +99,7 @@ public struct FictionEngine: Sendable {
                                 let request = TranslationRequest(
                                     requestID: "\(jobID)-\(chunk.index)-\(stage.rawValue)",
                                     source: chunk.text,
-                                    context: FictionContext.make(source: source, plan: plan, index: chunk.index, priorDrafts: snapshot),
+                                    context: FictionContext.make(source: source, plan: plan, index: chunk.index, priorDrafts: snapshot, previousChapterFinal: chapterBackground),
                                     draft: snapshot[chunk.index] ?? "",
                                     stage: stage,
                                     options: chunkOptions
@@ -114,6 +122,10 @@ public struct FictionEngine: Sendable {
                 priorDrafts = results
             }
             for chunk in chunks { output[chunk.index] = priorDrafts[chunk.index] ?? "" }
+            // Only a complete final pass, restored from cache or persisted above,
+            // becomes background for the following chapter. Joining also retains
+            // continuity when the final chunk is shorter than the sample budget.
+            previousCompletedChapterFinal = chunks.map { output[$0.index] ?? "" }.joined(separator: "\n\n")
         }
         try Task.checkCancellation()
         return plan.chunks.map { output[$0.index] ?? "" }.joined(separator: "\n\n")

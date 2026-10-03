@@ -52,6 +52,35 @@ final class StructuredChunkerTests: XCTestCase, @unchecked Sendable {
         XCTAssertEqual(Chunker.plan(text: prose, kind: .fiction).sections.map(\.title), ["正文"])
     }
 
+    func testLargerEnglishWordNumbersRemainSeparatePublicationChapters() async throws {
+        let titles = ["CHAPTER ELEVEN: The River", "CHAPTER TWENTY-ONE: The Road", "CHAPTER NINETY NINE: Return"]
+        let source = titles.enumerated().map { "\($0.element)\nAlice continued on day \($0.offset + 1).\n\n" }.joined()
+        let plan = Chunker.plan(text: source, kind: .fiction)
+        XCTAssertEqual(DocumentClassifier.detect(text: source), .fiction)
+        XCTAssertEqual(plan.sections.map(\.title), titles)
+        XCTAssertEqual(plan.sectionForChunk, [0, 1, 2])
+        assertLossless(plan, source: source, budget: DocumentKind.fiction.defaultBudget)
+
+        let provider = FakeProvider(), collector = Collector()
+        let result = try await TranslationEngine().run(jobID: "larger-word-chapters", source: source, options: .init(quality: .publication), provider: provider) { await collector.add($0) }
+        let checkpoints = await collector.values, calls = await provider.calls
+        XCTAssertEqual(result, plan.chunks.map(\.text).joined(separator: "\n\n"))
+        XCTAssertEqual(checkpoints.map(\.index), [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2])
+        XCTAssertEqual(checkpoints.map(\.stage), Stage.allCases + Stage.allCases + Stage.allCases)
+        XCTAssertEqual(calls, 12)
+    }
+
+    func testSharedChapterPredicatePreservesExistingMarkersWithoutCapturingNumberProse() {
+        for title in ["Chapter 12-After the storm", "Chapter XCIX: Return", "第十二回 往事", "第二卷", "Chapter Eighty‑Seven"] {
+            XCTAssertTrue(FictionChapterHeading.matches(title), title)
+            XCTAssertEqual(Chunker.plan(text: title + "\nText.\n", kind: .fiction).sections.first?.title, title)
+        }
+        for text in ["Chapter twentytwo", "Chapter twenty-ten", "Chapter twenty-one-year-old", "Chapter oneiric", "The chapter ninety-nine was missing.", "At ninety-nine, she still read every day.", "ninety-nine"] {
+            XCTAssertFalse(FictionChapterHeading.matches(text), text)
+            XCTAssertEqual(Chunker.plan(text: text + "\n", kind: .fiction).sections.map(\.title), ["正文"])
+        }
+    }
+
     func testGeneralDocumentsUseHeadingsWithoutTreatingChapterProseAsHeading() {
         let source = "Chapter 2\nIntroduction.\n\n# Installation #\nRun the installer.\n## Configuration\nSet values.\n"
         let plan = Chunker.plan(text: source, kind: .general)

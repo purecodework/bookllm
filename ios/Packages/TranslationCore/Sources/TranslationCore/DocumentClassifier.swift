@@ -87,7 +87,7 @@ public enum DocumentClassifier {
                 if matches(heading, #"^(?:references|bibliography|参考文献|参考书目)\s*[:：]?\s*$"#) { references = true }
                 if matches(text, #"\b(?:doi\s*[:：]\s*|https?://(?:dx\.)?doi\.org/)10\.\d{4,9}/\S+"#) { doi = true }
 
-                if matches(heading, #"^(?:第[零〇一二三四五六七八九十百千万两壹贰叁肆伍陆柒捌玖拾佰仟0-9０-９]+[章卷回](?:.*)|chapter\s+(?:\d+|[ivxlcdm]+|one|two|three|four|five|six|seven|eight|nine|ten)(?:\s.*|[.:：—–-].*)?)$"#) { chapterCount += 1 }
+                if FictionChapterHeading.matches(heading) { chapterCount += 1 }
                 if matches(heading, #"^(?:(?:act|scene)\s+(?:\d+|[ivxlcdm]+)(?:\s.*|[.:：—–-].*)?|第[零〇一二三四五六七八九十百千万两0-9０-９]+[幕场](?:.*))$"#) { actOrSceneCount += 1 }
                 if matches(text, #"^(?:int\.?/ext|ext\.?/int|int|ext|i/e)\.\s+\S+"#) { screenplaySceneCount += 1 }
 
@@ -117,7 +117,7 @@ public enum DocumentClassifier {
             if screenplaySceneCount >= 2 { return true }
             if (actOrSceneCount > 0 || screenplaySceneCount > 0) && speakerTurns >= 2 { return true }
             if matches(title, #"(?:\bscreenplay\b|\bstage play\b|剧本|戏剧)"#), speakerTurns >= 2 { return true }
-            return inlineSpeakerTurns >= 4 && inlineSpeakers.count >= 2 && codeLineCount == 0 && listLineCount == 0
+            return chapterCount == 0 && inlineSpeakerTurns >= 4 && inlineSpeakers.count >= 2 && codeLineCount == 0 && listLineCount == 0
         }
 
         func isPoetry(title: String) -> Bool {

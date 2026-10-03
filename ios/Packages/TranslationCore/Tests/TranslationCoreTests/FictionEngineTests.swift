@@ -127,7 +127,8 @@ final class FictionEngineTests: XCTestCase, @unchecked Sendable {
             for neighbor in [index - 1, index + 1] where plan.chunks.indices.contains(neighbor) {
                 let sameChapter = plan.sectionForChunk[neighbor] == plan.sectionForChunk[index]
                 for stage in Stage.allCases {
-                    let shouldContain = sameChapter && stagePosition > 0 && stage == options.stages[stagePosition - 1]
+                    let precedingChapterFinal = !sameChapter && neighbor == index - 1 && stage == options.stages.last
+                    let shouldContain = precedingChapterFinal || (sameChapter && stagePosition > 0 && stage == options.stages[stagePosition - 1])
                     XCTAssertEqual(request.context.contains(fictionTag(index: neighbor, stage: stage)), shouldContain,
                                    "Unexpected \(stage.rawValue) neighbor \(neighbor) in \(request.requestID)")
                 }
@@ -244,6 +245,101 @@ final class FictionEngineTests: XCTestCase, @unchecked Sendable {
             let requests = await provider.requests
             XCTAssertEqual(requests.map(\.stage), includeLinguist ? [.translate, .proofread, .linguist] : [.translate, .proofread])
             XCTAssertEqual(result, fictionTag(index: 0, stage: includeLinguist ? .linguist : .proofread))
+        }
+    }
+
+    func testNewChapterUsesCompletedFinalTranslationForEachEditorialQuality() async throws {
+        let source = self.source(firstChapterChunks: 2), plan = Chunker.plan(text: source, kind: .fiction)
+        let boundary = try XCTUnwrap(plan.sectionForChunk.firstIndex(of: 1))
+        var reviewedPreferences = TranslationPreferences(); reviewedPreferences.extraLanguageReview = true
+        let configurations: [TranslationOptions] = [.init(quality: .refined), .init(quality: .refined, preferences: reviewedPreferences), .init(quality: .publication)]
+        for options in configurations {
+            let trace = FictionTrace(), provider = FictionRecordingProvider(trace: trace)
+            _ = try await FictionEngine().run(jobID: "finalvoice", source: source, options: options, provider: provider) { await trace.save($0) }
+            let requests = await provider.requests, last = try XCTUnwrap(options.stages.last)
+            let finalChapter = plan.chunks.prefix(boundary).map { fictionTag(index: $0.index, stage: last) }.joined(separator: "\n\n")
+            XCTAssertEqual(requests.count, plan.chunks.count * options.stages.count)
+            for request in requests where fictionIndex(request) == boundary {
+                XCTAssertTrue(request.context.contains("PREVIOUS CHAPTER FINAL TRANSLATION"))
+                XCTAssertTrue(request.context.contains("never copy its text or introduce its facts or events"))
+                XCTAssertTrue(request.context.contains(scalarTail(finalChapter, 350)))
+                // Both final chunks fit the sample, so the preceding chunk is
+                // represented even when the chapter's final chunk is very short.
+                XCTAssertTrue(request.context.contains(fictionTag(index: 0, stage: last)))
+                for earlier in options.stages.dropLast() {
+                    XCTAssertFalse(request.context.contains(fictionTag(index: boundary - 1, stage: earlier)))
+                }
+                XCTAssertLessThanOrEqual(request.context.unicodeScalars.count, 3_900)
+            }
+            for request in requests where fictionIndex(request) != boundary {
+                XCTAssertFalse(request.context.contains("PREVIOUS CHAPTER FINAL TRANSLATION"))
+            }
+        }
+    }
+
+    func testBoundaryResumeUsesIdenticalFinalVoiceAndRequestIdentity() async throws {
+        let source = self.source(), plan = Chunker.plan(text: source, kind: .fiction)
+        let boundary = try XCTUnwrap(plan.sectionForChunk.firstIndex(of: 1)), options = TranslationOptions(quality: .publication)
+        let originalTrace = FictionTrace(), originalProvider = FictionRecordingProvider(trace: originalTrace)
+        let originalResult = try await FictionEngine().run(jobID: "boundaryresume", source: source, options: options, provider: originalProvider) { await originalTrace.save($0) }
+        let originalRequests = await originalProvider.requests, saved = await originalTrace.checkpoints
+        let reusable = saved.filter { $0.index < boundary || ($0.index == boundary && $0.stage == .translate) }
+        let resumedTrace = FictionTrace(), resumedProvider = FictionRecordingProvider(trace: resumedTrace)
+        let resumedResult = try await FictionEngine().run(jobID: "boundaryresume", source: source, options: options, provider: resumedProvider, checkpoints: reusable) { await resumedTrace.save($0) }
+        let resumedRequests = await resumedProvider.requests
+        XCTAssertEqual(resumedResult, originalResult)
+        XCTAssertEqual(resumedRequests.count, originalRequests.count - reusable.count)
+        for request in resumedRequests {
+            let original = try XCTUnwrap(originalRequests.first { $0.requestID == request.requestID })
+            XCTAssertEqual(request.context, original.context)
+            XCTAssertEqual(request.draft, original.draft)
+            XCTAssertEqual(request.options, original.options)
+            XCTAssertEqual(request.source, original.source)
+        }
+        let boundaryRequest = try XCTUnwrap(resumedRequests.first { fictionIndex($0) == boundary })
+        XCTAssertTrue(boundaryRequest.context.contains(fictionTag(index: boundary - 1, stage: .editor)))
+    }
+
+    func testFutureIncompleteChapterCacheNeverProvidesPreviousChapterBackground() async throws {
+        let source = self.source(firstChapterChunks: 2, secondChapterChunks: 1) + "Chapter III: Tomorrow\n\n" + String(repeating: "丙", count: 1_000)
+        let plan = Chunker.plan(text: source, kind: .fiction), options = TranslationOptions(quality: .publication)
+        XCTAssertEqual(plan.sections.count, 3)
+        let secondBoundary = try XCTUnwrap(plan.sectionForChunk.firstIndex(of: 1)), thirdBoundary = try XCTUnwrap(plan.sectionForChunk.firstIndex(of: 2))
+        // A later chapter's final checkpoint alone does not mean the chapter is
+        // complete. The current chapter's cached early pass is also not final.
+        let cache = [Checkpoint(index: thirdBoundary, stage: .editor, text: "UNFINISHED-FUTURE-FINAL"),
+                     Checkpoint(index: secondBoundary, stage: .translate, text: "EARLY-SECOND-CHAPTER-DRAFT")]
+        let trace = FictionTrace(), provider = FictionRecordingProvider(trace: trace)
+        _ = try await FictionEngine().run(jobID: "futurecache", source: source, options: options, provider: provider, checkpoints: cache) { await trace.save($0) }
+        let requests = await provider.requests
+        for request in requests where fictionIndex(request) < thirdBoundary {
+            XCTAssertFalse(request.context.contains("UNFINISHED-FUTURE-FINAL"))
+        }
+        for request in requests where fictionIndex(request) == secondBoundary {
+            XCTAssertTrue(request.context.contains(fictionTag(index: secondBoundary - 1, stage: .editor)))
+            XCTAssertFalse(request.context.contains("EARLY-SECOND-CHAPTER-DRAFT"))
+        }
+        for request in requests where fictionIndex(request) == thirdBoundary {
+            XCTAssertTrue(request.context.contains(fictionTag(index: secondBoundary, stage: .editor)))
+            XCTAssertFalse(request.context.contains("EARLY-SECOND-CHAPTER-DRAFT"))
+            XCTAssertFalse(request.context.contains("UNFINISHED-FUTURE-FINAL"))
+        }
+    }
+
+    func testOptionalPreviousFinalIsScalarBoundedAndFastChapterContextIsUnchanged() async throws {
+        let source = self.source(firstChapterChunks: 1, secondChapterChunks: 1), plan = Chunker.plan(text: source, kind: .fiction)
+        let boundary = try XCTUnwrap(plan.sectionForChunk.firstIndex(of: 1)), sample = String(repeating: "👨‍👩‍👧‍👦e\u{301}", count: 100) + "FINAL-VOICE-END"
+        let context = FictionContext.make(source: source, plan: plan, index: boundary, previousChapterFinal: sample)
+        XCTAssertTrue(context.contains(scalarTail(sample, 350)))
+        XCTAssertLessThanOrEqual(context.unicodeScalars.count, 3_900)
+        XCTAssertFalse(FictionContext.make(source: source, plan: plan, index: 0, previousChapterFinal: sample).contains("FINAL-VOICE-END"))
+        let trace = FictionTrace(), provider = FictionRecordingProvider(trace: trace)
+        _ = try await FictionEngine().run(jobID: "fastboundary", source: source, options: .init(quality: .fast), provider: provider) { await trace.save($0) }
+        let requests = await provider.requests
+        XCTAssertEqual(requests.count, plan.chunks.count)
+        for request in requests {
+            XCTAssertEqual(request.context, FictionContext.make(source: source, plan: plan, index: fictionIndex(request)))
+            XCTAssertFalse(request.context.contains("PREVIOUS CHAPTER FINAL TRANSLATION"))
         }
     }
 
