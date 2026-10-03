@@ -139,7 +139,13 @@ struct JobView: View {
             case .editor: return "参考相邻译稿，统一本章衔接与表达"
             }
         }
-        switch stage { case .translate: "忠实传达原作，保留段落与声音"; case .proofread: "核对遗漏、误译、数字与术语"; case .linguist: "审校外语、习语、语气与编者注"; case .editor: "统一风格、节奏与最终表达" } }
+        switch stage {
+        case .translate: return "忠实传达原作，保留段落与声音"
+        case .proofread: return "核对遗漏、误译、数字与术语"
+        case .linguist: return "审校外语、习语、语气与编者注"
+        case .editor: return "统一风格、节奏与最终表达"
+        }
+    }
 }
 struct PreferencesSheet: View {
     @Binding var preferences: TranslationPreferences
