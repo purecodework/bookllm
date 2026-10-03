@@ -54,6 +54,7 @@ struct JobView: View {
                         Spacer()
                         Menu {
                             ForEach(DocumentKind.allCases.filter { $0 != .general }) { kind in Button(kind.title) { studio.update(id) { $0.options.documentKind = kind; $0.genreWasCorrected = true } } }
+                            Button("按原文结构") { studio.update(id) { $0.options.documentKind = .general; $0.genreWasCorrected = true } }
                             Button("重新自动识别") { studio.update(id) { $0.options.documentKind = DocumentClassifier.detect(text: job.source, title: job.title, format: job.format); $0.genreWasCorrected = false } }
                         } label: { Image(systemName: "ellipsis").padding(6).foregroundStyle(Ink.muted) }.accessibilityLabel("纠正文稿类型")
                     }
@@ -124,7 +125,7 @@ struct JobView: View {
     }
     private func action(_ job: BookJob) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            if job.status == .draft { HStack { Text(studio.ownAPI ? "使用自己的 API · 由服务商计费" : "预计 \(job.estimate) 点 · 含术语与所选审校"); Spacer(); Text("DeepSeek").foregroundStyle(Ink.text) }.font(.system(size: 11)).foregroundStyle(Ink.muted) }
+            if job.status == .draft { HStack { Text(studio.ownAPI ? "使用自己的 API · 由服务商计费" : "预计 \(job.estimate) 点 · 含术语与所选审校"); Spacer(); Text(studio.ownAPI ? studio.model : "DeepSeek").foregroundStyle(Ink.text).lineLimit(1) }.font(.system(size: 11)).foregroundStyle(Ink.muted) }
             if studio.activeID == id { PrimaryButton(title: "暂停，稍后继续", icon: "pause") { studio.pause() } }
             else { PrimaryButton(title: job.status == .reviewing ? "确认术语，开始翻译" : job.status == .draft ? "开始翻译" : "继续翻译", icon: "sparkle") { studio.begin(id, account: account, purchases: purchases, approved: job.status == .reviewing) }.disabled(studio.task != nil) }
         }

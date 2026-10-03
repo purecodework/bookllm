@@ -1,7 +1,7 @@
 import XCTest
 @testable import TranslationCore
 
-final class StructuredChunkerTests: XCTestCase {
+final class StructuredChunkerTests: XCTestCase, @unchecked Sendable {
     private func assertLossless(_ plan: ChunkPlan, source: String, budget: Double, file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertEqual(plan.sections.map(\.text).joined(), source, file: file, line: line)
         XCTAssertEqual(plan.chunks.map(\.text).joined(), source, file: file, line: line)
@@ -23,6 +23,33 @@ final class StructuredChunkerTests: XCTestCase {
         XCTAssertEqual(plan.sections.map(\.title), ["正文", "第一章 初见", "Chapter IV: The Library", "尾声"])
         XCTAssertEqual(plan.sections.map(\.index), [0, 1, 2, 3])
         assertLossless(plan, source: source, budget: 80)
+    }
+
+    func testSpelledEnglishChaptersDrivePublicationPipelineAsTwoChapters() async throws {
+        let source = "CHAPTER ONE\nAlice arrived by the river.\n\nCHAPTER TWO\nThe mountain was quiet.\n"
+        let plan = Chunker.plan(text: source, kind: .fiction)
+        XCTAssertEqual(DocumentClassifier.detect(text: source), .fiction)
+        XCTAssertEqual(plan.sections.map(\.title), ["CHAPTER ONE", "CHAPTER TWO"])
+        XCTAssertEqual(plan.sectionForChunk, [0, 1])
+        assertLossless(plan, source: source, budget: DocumentKind.fiction.defaultBudget)
+
+        let provider = FakeProvider(), collector = Collector()
+        let result = try await TranslationEngine().run(jobID: "spelled-chapters", source: source, options: .init(quality: .publication), provider: provider) { await collector.add($0) }
+        let checkpoints = await collector.values, calls = await provider.calls
+        XCTAssertEqual(result, plan.chunks.map(\.text).joined(separator: "\n\n"))
+        XCTAssertEqual(checkpoints.map(\.index), [0, 0, 0, 0, 1, 1, 1, 1])
+        XCTAssertEqual(checkpoints.map(\.stage), Stage.allCases + Stage.allCases)
+        XCTAssertEqual(calls, 8)
+    }
+
+    func testSpelledChapterNumbersMatchClassifierAndDoNotCaptureProse() {
+        for number in ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"] {
+            let source = "Chapter \(number): The library\nAlice opened the door.\n"
+            XCTAssertEqual(DocumentClassifier.detect(text: source), .fiction)
+            XCTAssertEqual(Chunker.plan(text: source, kind: .fiction).sections.first?.title, "Chapter \(number): The library")
+        }
+        let prose = "Alice remembered chapter one of the story.\nChapter oneiric was an unusual phrase.\n"
+        XCTAssertEqual(Chunker.plan(text: prose, kind: .fiction).sections.map(\.title), ["正文"])
     }
 
     func testGeneralDocumentsUseHeadingsWithoutTreatingChapterProseAsHeading() {
