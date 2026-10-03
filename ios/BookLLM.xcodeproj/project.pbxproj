@@ -1,0 +1,111 @@
+// !$*UTF8*$!
+{
+    archiveVersion = 1;
+    classes = {};
+    objectVersion = 77;
+    objects = {
+/* Begin PBXBuildFile section */
+        A00000000000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000002 /* Assets.xcassets */; };
+        A00000000000000000000003 /* TranslationCore in Frameworks */ = {isa = PBXBuildFile; productRef = A00000000000000000000004 /* TranslationCore */; };
+        A00000000000000000000005 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = A00000000000000000000006 /* ZIPFoundation */; };
+        A0000000000000000000001E /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000001F /* PrivacyInfo.xcprivacy */; };
+/* End PBXBuildFile section */
+/* Begin PBXFileReference section */
+        A00000000000000000000002 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+        A00000000000000000000007 /* BookLLM.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BookLLM.app; sourceTree = BUILT_PRODUCTS_DIR; };
+        A00000000000000000000008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+        A00000000000000000000009 /* BookLLM.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BookLLM.entitlements; sourceTree = "<group>"; };
+        A0000000000000000000000A /* BookLLM.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = StoreKit/BookLLM.storekit; sourceTree = "<group>"; };
+        A0000000000000000000000B /* README_ZH.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README_ZH.md; sourceTree = "<group>"; };
+        A0000000000000000000001F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+        A0000000000000000000000C /* App */ = {isa = PBXFileSystemSynchronizedRootGroup; path = App; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+/* Begin PBXFrameworksBuildPhase section */
+        A0000000000000000000000D /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000003 /* TranslationCore in Frameworks */, A00000000000000000000005 /* ZIPFoundation in Frameworks */, ); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXFrameworksBuildPhase section */
+/* Begin PBXGroup section */
+        A0000000000000000000000E = {isa = PBXGroup; children = (A0000000000000000000000C /* App */, A0000000000000000000000F /* Resources */, A00000000000000000000010 /* Config */, A0000000000000000000000A /* BookLLM.storekit */, A0000000000000000000000B /* README_ZH.md */, A00000000000000000000011 /* Products */, ); sourceTree = "<group>"; };
+        A0000000000000000000000F /* Resources */ = {isa = PBXGroup; children = (A00000000000000000000002 /* Assets.xcassets */, A0000000000000000000001F /* PrivacyInfo.xcprivacy */, ); path = Resources; sourceTree = "<group>"; };
+        A00000000000000000000010 /* Config */ = {isa = PBXGroup; children = (A00000000000000000000008 /* Info.plist */, A00000000000000000000009 /* BookLLM.entitlements */, ); path = Config; sourceTree = "<group>"; };
+        A00000000000000000000011 /* Products */ = {isa = PBXGroup; children = (A00000000000000000000007 /* BookLLM.app */, ); name = Products; sourceTree = "<group>"; };
+/* End PBXGroup section */
+/* Begin PBXNativeTarget section */
+        A00000000000000000000012 /* BookLLM */ = {
+            isa = PBXNativeTarget;
+            buildConfigurationList = A00000000000000000000013 /* Build configuration list for PBXNativeTarget "BookLLM" */;
+            buildPhases = (A00000000000000000000014 /* Sources */, A0000000000000000000000D /* Frameworks */, A00000000000000000000015 /* Resources */, );
+            buildRules = ();
+            dependencies = ();
+            fileSystemSynchronizedGroups = (A0000000000000000000000C /* App */, );
+            name = BookLLM;
+            packageProductDependencies = (A00000000000000000000004 /* TranslationCore */, A00000000000000000000006 /* ZIPFoundation */, );
+            productName = BookLLM;
+            productReference = A00000000000000000000007 /* BookLLM.app */;
+            productType = "com.apple.product-type.application";
+        };
+/* End PBXNativeTarget section */
+/* Begin PBXProject section */
+        A00000000000000000000016 /* Project object */ = {
+            isa = PBXProject;
+            attributes = {BuildIndependentTargetsInParallel = 1; LastSwiftUpdateCheck = 1600; LastUpgradeCheck = 1600; TargetAttributes = {A00000000000000000000012 = {CreatedOnToolsVersion = 16.0; SystemCapabilities = {com.apple.SignInWithApple = {enabled = 1; }; }; }; }; };
+            buildConfigurationList = A00000000000000000000017 /* Build configuration list for PBXProject "BookLLM" */;
+            developmentRegion = en;
+            hasScannedForEncodings = 0;
+            knownRegions = (en, Base, "zh-Hans", );
+            mainGroup = A0000000000000000000000E;
+            minimizedProjectReferenceProxies = 1;
+            packageReferences = (A00000000000000000000018 /* XCLocalSwiftPackageReference "Packages/TranslationCore" */, A00000000000000000000019 /* XCRemoteSwiftPackageReference "ZIPFoundation" */, );
+            preferredProjectObjectVersion = 77;
+            productRefGroup = A00000000000000000000011 /* Products */;
+            projectDirPath = "";
+            projectRoot = "";
+            targets = (A00000000000000000000012 /* BookLLM */, );
+        };
+/* End PBXProject section */
+/* Begin PBXResourcesBuildPhase section */
+        A00000000000000000000015 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000001 /* Assets.xcassets in Resources */, A0000000000000000000001E /* PrivacyInfo.xcprivacy in Resources */, ); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+/* Begin PBXSourcesBuildPhase section */
+        A00000000000000000000014 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXSourcesBuildPhase section */
+/* Begin XCBuildConfiguration section */
+        A0000000000000000000001A /* Debug */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; COPY_PHASE_STRIP = NO; DEBUG_INFORMATION_FORMAT = dwarf; ENABLE_TESTABILITY = YES; ENABLE_USER_SCRIPT_SANDBOXING = YES; GCC_C_LANGUAGE_STANDARD = gnu17; GCC_NO_COMMON_BLOCKS = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; ONLY_ACTIVE_ARCH = YES; SDKROOT = iphoneos; SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_STRICT_CONCURRENCY = complete; SWIFT_VERSION = 6.0; };
+            name = Debug;
+        };
+        A0000000000000000000001B /* Release */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; COPY_PHASE_STRIP = NO; DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym"; ENABLE_NS_ASSERTIONS = NO; ENABLE_USER_SCRIPT_SANDBOXING = YES; GCC_C_LANGUAGE_STANDARD = gnu17; GCC_NO_COMMON_BLOCKS = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; SWIFT_COMPILATION_MODE = wholemodule; SWIFT_OPTIMIZATION_LEVEL = "-O"; SWIFT_STRICT_CONCURRENCY = complete; SWIFT_VERSION = 6.0; VALIDATE_PRODUCT = YES; };
+            name = Release;
+        };
+        A0000000000000000000001C /* Debug */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor; CLOUD_BASE_URL = ""; CODE_SIGN_ENTITLEMENTS = Config/BookLLM.entitlements; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = Config/Info.plist; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", ); MARKETING_VERSION = 0.1.0; PRODUCT_BUNDLE_IDENTIFIER = app.bookllm.ios; PRODUCT_NAME = "$(TARGET_NAME)"; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SUPPORTS_MACCATALYST = NO; SWIFT_EMIT_LOC_STRINGS = YES; TARGETED_DEVICE_FAMILY = "1,2"; };
+            name = Debug;
+        };
+        A0000000000000000000001D /* Release */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor; CLOUD_BASE_URL = ""; CODE_SIGN_ENTITLEMENTS = Config/BookLLM.entitlements; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = Config/Info.plist; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", ); MARKETING_VERSION = 0.1.0; PRODUCT_BUNDLE_IDENTIFIER = app.bookllm.ios; PRODUCT_NAME = "$(TARGET_NAME)"; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SUPPORTS_MACCATALYST = NO; SWIFT_EMIT_LOC_STRINGS = YES; TARGETED_DEVICE_FAMILY = "1,2"; };
+            name = Release;
+        };
+/* End XCBuildConfiguration section */
+/* Begin XCConfigurationList section */
+        A00000000000000000000013 /* Build configuration list for PBXNativeTarget "BookLLM" */ = {isa = XCConfigurationList; buildConfigurations = (A0000000000000000000001C /* Debug */, A0000000000000000000001D /* Release */, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+        A00000000000000000000017 /* Build configuration list for PBXProject "BookLLM" */ = {isa = XCConfigurationList; buildConfigurations = (A0000000000000000000001A /* Debug */, A0000000000000000000001B /* Release */, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+/* End XCConfigurationList section */
+/* Begin XCLocalSwiftPackageReference section */
+        A00000000000000000000018 /* XCLocalSwiftPackageReference "Packages/TranslationCore" */ = {isa = XCLocalSwiftPackageReference; relativePath = Packages/TranslationCore; };
+/* End XCLocalSwiftPackageReference section */
+/* Begin XCRemoteSwiftPackageReference section */
+        A00000000000000000000019 /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {isa = XCRemoteSwiftPackageReference; repositoryURL = "https://github.com/weichsel/ZIPFoundation.git"; requirement = {kind = upToNextMajorVersion; minimumVersion = 0.9.19; }; };
+/* End XCRemoteSwiftPackageReference section */
+/* Begin XCSwiftPackageProductDependency section */
+        A00000000000000000000004 /* TranslationCore */ = {isa = XCSwiftPackageProductDependency; productName = TranslationCore; };
+        A00000000000000000000006 /* ZIPFoundation */ = {isa = XCSwiftPackageProductDependency; package = A00000000000000000000019 /* XCRemoteSwiftPackageReference "ZIPFoundation" */; productName = ZIPFoundation; };
+/* End XCSwiftPackageProductDependency section */
+    };
+    rootObject = A00000000000000000000016 /* Project object */;
+}

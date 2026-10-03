@@ -1,0 +1,77 @@
+# 译间 · BookLLM for iOS
+
+原生 SwiftUI 小说与文档翻译应用，参考现有 BookLLM 的书库、阅读器、术语提取及多阶段翻译。此目录独立于原有 `frontend/`、`backend/` 与 OCR 服务；原 Web 应用仍可按仓库原有说明运行。
+
+## 体验与实现
+
+- 书库导入 TXT、Markdown、可提取文字的 PDF、EPUB 和 DOCX；粘贴文本也可建立翻译任务。
+- 三档质量：**快速**（译者）、**精译**（译者 → 校对）、**出版**（译者 → 校对 → 语言专家 → 主编）。精译也可另开语言专家。界面展示实际阶段进度。
+- 五种预设文风与可编辑的自定义风格，风格用于提示词，不冒充特定真人译者。
+- 术语库支持系统整理、先由用户校对后开始翻译，或使用自己的术语库；全书采用同一份术语约束。
+- 混合外语可一并翻译、保留原文，或显示原文加译文；可开关词语解释与文化背景编者注，并控制注释密度。语言专家检查外语、语域、习语和注释。
+- 翻译点数使用 StoreKit 2 购买；自带 API 使用非消耗型买断商品解锁。默认 DeepSeek `deepseek-chat`；自带 API 可改为兼容 OpenAI 的 HTTPS 服务。
+- 快速档使用真实 SSE 边翻译边阅读；精译/出版档按章节完成全部审校后开放阅读。已完成章节及完整译文支持系统分享、TXT、Markdown、分页 PDF 导出。
+- 小说、通用文档、技术文档分别使用章节/段落、标题/列表、代码块/表格分块策略；可选择保留内容结构或阅读排版。
+
+`TranslationCore` 默认使用小说 1,800、通用文档 1,400、技术文档 1,100 估算 token 的分块预算，保留前文上下文。章节标题不会在代码块内被误识别，适合预算的代码块和表格尽量整块处理；超长内容会进行保留原文的安全拆分。从 2 个并发请求起步，成功后逐步提高到快速/精译最多 4 个、出版最多 3 个；限流时降低并发并退避重试。每段各阶段的结果保存到本地，暂停后继续复用已有结果。点数模式使用稳定请求 ID 在服务端防止重试重复扣点。速度仍受模型服务和文档长度影响；出版档有更多审校请求。
+
+## 在 Mac 上运行
+
+需要 **Xcode 16 或更新版本、iOS 17 或更新版本**。工程使用 Swift 6、Observation；支持 iPhone 和 iPad。
+
+1. 打开 `ios/BookLLM.xcodeproj`，选择 **BookLLM** scheme。Swift Package Manager 会解析本地 `TranslationCore` 与 `ZIPFoundation`（从 0.9.19 起）。
+2. 选择 iPhone 模拟器后运行。界面和本地书库不需要填写 API 密钥。
+3. 真机运行时，在 Signing & Capabilities 选择自己的 Apple Developer Team；将 `app.bookllm.ios` 改为自己的 Bundle ID，并启用 Sign in with Apple。
+4. 默认 `CLOUD_BASE_URL` 为空。点数翻译需在 target 的 Build Settings 设置 **CLOUD_BASE_URL** 为部署好的服务 HTTPS 地址（含 `/v1`，例如 `https://your-service.example/v1`）。`Info.plist` 的 `CloudBaseURL` 自动读取该值。不要把 DeepSeek 服务商密钥写入该地址或客户端。
+5. 使用自带 API 时，在设置页保存自己的密钥、HTTPS API 地址和模型名；密钥及登录会话保存在 Keychain。正式版本需购买或恢复买断权益。
+
+开发调试可在 scheme 的 Arguments Passed On Launch 加入 `--byok-testing`，仅 Debug 构建可绕过买断校验，方便使用自己的真实 API 进行端到端验证。模型调用仍由服务商计费；Release 构建不提供该入口。
+
+命令行构建与引擎测试：
+
+```bash
+cd ios
+xcodebuild -resolvePackageDependencies -project BookLLM.xcodeproj -scheme BookLLM
+xcodebuild -project BookLLM.xcodeproj -scheme BookLLM \
+  -configuration Debug -sdk iphonesimulator \
+  -destination 'generic/platform=iOS Simulator' \
+  CODE_SIGNING_ALLOWED=NO build
+cd Packages/TranslationCore
+swift test
+```
+
+要在命令行指定服务地址，可在 `xcodebuild` 后追加 `CLOUD_BASE_URL=https://your-service.example/v1`。客户端只接受 HTTPS；工程没有放开 App Transport Security。
+
+提交的 `.xcodeproj` 使用 Xcode 16 的文件夹同步，新增 `App/*.swift` 自动成为源文件。`project.yml` 是可再生成工程的 XcodeGen 配置；需要时执行 `brew install xcodegen`，然后在 `ios/` 执行 `xcodegen generate`。
+
+## StoreKit 与真实商店
+
+BookLLM scheme 已关联 `StoreKit/BookLLM.storekit`。该文件是 **Xcode 本地测试配置**，其中价格仅为暂定测试值，不代表正式售价：
+
+| 商品 ID | 类型 | 本地测试价格 |
+| --- | --- | --- |
+| `app.bookllm.credits.100` | 消耗型 · 100 点 | ¥6 |
+| `app.bookllm.credits.1000` | 消耗型 · 1,000 点 | ¥40 |
+| `app.bookllm.byok.lifetime` | 非消耗型 · 自带 API 永久解锁 | ¥98 |
+
+正式价格从 `Product.displayPrice` 显示。点数与买断权益分别管理：买断允许使用自己的模型服务商账号，模型费用由该服务商收取。
+
+本地 StoreKit 适合测试商品加载、购买状态和买断恢复。云端点数账本只接受 Apple **Sandbox / Production** 的有效签名交易，不接受 Xcode 本地交易生成的凭据，因此本地测试购买不会伪造到账。验证真实点数购买时，在 Edit Scheme → Run → Options 将 StoreKit Configuration 设为 **None**，使用 App Store Connect 配置的商品与 Apple Sandbox 测试账户，并将服务设为 Sandbox 验证环境。点数购买先登录，交易绑定 `appAccountToken`；服务确认入账后客户端才结束交易。
+
+## 云端服务与上线配置
+
+`server/` 为 iOS 的账户、交易验证、点数账本与 DeepSeek 转发服务；详见该目录说明。原 NestJS Web 后端未替换。接入现有基础设施时，应保留同样的服务协议和服务端校验，不能让客户端自行声明购买有效或点数余额。
+
+发布前需要完成的外部配置：
+
+- Apple Developer Team、唯一 Bundle ID、Sign in with Apple capability 与 App Store Connect 应用。
+- App Store Connect 中创建上述商品 ID，确认消耗型/非消耗型类型、实际价格、购买说明及审核材料；若更改商品 ID，需同步客户端、StoreKit 测试文件与服务端商品表。
+- 部署 `server/` 并配置 Apple Bundle ID、数值 App ID、Apple 根证书、Sandbox/Production 环境、随机会话签名密钥和服务商密钥；部署到 HTTPS，持久化并备份点数数据库。
+- 在真实 Sandbox 和真机上验证登录、点数到账、重复交易、暂停续译、恢复买断、文档分享和长文导出，再运行 Release archive 和 App Store 验证。
+- 提供可访问的隐私政策、使用条款、服务计费说明与账号删除功能；根据实际数据收集情况填写 App Store 隐私标签。`Resources/PrivacyInfo.xcprivacy` 已声明仅访问本应用 UserDefaults 的必需理由 `CA92.1`；发布时仍需复核新增代码和依赖的声明。用户文档会发送给所选模型服务商，需在正式产品隐私说明中告知。
+
+App 在前台执行翻译；进入后台时 iOS 可能挂起任务。重新打开后可继续已有检查点。导入会尽量保留标题、段落、列表、强调及代码等文本结构。保留排版是结构与语义保留，PDF 复杂页布局、图片定位、复杂表格和原书脚注不保证完整保真；扫描 PDF 需先 OCR。导出生成新的译文文件，TXT/Markdown/PDF 已实现；未实现 EPUB/DOCX 的排版回写。
+
+## 验证范围
+
+本工作区为 Linux，**没有 Xcode 或 iOS Simulator**。Linux 的 Swift 编译器可执行独立翻译引擎测试与原生 Swift 文件的语法解析；不能完成 SwiftUI/UIKit/StoreKit 的 iOS SDK 类型检查、运行或真机验证。`.github/workflows/ios.yml` 在 macOS 上运行 `swift test` 和关闭签名的模拟器构建；只有 CI 实际通过后才能确认 native 构建通过。Web 预览仅用于交互和视觉检查，不代替原生 iOS 运行。

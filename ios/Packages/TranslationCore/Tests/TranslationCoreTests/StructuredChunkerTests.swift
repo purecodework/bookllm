@@ -1,0 +1,119 @@
+import XCTest
+@testable import TranslationCore
+
+final class StructuredChunkerTests: XCTestCase {
+    private func assertLossless(_ plan: ChunkPlan, source: String, budget: Double, file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertEqual(plan.sections.map(\.text).joined(), source, file: file, line: line)
+        XCTAssertEqual(plan.chunks.map(\.text).joined(), source, file: file, line: line)
+        XCTAssertEqual(plan.chunks.map(\.index), Array(plan.chunks.indices), file: file, line: line)
+        XCTAssertEqual(plan.sectionForChunk.count, plan.chunks.count, file: file, line: line)
+        for (index, chunk) in plan.chunks.enumerated() {
+            XCTAssertLessThanOrEqual(chunk.text.reduce(0) { $0 + Chunker.tokenCost($1) }, budget + 0.001, file: file, line: line)
+            XCTAssertEqual(chunk.context, index == 0 ? "" : String(plan.chunks[index - 1].text.suffix(350)), file: file, line: line)
+        }
+        for section in plan.sections {
+            let text = zip(plan.chunks, plan.sectionForChunk).filter { $0.1 == section.index }.map { $0.0.text }.joined()
+            XCTAssertEqual(text, section.text, file: file, line: line)
+        }
+    }
+
+    func testFictionRecognizesChineseEnglishAndMarkdownChapters() {
+        let source = "序言。\n\n第一章 初见\n她来了。\n\nChapter IV: The Library\nAlice reads.\n\n# 尾声\n再见。\n"
+        let plan = Chunker.plan(text: source, kind: .fiction, budget: 80)
+        XCTAssertEqual(plan.sections.map(\.title), ["正文", "第一章 初见", "Chapter IV: The Library", "尾声"])
+        XCTAssertEqual(plan.sections.map(\.index), [0, 1, 2, 3])
+        assertLossless(plan, source: source, budget: 80)
+    }
+
+    func testGeneralDocumentsUseHeadingsWithoutTreatingChapterProseAsHeading() {
+        let source = "Chapter 2\nIntroduction.\n\n# Installation #\nRun the installer.\n## Configuration\nSet values.\n"
+        let plan = Chunker.plan(text: source, kind: .general)
+        XCTAssertEqual(plan.sections.map(\.title), ["正文", "Installation", "Configuration"])
+        assertLossless(plan, source: source, budget: DocumentKind.general.defaultBudget)
+    }
+
+    func testHeadingsInsideFencesNeverCreateSections() {
+        let source = "# Guide\n````markdown\n# Hidden\nChapter IX\n第十章\n```\n## Still hidden\n````\n## Actual end\nEnd.\n"
+        for kind in DocumentKind.allCases {
+            let plan = Chunker.plan(text: source, kind: kind, budget: 100)
+            XCTAssertEqual(plan.sections.map(\.title), ["Guide", "Actual end"])
+            assertLossless(plan, source: source, budget: 100)
+        }
+    }
+
+    func testIndentedCodeHeadingsDoNotCreateSections() {
+        let source = "# Start\n    # Code heading\n    Chapter IV\n\t第一章\n# End\n"
+        for kind in DocumentKind.allCases {
+            let plan = Chunker.plan(text: source, kind: kind)
+            XCTAssertEqual(plan.sections.map(\.title), ["Start", "End"])
+            assertLossless(plan, source: source, budget: kind.defaultBudget)
+        }
+    }
+
+    func testCodeFenceStaysWholeWhenPrecedingHeadingWouldOverflow() {
+        let heading = "# Long API document heading to test boundary\n\n"
+        let code = "```swift\n" + String(repeating: "let value = 1\n", count: 16) + "```\n"
+        let source = heading + code + "\nExplanation.\n"
+        let plan = Chunker.plan(text: source, kind: .technical, budget: 80)
+        XCTAssertLessThanOrEqual(code.reduce(0) { $0 + Chunker.tokenCost($1) }, 80)
+        XCTAssertTrue(plan.chunks.contains { $0.text.contains(code) })
+        XCTAssertEqual(plan.chunks.first?.text, heading)
+        assertLossless(plan, source: source, budget: 80)
+    }
+
+    func testMarkdownTableStaysWholeWhenItFitsBudget() {
+        let table = "| Name | Meaning |\n| :--- | ---: |\n| API | 接口 |\n| SDK | 工具 |\n"
+        let source = "# Reference\n\n" + String(repeating: "P", count: 180) + "\n\n" + table + "\nDone.\n"
+        let plan = Chunker.plan(text: source, kind: .technical, budget: 80)
+        XCTAssertTrue(plan.chunks.contains { $0.text.contains(table) })
+        assertLossless(plan, source: source, budget: 80)
+    }
+
+    func testOversizedCodeAndTableFallbackAddsNoSyntheticWrappers() {
+        let code = "~~~swift\n" + String(repeating: "let 汉字 = 1\n", count: 80) + "~~~\n"
+        let table = "Name | Value\n--- | ---\n" + String(repeating: "键 | 值👨‍👩‍👧‍👦\n", count: 80)
+        let source = "# Large assets\n" + code + "\n" + table
+        let plan = Chunker.plan(text: source, kind: .technical, budget: 64)
+        XCTAssertGreaterThan(plan.chunks.count, 3)
+        assertLossless(plan, source: source, budget: 64)
+        XCTAssertEqual(plan.chunks.map(\.text).joined().components(separatedBy: "~~~").count, 3)
+    }
+
+    func testUnicodeNewlinesWhitespaceAndSectionOrderingAreLossless() {
+        let source = " \r\n# 第一部分\r\n" + String(repeating: "她读着 cafe\u{301} 👨‍👩‍👧‍👦。\r\n\r\n", count: 80) + "## 第二部分\r\n  内容。\r\n"
+        let plan = Chunker.plan(text: source, kind: .general, budget: 100)
+        XCTAssertEqual(plan.sections.map(\.title), ["第一部分", "第二部分"])
+        XCTAssertEqual(plan.sectionForChunk, plan.sectionForChunk.sorted())
+        XCTAssertTrue(plan.sections[0].text.hasPrefix(" \r\n#"))
+        assertLossless(plan, source: source, budget: 100)
+    }
+
+    func testWithoutHeadingsHasOneSectionAndWhitespaceIsRetained() {
+        for source in ["A paragraph.\n\nAnother paragraph.\n", " \r\n\t ", "第一个故事，没有章节标题。"] {
+            let plan = Chunker.plan(text: source, kind: .fiction)
+            XCTAssertEqual(plan.sections.count, 1)
+            assertLossless(plan, source: source, budget: DocumentKind.fiction.defaultBudget)
+        }
+        XCTAssertTrue(Chunker.plan(text: "", kind: .fiction).sections.isEmpty)
+        XCTAssertTrue(Chunker.split(" \r\n\t ").isEmpty)
+    }
+
+    func testDocumentKindsUseDifferentConservativeBudgets() {
+        let source = String(repeating: "汉", count: 8000)
+        let fiction = Chunker.plan(text: source, kind: .fiction)
+        let general = Chunker.plan(text: source, kind: .general)
+        let technical = Chunker.plan(text: source, kind: .technical)
+        XCTAssertLessThan(fiction.chunks.count, general.chunks.count)
+        XCTAssertLessThan(general.chunks.count, technical.chunks.count)
+        assertLossless(fiction, source: source, budget: 1800)
+        assertLossless(general, source: source, budget: 1400)
+        assertLossless(technical, source: source, budget: 1100)
+    }
+
+    func testEarlyPunctuationCannotLeaveAnOverBudgetUnicodeChunk() {
+        let source = "." + String(repeating: "x", count: 199) + "汉"
+        let chunks = Chunker.split(source, budget: 64)
+        XCTAssertEqual(chunks.map(\.text).joined(), source)
+        XCTAssertTrue(chunks.allSatisfy { $0.text.reduce(0) { $0 + Chunker.tokenCost($1) } <= 64.001 })
+    }
+}
