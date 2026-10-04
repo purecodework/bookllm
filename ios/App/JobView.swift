@@ -33,7 +33,7 @@ struct JobView: View {
             switch destination {
             case .preferences: PreferencesSheet(preferences: binding(\.options.preferences))
             case .glossary: JobGlossaryView(id: id)
-            case .wallet: WalletView()
+            case .wallet: WalletView(ownOverride: false)
             case .repair: RepairDraftView(id: id)
             }
         }

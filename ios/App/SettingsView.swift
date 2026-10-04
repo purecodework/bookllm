@@ -74,20 +74,22 @@ struct AppleLoginView: View {
     }
 }
 struct WalletView: View {
+    var ownOverride: Bool? = nil
     @Environment(StudioStore.self) private var studio
     @Environment(CloudAccount.self) private var account
     @Environment(PurchaseStore.self) private var purchases
     @Environment(\.dismiss) private var dismiss
+    private var own: Bool { ownOverride ?? studio.ownAPI }
     var body: some View {
         @Bindable var purchases = purchases
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
-                    if !studio.ownAPI {
+                    if !own {
                         PaperCard { HStack { Text("翻译点数").font(.system(size: 14)); Spacer(); Text(account.isLoggedIn ? "\(account.points.formatted())" : "登录后查看").font(.system(size: 24, design: .serif)) } }
                         if !account.isLoggedIn { AppleLoginView() }
                     }
-                    ForEach(purchases.products.filter { studio.ownAPI ? $0.id == PurchaseStore.ids[2] : $0.id != PurchaseStore.ids[2] }) { product in
+                    ForEach(purchases.products.filter { own ? $0.id == PurchaseStore.ids[2] : $0.id != PurchaseStore.ids[2] }) { product in
                         let byok = product.id == PurchaseStore.ids[2]
                         PaperCard {
                             VStack(alignment: .leading, spacing: 14) {
@@ -100,10 +102,10 @@ struct WalletView: View {
                         }
                     }
                     if purchases.products.isEmpty { Text("商品暂不可用。").font(.system(size: 13)).foregroundStyle(Ink.muted) }
-                    Text(studio.ownAPI ? "API 用量由服务商计费。" : "每 \(account.tokensPerPoint.formatted()) 个实际输入与输出 token 合计 1 点，每轮不足 1 点按 1 点计。先预留，完成后结算并退回差额。术语提取与补全按实际调用计费。").font(.system(size: 12)).foregroundStyle(Ink.muted).lineSpacing(5)
+                    Text(own ? "API 用量由服务商计费。" : "每 \(account.tokensPerPoint.formatted()) 个实际输入与输出 token 合计 1 点，每轮不足 1 点按 1 点计。先预留，完成后结算并退回差额。术语提取与补全按实际调用计费。").font(.system(size: 12)).foregroundStyle(Ink.muted).lineSpacing(5)
                     Button("恢复购买") { Task { await purchases.restore(account: account) } }.font(.system(size: 13)).frame(maxWidth: .infinity)
                 }.padding(24)
-            }.background(Ink.paper).navigationTitle(studio.ownAPI ? "买断解锁" : "购买点数").navigationBarTitleDisplayMode(.inline)
+            }.background(Ink.paper).navigationTitle(own ? "买断解锁" : "购买点数").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { dismiss() } } }
                 .task { await purchases.load(); if account.isLoggedIn { try? await account.refresh() } }
                 .alert("购买状态", isPresented: Binding(get: { purchases.message != nil }, set: { if !$0 { purchases.message = nil } })) { Button("知道了") { purchases.message = nil } } message: { Text(purchases.message ?? "") }

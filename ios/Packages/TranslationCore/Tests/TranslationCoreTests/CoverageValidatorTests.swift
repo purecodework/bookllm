@@ -10,7 +10,7 @@ private final class CoverageMockURLProtocol: URLProtocol, @unchecked Sendable {
     override func startLoading() {
         let body = request.httpBody.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
         let own = request.url?.path.hasSuffix("chat/completions") == true
-        let streaming = request.url?.path.hasSuffix("translate/stream") == true || body?["stream"] as? Bool == true
+        let streaming = request.value(forHTTPHeaderField: "Accept") == "text/event-stream" || request.url?.path.hasSuffix("translate/stream") == true || body?["stream"] as? Bool == true
         let payload: String
         if streaming {
             payload = own ? "data: {\"choices\":[{\"delta\":{\"content\":\"片段\"},\"finish_reason\":\"stop\"}]}\n\ndata: [DONE]\n\n" : "data: {\"delta\":\"片段\"}\n\ndata: {\"done\":true}\n\n"

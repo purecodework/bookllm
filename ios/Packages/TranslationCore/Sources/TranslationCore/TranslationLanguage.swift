@@ -40,19 +40,30 @@ public enum TranslationLanguage: String, CaseIterable, Identifiable, Sendable {
 public enum SourceLanguageDetection {
     public static func code(for text: String) -> String? {
         #if canImport(NaturalLanguage)
-        let sample: String
-        if text.count <= 12000 { sample = text }
+        let samples: [String]
+        if text.count <= 12000 { samples = [text] }
         else {
             let midpoint = text.index(text.startIndex, offsetBy: text.count / 2)
             let middle = text.index(midpoint, offsetBy: -2000)
-            sample = String(text.prefix(4000)) + "\n" + String(text[middle...].prefix(4000)) + "\n" + String(text.suffix(4000))
+            samples = [String(text.prefix(4000)), String(text[middle...].prefix(4000)), String(text.suffix(4000))]
         }
-        guard sample.lazy.filter({ $0.isLetter }).prefix(24).count >= 24 else { return nil }
-        let recognizer = NLLanguageRecognizer()
-        recognizer.processString(sample)
-        guard let language = recognizer.dominantLanguage,
-              (recognizer.languageHypotheses(withMaximum: 3)[language] ?? 0) >= 0.5 else { return nil }
-        return language.rawValue
+        var votes: [String: Int] = [:]
+        var confidence: [String: Double] = [:]
+        for sample in samples {
+            guard sample.lazy.filter({ $0.isLetter }).prefix(24).count >= 24 else { continue }
+            let recognizer = NLLanguageRecognizer()
+            recognizer.processString(sample)
+            guard let language = recognizer.dominantLanguage else { continue }
+            let certainty = recognizer.languageHypotheses(withMaximum: 3)[language] ?? 0
+            guard certainty >= 0.5 else { continue }
+            votes[language.rawValue, default: 0] += 1
+            confidence[language.rawValue, default: 0] += certainty
+        }
+        return votes.keys.sorted {
+            if votes[$0] != votes[$1] { return (votes[$0] ?? 0) > (votes[$1] ?? 0) }
+            if confidence[$0] != confidence[$1] { return (confidence[$0] ?? 0) > (confidence[$1] ?? 0) }
+            return $0 < $1
+        }.first
         #else
         return nil
         #endif
