@@ -2,6 +2,7 @@ import httpx
 import pytest
 
 from translation_service.models import TranslationRequest
+from translation_service.billing import TokenUsage
 from translation_service.prompts import translation_messages
 from translation_service.provider import AmbiguousProviderFailure, DeepSeek, DefiniteProviderFailure
 from test_api import body
@@ -29,7 +30,7 @@ def test_language_expert_and_editor_respect_preferences():
 async def test_provider_sends_only_server_key_and_validates_stop(settings):
     def respond(request):
         assert request.headers["Authorization"] == "Bearer unit-test-not-a-real-secret"
-        return httpx.Response(200, json={"choices": [{"message": {"content": "译文"}, "finish_reason": "stop"}]})
+        return httpx.Response(200, json={"choices": [{"message": {"content": "译文"}, "finish_reason": "stop"}], "usage": {"prompt_tokens": 20, "completion_tokens": 10, "total_tokens": 30}})
     async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
         assert await DeepSeek(settings, client).complete([]) == "译文"
 
@@ -63,7 +64,7 @@ async def test_429_refundable_and_500_ambiguous(settings):
 
 @pytest.mark.asyncio
 async def test_invalid_glossary_never_returns_partial_terms(settings):
-    async with httpx.AsyncClient(transport=httpx.MockTransport(lambda _: httpx.Response(200, json={"choices": [{"message": {"content": '[{"source":"Alice","target":"爱丽丝"},{"source":"alice","target":"其他"}]'}, "finish_reason": "stop"}]}))) as client:
+    async with httpx.AsyncClient(transport=httpx.MockTransport(lambda _: httpx.Response(200, json={"choices": [{"message": {"content": '[{"source":"Alice","target":"爱丽丝"},{"source":"alice","target":"其他"}]'}, "finish_reason": "stop"}], "usage": {"prompt_tokens": 20, "completion_tokens": 10, "total_tokens": 30}}))) as client:
         with pytest.raises(DefiniteProviderFailure):
             await DeepSeek(settings, client).terms([])
 
@@ -84,6 +85,7 @@ async def test_deepseek_real_stream_yields_before_final_frame(settings):
     frames = [
         'data: {"choices":[{"delta":{"content":"你好"},"finish_reason":null}]}\n\n',
         'data: {"choices":[{"delta":{"content":"世界"},"finish_reason":"stop"}]}\n\n',
+        'data: {"choices":[],"usage":{"prompt_tokens":20,"completion_tokens":10,"total_tokens":30}}\n\n',
         'data: [DONE]\n\n',
     ]
     chunks = TokenStream(frames)
@@ -96,9 +98,10 @@ async def test_deepseek_real_stream_yields_before_final_frame(settings):
         assert chunks.read_count == 1  # No buffering/synthetic splitting of a completed output.
         assert await anext(generator) == "世界"
         assert chunks.read_count == 2
+        assert await anext(generator) == TokenUsage(20, 10)
         with pytest.raises(StopAsyncIteration):
             await anext(generator)
-        assert chunks.read_count == 3
+        assert chunks.read_count == 4
 
 
 @pytest.mark.asyncio

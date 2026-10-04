@@ -43,13 +43,17 @@ uvicorn main:app --host 127.0.0.1 --port 8080 --workers 2
 
 商品固定匹配 iOS：`app.bookllm.credits.100`、`app.bookllm.credits.1000` 为 Consumable；`app.bookllm.byok.lifetime` 为 Non-Consumable。交易必须包含匹配当前账户的 appAccountToken、正确商品类型和数量 1。相同交易只能入账一次，不能跨账户兑换。自带 API 可在未登录时通过客户端本地 StoreKit 验证解锁；无账户 token 的购买不能给任意云端账户发点。
 
-每次实际执行的翻译、校对、语言专家、主编阶段，以及术语提取，分别消耗 `ceil(源文本 Unicode scalar 数 / 1000)` 点，包含空白。上下文、草稿、输出长度不重复收费。例如 2,500 个字符：快速档 3 点；精译档 6 点；启用额外语言专家的精译档 9 点；出版档 12 点，术语提取另计。单次源文上限 12,000，客户端负责分块；词表最多 1,000 项，整体 HTTP 请求上限 256 KiB。
+每次成功完成的翻译、校对、语言专家、主编阶段，以及术语提取，按 DeepSeek 实际返回的 `usage.prompt_tokens + usage.completion_tokens` 结算：默认 `ceil(total_tokens / 1000)` 点，每次最低 1 点，可通过 `TOKENS_PER_POINT` 配置。上下文、草稿、系统提示词、术语与输出都包含在供应商的真实用量中；不使用源文本字数冒充实际 tokens。模型缓存命中仍按 DeepSeek 返回的 prompt_tokens 计入统一 token 点数公式；点数不是供应商人民币账单的逐项换算。
+
+执行前对完整 messages 估算输入 tokens，并预留有界输出空间；默认 `MAX_OUTPUT_TOKENS=8192`、`MINIMUM_OUTPUT_TOKENS=128`。预估采用 UTF-8 字节数 / 3 和角色包装开销，属于预算估计而非真实 tokenizer。当前余额较少时会收窄 max_tokens，但至少保留与源文规模相关的完整输出空间；空间不足就返回 402，保留已经完成的请求和译稿，充值后用原 requestID 继续下一阶段。余额仅被同账户在途请求暂时占用时返回 409 + Retry-After: 1，待实际结算释放差额后重试，不立即判作永久点数不足。整个文稿不需要预先付清才能逐段开始。
+
+完成后原子退回预留与实际结算之间的差额；已启动的请求在暂停或断开后仍按真实消耗结算并缓存，重放免费。预估偏低造成的超额由服务运营方吸收：用户最多扣已经预留的点数，真实 tokens、`actualEquivalentPoints` 与 `absorbedPoints` 全部记录，不因正常翻译产生透支欠额。`creditDebt` 仅保留原有 Apple 退款后的已消费点数差额语义。单次源文上限 12,000，客户端负责分块；词表最多 1,000 项，整体 HTTP 请求上限 256 KiB。
 
 质量和偏好校验与原生模型一致：fast 为译者；refined 为译者和校对，可增加语言专家；publication 为四阶段。所有阶段都应用自定义风格、强制术语、夹杂外语的保留 / 双语 / 翻译偏好，以及不加说明 / 词语解释 / 文化解释。语言专家检查外语、习语、语体和注释真实性；主编统一文风并保留事实。注释标识为 `[编者注：…]`，按 sparseNotes 限制每块最多 1 或 3 条，要求省略不确定解释。`documentKind` 支持 fiction / general / technical / poetry / script / academic，分别对应小说、通用文本、技术文档、诗歌、剧本和学术文本。小说规则保留时间顺序、因果、角色别名、叙述视角与时态、角色对白差异、刻意含糊、伏笔和语体转变；开篇语气与邻段原文/前阶段译稿只用于连续性参照，禁止把邻段事件或文字移入当前原文。iOS 可自动识别候选类型并允许用户修改，云端按最终选择应用规则。诗歌保留诗行、节与意象及有意重复；剧本保留人物名、场幕标记和舞台指示；学术文本保留引用编号、引文、公式与客观精确的语体。`layout` 支持 preserve / reading（默认 fiction / preserve），文体结构规则始终优先于间距整理和风格。徐志摩诗意、相声幽默、水浒说书等原生风格以 style.instruction 传入；只调整原文表达，不编造意象、笑话、事件或台词。
 
 ## 流式协议
 
-首个输出来自实际上游 SSE 增量，而非完成文本的模拟拆分。只有 upstream `finish_reason=stop` 和非空完整输出才能提交账本并发送 `done`。上游工作由应用持有的独立任务执行；客户端暂停、切到后台或断开仅停止推送，后台任务继续完成并缓存原 requestID 的完整结果。恢复时，仍在处理的请求返回 409 + Retry-After: 1，完成后同 ID 回放，不再扣点。订阅者队列最多 64 条增量，断开立即丢弃队列；读取过慢超过队列上限时发送可恢复的 409 错误并停止推送，后台继续完成，避免无限缓存或阻塞上游。进程关闭时默认等待 STREAM_SHUTDOWN_GRACE_SECONDS=10 秒收尾，仅仍未完成的任务被取消并保留 uncertain 待核对。未发出的预留请求在关闭时退点。真正的上游超时或网络中断仍按不确定失败处理，半段文字不会记为完成。
+首个输出来自实际上游 SSE 增量，而非完成文本的模拟拆分。只有 upstream `finish_reason=stop`、非空完整输出和有效 usage 记录才能提交账本并发送 `done`。发送 `stream_options.include_usage=true`，在末尾 choices 为空的 usage 帧读取 prompt_tokens / completion_tokens；用量帧不发送给用户作为译文。缺失、不一致或无效 usage 明确失败并退款，不降级成字数收费。流式以及普通翻译、校对和术语提取的上游工作都由应用持有的独立任务执行；客户端暂停、切到后台或断开仅停止推送，后台任务继续完成并缓存原 requestID 的完整结果。恢复时，仍在处理的请求返回 409 + Retry-After: 1，完成后同 ID 回放，不再扣点。订阅者队列最多 64 条增量，断开立即丢弃队列；读取过慢超过队列上限时发送可恢复的 409 错误并停止推送，后台继续完成，避免无限缓存或阻塞上游。进程关闭时默认等待 STREAM_SHUTDOWN_GRACE_SECONDS=10 秒收尾，仅仍未完成的任务被取消并保留 uncertain 待核对。未发出的预留请求在关闭时退点。真正的上游超时或网络中断仍按不确定失败处理，半段文字不会记为完成。
 
 ```text
 data:{"delta":"你好"}
@@ -66,7 +70,7 @@ data:{"done":true}
 
 SQLite `BEGIN IMMEDIATE` 事务保证购买、扣点、退款、状态变更和账本事件原子性；WAL + FULL 同步用于持久化。每个账户的 requestID 与请求内容哈希绑定；重复已完成请求返回缓存，重复进行中请求返回 409 + Retry-After: 1，同一个 ID 改变内容也返回 409。流式客户端的暂停或断开不会取消独立上游任务，恢复可等待原任务完成；实际上游结果不确定的请求则需要人工核对，其重复请求返回 409 且没有 Retry-After，以区别仍在后台运行的任务。
 
-执行前先保留点数，再记录 dispatched，随后请求上游。连接未建立、429、明确拒绝、错误输出格式或被截断输出会退点，且原 requestID 可重试。Read/Write 超时、连接在发送后中断、上游 5xx 或进程在 dispatch 后崩溃可能已产生上游成本，因此保留点数并标记 uncertain / dispatched，禁止自动重复提交。同 ID 重试不会重复扣点。用户可查询状态，运营需核对上游后恢复结果或退款。客户端不应在此情况自动更换 requestID。
+执行前先保留点数，再记录 dispatched，随后请求上游。连接未建立、429、明确拒绝、错误输出格式、缺失用量记录或被截断输出会退点，且原 requestID 可重试。Read/Write 超时、连接在发送后中断、上游 5xx 或进程在 dispatch 后崩溃可能已产生上游成本，因此保留点数并标记 uncertain / dispatched，禁止自动重复提交。同 ID 重试不会重复扣点。用户可查询状态，运营需核对上游后恢复结果或退款。客户端不应在此情况自动更换 requestID。
 
 并发限制通过数据库记录跨 worker 生效，默认每账户 4、全局 32。超过限制返回 429 + Retry-After，不保留点数。uncertain 不占用并发槽，但其费用仍保留。
 
@@ -85,11 +89,11 @@ python -m translation_service.manage --database ./data/bookllm.sqlite3 pending
 
 ```bash
 python -m translation_service.manage --database ./data/bookllm.sqlite3 refund --account ACCOUNT_UUID --request REQUEST_ID --reason '已核对上游未完成' --confirm-provider-failed
-python -m translation_service.manage --database ./data/bookllm.sqlite3 complete --account ACCOUNT_UUID --request REQUEST_ID --result-json /secure/recovered-result.json
+python -m translation_service.manage --database ./data/bookllm.sqlite3 complete --account ACCOUNT_UUID --request REQUEST_ID --result-json /secure/recovered-result.json --usage-json /secure/recovered-usage.json
 ```
 
-恢复结果文件应为 `{text: ...}` JSON 对象，术语提取则为 Term 数组。工具没有公网退款接口。
+恢复结果文件应为 `{text: ...}` JSON 对象，术语提取则为 Term 数组。token 计费任务必须同时提供供应商已核对的 usage JSON（含 prompt_tokens、completion_tokens，可含相等的 total_tokens）；不能把预估值当作真实用量恢复。旧版按字符收费的历史账目以 legacy 标记保留，迁移不改已结算金额。工具没有公网退款接口。
 
-测试使用独立临时 SQLite、生成的 RSA 测试签名与 mock 上游，覆盖流式订阅者中途断开、首 token 前取消、慢读取的有界队列、后台完成后恢复与不重复扣点、服务关闭收尾，以及并发余额争用、同一购买重放、账户隔离、绑定校验、签名和 nonce 边界、伪收据拒绝、流水一致性、退款及逆序通知、质量偏好提示词、真实 SSE 增量与未完成输出。无需访问真实 Apple / DeepSeek。仍需要用真实沙盒购买、OCSP、Apple 登录和 DeepSeek 翻译完成联调后发布。
+测试也覆盖真实 token 与预留不同的原子退差额、并发结算、余额不足后的充值恢复、已完成阶段重放、超额由运营吸收、上下文与草稿参与预算、usage 尾帧、缺失或伪造 usage 退款。测试使用独立临时 SQLite、生成的 RSA 测试签名与 mock 上游，覆盖流式订阅者中途断开、首 token 前取消、慢读取的有界队列、后台完成后恢复与不重复扣点、服务关闭收尾，以及并发余额争用、同一购买重放、账户隔离、绑定校验、签名和 nonce 边界、伪收据拒绝、流水一致性、退款及逆序通知、质量偏好提示词、真实 SSE 增量与未完成输出。无需访问真实 Apple / DeepSeek。仍需要用真实沙盒购买、OCSP、Apple 登录和 DeepSeek 翻译完成联调后发布。
 
 生产基础设施应使用 HTTPS、私有文件权限、备份且加密的本地持久磁盘，并在代理限制请求体 256 KiB、登录与收据验证的速率；不记录 Authorization、JWS、源文或模型 Key。SQLite 适合同一台机器多个 worker；不要跨主机共用 NFS 数据库。多副本部署需迁移为共享 PostgreSQL 事务账本。翻译缓存包含用户译文，需制定保留期限与账户删除流程。此目录实现可运行服务，未部署到外部，也没有配置真实购买或模型密钥。

@@ -20,6 +20,9 @@ class Settings:
     global_concurrency: int = 32
     request_timeout_seconds: float = 180
     stream_shutdown_grace_seconds: float = 10
+    tokens_per_point: int = 1000
+    max_output_tokens: int = 8192
+    minimum_output_tokens: int = 128
 
     @classmethod
     def from_env(cls):
@@ -59,7 +62,14 @@ class Settings:
             global_concurrency=int(os.environ.get("GLOBAL_CONCURRENCY", "32")),
             request_timeout_seconds=float(os.environ.get("REQUEST_TIMEOUT_SECONDS", "180")),
             stream_shutdown_grace_seconds=float(os.environ.get("STREAM_SHUTDOWN_GRACE_SECONDS", "10")),
+            tokens_per_point=int(os.environ.get("TOKENS_PER_POINT", "1000")),
+            max_output_tokens=int(os.environ.get("MAX_OUTPUT_TOKENS", "8192")),
+            minimum_output_tokens=int(os.environ.get("MINIMUM_OUTPUT_TOKENS", "128")),
         )
+        if not 1 <= settings.tokens_per_point <= 1000000:
+            raise RuntimeError("TOKENS_PER_POINT must be 1–1000000")
+        if not 64 <= settings.minimum_output_tokens <= settings.max_output_tokens <= 8192:
+            raise RuntimeError("Output token limits must satisfy 64 <= minimum <= maximum <= 8192")
         if not 300 <= settings.session_ttl_seconds <= 604800:
             raise RuntimeError("SESSION_TTL_SECONDS must be 300–604800")
         if not 1 <= settings.per_account_concurrency <= settings.global_concurrency <= 256:

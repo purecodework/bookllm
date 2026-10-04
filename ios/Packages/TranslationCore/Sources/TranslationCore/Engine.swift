@@ -40,6 +40,7 @@ public struct TranslationEngine: Sendable {
                                 return try await provider.complete(request)
                             }
                             guard !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw TranslationError.message("模型返回了空译文，请重试。") }
+                            draft = EditorNotes.filter(draft, source: source, chunks: chunks, index: chunk.index)
                             try await onUpdate(Checkpoint(index: chunk.index, stage: stage, text: draft))
                         }
                         return (chunk.index, draft)
@@ -61,7 +62,7 @@ public struct TranslationEngine: Sendable {
                 switch error {
                 case .rateLimited(let seconds): await throughput.throttled(); delay = min(60, max(seconds, pow(2, Double(attempt))))
                 case .transient: delay = pow(2, Double(attempt))
-                case .message: throw error
+                case .message, .insufficientCredits: throw error
                 case .pending(let seconds):
                     guard pendingAttempts < 180 else { throw TranslationError.message("本段仍在服务器处理中，请稍后继续。点数不会重复扣除。") }
                     pendingAttempts += 1

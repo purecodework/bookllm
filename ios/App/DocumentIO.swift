@@ -5,13 +5,14 @@ import CoreText
 import ZIPFoundation
 import TranslationCore
 
-struct ImportedText: Sendable { var title: String; var text: String; var format: String }
+struct ImportedText: Sendable { var title: String; var text: String; var format: String; var coverData: Data? = nil }
 enum DocumentIO {
     static func read(_ url: URL) throws -> ImportedText {
         let scoped = url.startAccessingSecurityScopedResource(); defer { if scoped { url.stopAccessingSecurityScopedResource() } }
         let attrs = try FileManager.default.attributesOfItem(atPath: url.path)
         guard ((attrs[.size] as? NSNumber)?.intValue ?? 0) <= 40_000_000 else { throw TranslationError.message("请导入 40 MB 以内的文件。") }
         let ext = url.pathExtension.lowercased(), text: String
+        var coverData: Data?
         switch ext {
         case "txt", "md", "markdown":
             let data = try Data(contentsOf: url)
@@ -19,23 +20,26 @@ enum DocumentIO {
         case "pdf":
             guard let pdf = PDFDocument(url: url), !pdf.isLocked else { throw TranslationError.message("无法读取或 PDF 已加密。") }
             text = (0..<pdf.pageCount).compactMap { pdf.page(at: $0)?.string }.joined(separator: "\n\n")
-        case "epub": text = try epub(url)
-        case "docx": text = try docx(url)
+            coverData = DocumentCoverExtractor.pdf(pdf)
+        case "epub": let imported = try epub(url); text = imported.text; coverData = imported.cover
+        case "docx": let imported = try docx(url); text = imported.text; coverData = imported.cover
         default: throw TranslationError.message("支持 TXT、Markdown、EPUB、PDF 和 DOCX。")
         }
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw TranslationError.message("未提取到文本。扫描版 PDF 需要先进行 OCR。") }
         guard text.count <= 2_000_000 else { throw TranslationError.message("文档过长，请按卷或章节拆分后导入。") }
-        return .init(title: url.deletingPathExtension().lastPathComponent, text: text, format: ext.uppercased())
+        return .init(title: url.deletingPathExtension().lastPathComponent, text: text, format: ext.uppercased(), coverData: coverData)
     }
     private static func entry(_ path: String, archive: Archive) throws -> Data {
         guard let entry = archive[path], entry.uncompressedSize <= 20_000_000 else { throw TranslationError.message("文档内容缺失或超过安全解压限制。") }
         var data = Data(); _ = try archive.extract(entry) { data.append($0) }; return data
     }
-    private static func epub(_ url: URL) throws -> String {
+    private static func epub(_ url: URL) throws -> (text: String, cover: Data?) {
         let archive = try Archive(url: url, accessMode: .read)
         let container = try XMLIndex(data: try entry("META-INF/container.xml", archive: archive))
         guard let path = container.rootfile else { throw TranslationError.message("EPUB 缺少目录。") }
-        let index = try XMLIndex(data: try entry(path, archive: archive))
+        let packageData = try entry(path, archive: archive)
+        let index = try XMLIndex(data: packageData)
+        let cover = DocumentCoverExtractor.epub(archive: archive, packagePath: path, packageData: packageData)
         let directory = (path as NSString).deletingLastPathComponent
         var texts: [String] = [], size = 0
         for id in index.spine {
@@ -44,19 +48,27 @@ enum DocumentIO {
             let resource = directory.isEmpty ? clean : directory + "/" + clean
             let normalized = (resource as NSString).standardizingPath
             guard !normalized.hasPrefix("../"), !normalized.hasPrefix("/") else { throw TranslationError.message("EPUB 路径无效。") }
-            let data = try entry(normalized, archive: archive); size += data.count
-            guard size <= 40_000_000 else { throw TranslationError.message("EPUB 解压后过大。") }
-            let collector = try XMLText(data: data)
-            texts.append(collector.text)
+            do {
+                let data = try entry(normalized, archive: archive); size += data.count
+                guard size <= 40_000_000 else { throw TranslationError.message("EPUB 解压后过大。") }
+                let collector = try XMLText(data: data)
+                texts.append(collector.text)
+            } catch {
+                // Cover resources are optional; a missing or malformed cover
+                // wrapper must not hide otherwise readable chapters.
+                if !cover.pagePaths.contains(normalized) { throw error }
+            }
         }
-        return texts.joined(separator: "\n\n")
+        return (texts.joined(separator: "\n\n"), cover.data)
     }
-    private static func docx(_ url: URL) throws -> String {
+    private static func docx(_ url: URL) throws -> (text: String, cover: Data?) {
         let archive = try Archive(url: url, accessMode: .read)
         let numbering = archive["word/numbering.xml"] == nil ? [:] : try XMLText.numbering(from: entry("word/numbering.xml", archive: archive))
-        return try XMLText(data: try entry("word/document.xml", archive: archive), word: true, numbering: numbering).text
+        let documentData = try entry("word/document.xml", archive: archive)
+        return (try XMLText(data: documentData, word: true, numbering: numbering).text, DocumentCoverExtractor.docx(archive: archive, documentData: documentData))
     }
-    @MainActor static func export(title: String, text: String, ext: String, preserveLayout: Bool = true) throws -> URL {
+    @MainActor static func export(title: String, text: String, ext: String, preserveLayout: Bool = true, coverData: Data? = nil) throws -> URL {
+        if ext == "epub" || ext == "docx" { return try DocumentExporter.export(title: title, text: text, ext: ext, preserveLayout: preserveLayout, coverData: coverData) }
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let safe = title.components(separatedBy: CharacterSet.alphanumerics.inverted).filter { !$0.isEmpty }.joined(separator: "-")
@@ -67,6 +79,12 @@ enum DocumentIO {
             let framesetter = CTFramesetterCreateWithAttributedString(attributed as CFAttributedString)
             var position = 0, stalled = false
             let data = renderer.pdfData { context in
+                if let coverData, let image = UIImage(data: coverData), image.size.width > 0, image.size.height > 0 {
+                    context.beginPage()
+                    let scale = min(507 / image.size.width, 754 / image.size.height)
+                    let size = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+                    image.draw(in: CGRect(x: (595 - size.width) / 2, y: (842 - size.height) / 2, width: size.width, height: size.height))
+                }
                 while position < attributed.length {
                     context.beginPage()
                     let cg = context.cgContext; cg.saveGState(); cg.translateBy(x: 0, y: 842); cg.scaleBy(x: 1, y: -1); cg.textMatrix = .identity

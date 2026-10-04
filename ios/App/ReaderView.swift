@@ -11,28 +11,27 @@ struct ReaderView: View {
     @State private var exportURL: URL?
     @State private var exportFormat = "md"
     @State private var bilingualExport = false
+    @State private var publish = false
     var body: some View {
         if let job = studio.job(id) {
             let fast = job.options.quality == .fast
             let selected = readableChunks(job)
             ScrollView {
-                VStack(alignment: .leading, spacing: 25) {
-                    Eyebrow(text: job.status == .complete ? "THE FINISHED EDITION" : fast ? "READ AS WORDS ARRIVE" : "ONE FINISHED CHAPTER AT A TIME")
-                    Text(job.title).font(.system(size: 31, weight: .regular, design: .serif)).lineSpacing(5)
-                    HStack { Text(job.options.style.name); Text("·"); Text(job.options.quality.title); Spacer(); if job.status == .complete { Image(systemName: "checkmark.seal.fill").foregroundStyle(Ink.green) } else if job.status == .translating { ThinkingDots() } else { Text(job.statusText) } }.font(.system(size: 11)).foregroundStyle(Ink.muted)
+                VStack(alignment: .leading, spacing: 20) {
+                    readerHeader(job)
                     if job.chapters.count > 1 {
-                        Picker("阅读章节", selection: $chapter) {
+                        Picker("章节", selection: $chapter) {
                             if fast || job.status == .complete { Text("全部章节").tag(-1) }
                             ForEach(fast ? job.chapters : job.readableChapters) { item in Text(item.title).tag(item.id) }
-                        }.tint(Ink.text)
+                        }.pickerStyle(.menu).tint(Ink.text)
                     }
-                    if job.status != .complete { Text(fast ? "译文会实时出现，当前正在生成的段落尚未完成。" : "已完成 \(job.readableChapters.count) / \(job.chapters.count) 章，当前展示的章节已完成全部审校。") .font(.system(size: 11)).foregroundStyle(Ink.muted).lineSpacing(4) }
-                    Picker("阅读模式", selection: $mode) { Text("译文").tag(0); Text("双语对照").tag(1); Text("原文").tag(2) }.pickerStyle(.segmented)
+                    if job.status != .complete { Text(fast ? "译文实时更新" : "已完成 \(job.readableChapters.count) / \(job.chapters.count) 章") .font(.system(size: 12)).foregroundStyle(Ink.muted) }
+                    if job.purchasedWorkID == nil { Picker("阅读模式", selection: $mode) { Text("译文").tag(0); Text("双语对照").tag(1); Text("原文").tag(2) }.pickerStyle(.segmented) }
                     LazyVStack(alignment: .leading, spacing: 24) {
                         ForEach(selected, id: \.index) { chunk in
                             let translated = translation(job, chunk: chunk.index, includeLive: true)
                             VStack(alignment: .leading, spacing: 14) {
-                                if mode == 1 { Eyebrow(text: "\(String(format: "%02d", chunk.index + 1)) · ORIGINAL") }
+                                if mode == 1 { Text("原文").font(.system(size: 11)).foregroundStyle(Ink.muted) }
                                 if mode != 0 { readingText(chunk.text, secondary: mode == 1, preserve: job.options.layout == .preserve) }
                                 if mode == 1 { Rectangle().fill(Ink.line).frame(height: 1) }
                                 if mode != 2 {
@@ -42,14 +41,34 @@ struct ReaderView: View {
                             }
                         }
                     }
-                    if selected.isEmpty { Text("这一章的审校尚未完成，完成后会自动开放阅读。") .font(.system(size: 13)).foregroundStyle(Ink.muted) }
+                    if selected.isEmpty { Text("章节审校完成后即可阅读。") .font(.system(size: 13)).foregroundStyle(Ink.muted) }
                     if !selected.isEmpty && selected.allSatisfy({ hasFinal(job, index: $0.index) }) { exportPanel(job, selected: selected) }
-                }.padding(26)
+                }.padding(22)
             }.background(Ink.paper).navigationTitle("译本").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .topBarTrailing) { Menu { Button("更大字号") { fontSize = min(28, fontSize + 2) }; Button("更小字号") { fontSize = max(14, fontSize - 2) } } label: { Image(systemName: "textformat.size") } } }
                 .task(id: job.options.documentKind) { chunks = Chunker.plan(text: job.source, kind: job.options.documentKind).chunks; if !fast && job.status != .complete { chapter = job.readableChapters.first?.id ?? -2 } }
                 .onChange(of: job.readableChapters.count) { _, _ in if chapter == -2 { chapter = job.readableChapters.first?.id ?? -2 } }
+                .sheet(isPresented: $publish) { PublishWorkView(id: id) }
                 .onChange(of: exportFormat) { _, _ in exportURL = nil }.onChange(of: bilingualExport) { _, _ in exportURL = nil }.onChange(of: chapter) { _, _ in exportURL = nil }
+        }
+    }
+    private func readerHeader(_ job: BookJob) -> some View {
+        HStack(alignment: .center, spacing: 14) {
+            if (chapter == -1 || job.chapters.first?.id == chapter), CoverStorage.image(for: job.coverKey) != nil {
+                BookCover(title: job.title, coverKey: job.coverKey)
+                    .scaleEffect(0.66).frame(width: 44, height: 60)
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                Text(job.title).font(.system(size: 22, weight: .medium, design: .serif)).lineSpacing(3)
+                HStack(spacing: 6) {
+                    Text(job.options.style.name)
+                    Text("·")
+                    Text(job.options.quality.title)
+                    if job.status == .translating { ThinkingDots() }
+                    else if job.status != .complete { Text("·"); Text(job.statusText) }
+                }.font(.system(size: 12)).foregroundStyle(Ink.muted)
+            }
+            Spacer(minLength: 0)
         }
     }
     private func readableChunks(_ job: BookJob) -> [TextChunk] {
@@ -59,23 +78,27 @@ struct ReaderView: View {
     }
     private func hasFinal(_ job: BookJob, index: Int) -> Bool { job.checkpoints.contains { $0.index == index && $0.stage == job.options.stages.last } }
     private func translation(_ job: BookJob, chunk: Int, includeLive: Bool) -> String {
-        if let result = job.checkpoints.last(where: { $0.index == chunk && $0.stage == job.options.stages.last }) { return result.text }
-        return includeLive && job.options.quality == .fast && studio.activeID == id ? studio.liveChunks[chunk] ?? "" : ""
+        if let result = job.checkpoints.last(where: { $0.index == chunk && $0.stage == job.options.stages.last }) { return EditorNotes.display(result.text) }
+        return includeLive && job.options.quality == .fast && studio.activeID == id ? EditorNotes.display(studio.liveChunks[chunk] ?? "") : ""
     }
     private func exportPanel(_ job: BookJob, selected: [TextChunk]) -> some View {
         VStack(alignment: .leading, spacing: 15) {
             Divider()
-            HStack { Text(chapter >= 0 ? "带走这一章" : "带走这份译本").font(.system(size: 21, design: .serif)); Spacer(); Image(systemName: "square.and.arrow.up").foregroundStyle(Ink.orange) }
-            Picker("导出格式", selection: $exportFormat) { Text("Markdown").tag("md"); Text("TXT").tag("txt"); Text("PDF").tag("pdf") }.pickerStyle(.segmented)
-            Toggle("导出双语对照", isOn: $bilingualExport).font(.system(size: 13))
-            PrimaryButton(title: "准备分享文件", icon: "square.and.arrow.up") {
-                do {
-                    let text = selected.map { chunk in let translated = translation(job, chunk: chunk.index, includeLive: false); return bilingualExport ? "原文\n\(chunk.text)\n\n译文\n\(translated)" : translated }.joined(separator: "\n\n")
-                    let title = chapter >= 0 ? job.title + "-" + (job.chapters.first { $0.id == chapter }?.title ?? "章节") : job.title
-                    exportURL = try DocumentIO.export(title: title, text: text, ext: exportFormat, preserveLayout: job.options.layout == .preserve)
-                } catch { studio.message = error.localizedDescription }
+            Text(chapter >= 0 ? "导出这一章" : "导出译本").font(.system(size: 17, weight: .semibold))
+            Picker("导出格式", selection: $exportFormat) { Text("Markdown").tag("md"); Text("TXT").tag("txt"); Text("PDF").tag("pdf"); Text("EPUB").tag("epub"); Text("DOCX").tag("docx") }.pickerStyle(.menu).tint(Ink.text)
+            if job.purchasedWorkID == nil { Toggle("导出双语对照", isOn: $bilingualExport).font(.system(size: 13)) }
+            if job.status == .complete && job.purchasedWorkID == nil { Button("定价分享译作") { publish = true }.font(.system(size: 13)) }
+            if let exportURL {
+                ShareLink(item: exportURL) { Label("分享或保存", systemImage: "square.and.arrow.up").font(.system(size: 15, weight: .semibold)).padding(15).frame(maxWidth: .infinity).background(.white, in: RoundedRectangle(cornerRadius: 15)) }.foregroundStyle(Ink.orange)
+            } else {
+                PrimaryButton(title: "生成导出文件", icon: "square.and.arrow.up") {
+                    do {
+                        let text = selected.map { chunk in let translated = translation(job, chunk: chunk.index, includeLive: false); return bilingualExport ? "原文\n\(chunk.text)\n\n译文\n\(translated)" : translated }.joined(separator: "\n\n")
+                        let title = chapter >= 0 ? job.title + "-" + (job.chapters.first { $0.id == chapter }?.title ?? "章节") : job.title
+                        exportURL = try DocumentIO.export(title: title, text: text, ext: exportFormat, preserveLayout: job.options.layout == .preserve, coverData: CoverStorage.data(for: job.coverKey))
+                    } catch { studio.message = error.localizedDescription }
+                }
             }
-            if let exportURL { ShareLink(item: exportURL) { Label("分享 / 存储到文件", systemImage: "square.and.arrow.up").font(.system(size: 15, weight: .semibold)).padding(15).frame(maxWidth: .infinity).background(.white, in: RoundedRectangle(cornerRadius: 15)) }.foregroundStyle(Ink.orange) }
         }
     }
     @ViewBuilder private func readingText(_ value: String, secondary: Bool, preserve: Bool) -> some View {

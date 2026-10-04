@@ -5,6 +5,7 @@ import json
 
 from starlette.concurrency import run_in_threadpool
 
+from .billing import TokenUsage
 from .ledger import ServiceError
 from .provider import AmbiguousProviderFailure, DefiniteProviderFailure
 
@@ -17,12 +18,13 @@ class TranslationStreamJob:
     QUEUE_SIZE = 64
     MAX_OUTPUT_LENGTH = 60000
 
-    def __init__(self, ledger, model, owner, request_id, messages):
+    def __init__(self, ledger, model, owner, request_id, messages, *, max_tokens=None):
         self.ledger = ledger
         self.model = model
         self.owner = owner
         self.request_id = request_id
         self.messages = messages
+        self.max_tokens = max_tokens
         self.queue = asyncio.Queue(maxsize=self.QUEUE_SIZE)
         # Use result values rather than Future exceptions: a disconnected requester may never await it.
         self.ready = asyncio.get_running_loop().create_future()
@@ -72,10 +74,18 @@ class TranslationStreamJob:
         upstream = None
         fragments = []
         total_length = 0
+        usage = None
         try:
             await run_in_threadpool(self.ledger.dispatch, self.owner, self.request_id)
-            upstream = self.model.stream(self.messages)
+            upstream = self.model.stream(self.messages, max_tokens=self.max_tokens)
             async for fragment in upstream:
+                if isinstance(fragment, TokenUsage):
+                    if usage is not None and usage != fragment:
+                        raise DefiniteProviderFailure(502, "模型用量记录不一致，本次点数已退回。")
+                    usage = fragment
+                    continue
+                if usage is not None:
+                    raise DefiniteProviderFailure(502, "模型在结算记录后仍返回文本，本次点数已退回。")
                 if not isinstance(fragment, str):
                     raise DefiniteProviderFailure(502, "流式模型输出格式无效，本次点数已退回。")
                 total_length += len(fragment)
@@ -88,10 +98,10 @@ class TranslationStreamJob:
                     # Let the live subscriber consume real tokens, even if upstream I/O is already buffered.
                     await asyncio.sleep(0)
             text = "".join(fragments)
-            if not text.strip():
+            if not text.strip() or usage is None:
                 raise DefiniteProviderFailure(502, "流式模型没有返回完整文本，本次点数已退回。")
             # DeepSeek.stream only exits successfully after finish_reason=stop.
-            await run_in_threadpool(self.ledger.complete, self.owner, self.request_id, {"text": text})
+            await run_in_threadpool(self.ledger.complete, self.owner, self.request_id, {"text": text}, usage)
             self.publish({"done": True})
         except DefiniteProviderFailure as error:
             await run_in_threadpool(self.ledger.refund, self.owner, self.request_id)

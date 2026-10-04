@@ -3,6 +3,7 @@ import re
 import httpx
 from pydantic import TypeAdapter, ValidationError
 
+from .billing import TokenUsage, UsageText, UsageTerms
 from .config import Settings
 from .ledger import ServiceError
 from .models import Term
@@ -21,12 +22,12 @@ class DeepSeek:
         self.settings = settings
         self.client = client
 
-    async def complete(self, messages):
+    async def complete(self, messages, *, max_tokens=None):
         try:
             response = await self.client.post(
                 self.settings.deepseek_base_url.rstrip("/") + "/chat/completions",
                 headers={"Authorization": f"Bearer {self.settings.deepseek_api_key}"},
-                json={"model": self.settings.deepseek_model, "messages": messages, "temperature": 0.25, "max_tokens": 8192, "stream": False},
+                json={"model": self.settings.deepseek_model, "messages": messages, "temperature": 0.25, "max_tokens": max_tokens or self.settings.max_output_tokens, "stream": False},
                 timeout=httpx.Timeout(self.settings.request_timeout_seconds, connect=10, pool=10),
             )
         except (httpx.ConnectError, httpx.ConnectTimeout, httpx.PoolTimeout):
@@ -52,12 +53,13 @@ class DeepSeek:
                 raise ValueError("Incomplete output")
             if len(text) > 60000:
                 raise ValueError("Output exceeds limit")
-            return text
+            usage = TokenUsage.from_provider(data.get("usage"))
+            return UsageText(text, usage)
         except (ValueError, KeyError, IndexError, TypeError):
-            raise DefiniteProviderFailure(502, "模型输出未完整结束或格式无效，本次点数已退回。请减小分块后重试。") from None
+            raise DefiniteProviderFailure(502, "模型输出未完整结束、格式或用量记录无效，本次点数已退回。请重试。") from None
 
-    async def terms(self, messages):
-        raw = await self.complete(messages)
+    async def terms(self, messages, *, max_tokens=None):
+        raw = await self.complete(messages, max_tokens=max_tokens)
         match = re.fullmatch(r"\s*```(?:json)?\s*([\s\S]*?)\s*```\s*", raw)
         cleaned = match.group(1) if match else raw.strip()
         try:
@@ -67,20 +69,21 @@ class DeepSeek:
             terms = TypeAdapter(list[Term]).validate_python(data)
             if len({term.source.casefold() for term in terms}) != len(terms):
                 raise ValueError("Duplicate glossary term")
-            return [term.model_dump() for term in terms]
+            return UsageTerms([term.model_dump() for term in terms], raw.usage)
         except (ValueError, TypeError, ValidationError):
             raise DefiniteProviderFailure(502, "术语提取格式无效，本次点数已退回。请重试。") from None
 
-    async def stream(self, messages):
+    async def stream(self, messages, *, max_tokens=None):
         """Pass through actual DeepSeek delta events; never synthesize a token stream."""
         total_length = 0
         nonblank = False
         stopped = False
+        usage = None
         try:
             async with self.client.stream(
                 "POST", self.settings.deepseek_base_url.rstrip("/") + "/chat/completions",
                 headers={"Authorization": f"Bearer {self.settings.deepseek_api_key}"},
-                json={"model": self.settings.deepseek_model, "messages": messages, "temperature": 0.25, "max_tokens": 8192, "stream": True},
+                json={"model": self.settings.deepseek_model, "messages": messages, "temperature": 0.25, "max_tokens": max_tokens or self.settings.max_output_tokens, "stream": True, "stream_options": {"include_usage": True}},
                 timeout=httpx.Timeout(self.settings.request_timeout_seconds, connect=10, pool=10),
             ) as response:
                 if response.status_code == 429:
@@ -98,8 +101,9 @@ class DeepSeek:
                         continue
                     raw = line[5:].strip()
                     if raw == "[DONE]":
-                        if not stopped or not nonblank:
-                            raise DefiniteProviderFailure(502, "流式模型输出未完整结束，本次点数已退回。")
+                        if not stopped or not nonblank or usage is None:
+                            raise DefiniteProviderFailure(502, "流式模型输出或用量记录未完整结束，本次点数已退回。")
+                        yield usage
                         return
                     if not raw:
                         continue
@@ -107,6 +111,11 @@ class DeepSeek:
                         chunk = json.loads(raw)
                         if "error" in chunk:
                             raise ValueError("Provider reported an error")
+                        if chunk.get("usage") is not None:
+                            incoming_usage = TokenUsage.from_provider(chunk["usage"])
+                            if usage is not None and usage != incoming_usage:
+                                raise ValueError("Inconsistent stream usage")
+                            usage = incoming_usage
                         choices = chunk.get("choices", [])
                         if not choices:
                             continue
@@ -129,8 +138,9 @@ class DeepSeek:
                                 yield delta
                     except (ValueError, KeyError, IndexError, TypeError):
                         raise DefiniteProviderFailure(502, "流式模型输出无效或不完整，本次点数已退回。请减小分块后重试。") from None
-                if not stopped or not nonblank:
-                    raise DefiniteProviderFailure(502, "流式模型提前结束，本次点数已退回。")
+                if not stopped or not nonblank or usage is None:
+                    raise DefiniteProviderFailure(502, "流式模型输出或用量记录提前结束，本次点数已退回。")
+                yield usage
         except (httpx.ConnectError, httpx.ConnectTimeout, httpx.PoolTimeout):
             raise DefiniteProviderFailure(503, "模型服务尚未连接，本次点数已退回。", 3) from None
         except httpx.RequestError:

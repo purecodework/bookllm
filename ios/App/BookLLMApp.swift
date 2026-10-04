@@ -8,8 +8,9 @@ import SwiftUI
         WindowGroup {
             AppShell().environment(studio).environment(account).environment(purchases).tint(Ink.orange).preferredColorScheme(.light)
                 .onOpenURL { url in
+                    if let id = WorkLink.identifier(url.absoluteString) { studio.incomingWorkID = id; return }
                     Task {
-                        do { let imported = try await Task.detached(priority: .userInitiated) { try DocumentIO.read(url) }.value; _ = studio.add(imported) }
+                        do { let imported = try await Task.detached(priority: .userInitiated) { try DocumentIO.read(url) }.value; _ = try studio.add(imported) }
                         catch { studio.message = error.localizedDescription }
                     }
                 }
@@ -22,6 +23,7 @@ import SwiftUI
 struct AppShell: View {
     @Environment(StudioStore.self) private var studio
     @Environment(\.scenePhase) private var phase
+    @AppStorage("onboardingCompleted") private var onboarded = false
     var body: some View {
         @Bindable var studio = studio
         TabView {
@@ -31,6 +33,8 @@ struct AppShell: View {
             NavigationStack { SettingsView() }.tabItem { Label("我的", systemImage: "person.crop.circle") }
         }
         .alert("译间", isPresented: Binding(get: { studio.message != nil }, set: { if !$0 { studio.message = nil } })) { Button("知道了") { studio.message = nil } } message: { Text(studio.message ?? "") }
+        .fullScreenCover(isPresented: Binding(get: { !onboarded }, set: { if !$0 { onboarded = true } })) { OnboardingView() }
+        .sheet(isPresented: Binding(get: { studio.incomingWorkID != nil && onboarded }, set: { if !$0 { studio.incomingWorkID = nil } })) { if let id = studio.incomingWorkID { NavigationStack { WorkPurchaseView(workID: id).toolbar { ToolbarItem(placement: .cancellationAction) { Button("关闭") { studio.incomingWorkID = nil } } } } } }
         .onChange(of: phase) { _, value in if value == .background { studio.pause(); studio.persist() } }
     }
 }

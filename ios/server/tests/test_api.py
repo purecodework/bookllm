@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 import pytest
 
 from translation_service.app import create_app
+from translation_service.billing import TokenUsage, UsageText, UsageTerms
 from translation_service.ledger import ServiceError
 from translation_service.provider import AmbiguousProviderFailure, DefiniteProviderFailure
 from translation_service.purchases import VerifiedPurchase
@@ -32,15 +33,15 @@ class Model:
         self.calls = 0
         self.outcome = outcome
 
-    async def complete(self, messages):
+    async def complete(self, messages, *, max_tokens=None):
         self.calls += 1
         if isinstance(self.outcome, BaseException):
             raise self.outcome
-        return self.outcome
+        return UsageText(self.outcome, TokenUsage(20, 10))
 
-    async def terms(self, messages):
+    async def terms(self, messages, *, max_tokens=None):
         self.calls += 1
-        return [{"source": "Alice", "target": "爱丽丝"}]
+        return UsageTerms([{"source": "Alice", "target": "爱丽丝"}], TokenUsage(1000, 20))
 
 
 def body(request_id="doc:0:translate"):
@@ -137,8 +138,9 @@ def test_definite_failure_refunds_while_ambiguous_failure_stays_pending(settings
         model.outcome = AmbiguousProviderFailure(503, "uncertain", 5)
         response = client.post("/v1/translate", json=body(), headers=headers)
         assert response.status_code == 503
-        assert app.state.ledger.account(owner)["points"] == 99
-        assert app.state.ledger.request_status(owner, "doc:0:translate")["status"] == "uncertain"
+        held = app.state.ledger.request_status(owner, "doc:0:translate")
+        assert app.state.ledger.account(owner)["points"] == 100 - held["reservedPoints"]
+        assert held["status"] == "uncertain"
         uncertain_replay = client.post("/v1/translate", json=body(), headers=headers)
         assert uncertain_replay.status_code == 409
         assert "Retry-After" not in uncertain_replay.headers  # This is operator reconciliation, not active background work.
@@ -163,13 +165,14 @@ def test_body_size_limit(settings):
 
 
 class StreamingModel(Model):
-    async def stream(self, messages):
+    async def stream(self, messages, *, max_tokens=None):
         self.calls += 1
         yield "你好"
         await asyncio.sleep(0)
         if isinstance(self.outcome, BaseException):
             raise self.outcome
         yield "，世界。"
+        yield TokenUsage(20, 10)
 
 
 def fast_body(request_id="doc:stream"):
@@ -200,7 +203,7 @@ def test_true_stream_endpoint_and_cached_replay(settings):
 
 @pytest.mark.parametrize("failure,expected_points,expected_status", [
     (DefiniteProviderFailure(502, "incomplete"), 100, "refunded"),
-    (AmbiguousProviderFailure(503, "uncertain", 5), 99, "uncertain"),
+    (AmbiguousProviderFailure(503, "uncertain", 5), None, "uncertain"),
 ])
 def test_stream_failures_never_send_done(settings, failure, expected_points, expected_status):
     model = StreamingModel(failure)
@@ -209,8 +212,10 @@ def test_stream_failures_never_send_done(settings, failure, expected_points, exp
         response = client.post("/v1/translate/stream", json=fast_body(), headers=headers)
         assert response.status_code == 200  # Headers already sent; error is an SSE event.
         assert '"error":' in response.text and '"done":true' not in response.text
-        assert app.state.ledger.account(owner)["points"] == expected_points
-        assert app.state.ledger.request_status(owner, "doc:stream")["status"] == expected_status
+        state = app.state.ledger.request_status(owner, "doc:stream")
+        expected_balance = 100 - state["reservedPoints"] if expected_points is None else expected_points
+        assert app.state.ledger.account(owner)["points"] == expected_balance
+        assert state["status"] == expected_status
 
 
 def test_refined_stream_is_rejected_before_reserving(settings):

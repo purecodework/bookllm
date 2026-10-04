@@ -3,13 +3,20 @@ import Observation
 import TranslationCore
 import UIKit
 
-enum JobStatus: String, Codable, Sendable { case draft, extracting, reviewing, translating, paused, complete, failed }
+enum JobStatus: String, Codable, Sendable { case draft, extracting, reviewing, translating, paused, complete, failed, awaitingCredits, needsReview }
 struct ReadingChapter: Codable, Identifiable, Sendable { var id: Int; var title: String; var chunks: [Int] }
+struct ReviewDraft: Codable, Sendable { var original: TranslationRequest; var output: String; var issues: [String]; var index: Int; var attempt = 0; var prepared: TranslationRequest? }
 struct BookJob: Codable, Identifiable, Sendable {
     var id = UUID().uuidString
     var title: String
     var source: String
     var format: String
+    var coverKey: String? = nil
+    var partialApproved: Bool?
+    var reviewDraft: ReviewDraft?
+    var purchasedWorkID: String?
+    var publishedWorkID: String?
+    var publicationPrice: Int?
     var created = Date()
     var options = TranslationOptions()
     var glossaryMode = GlossaryMode.automatic
@@ -27,13 +34,16 @@ struct BookJob: Codable, Identifiable, Sendable {
     var chunkCount = 0
     var basePoints = 0
     var glossaryPoints = 0
+    var sourceLanguage: String? { TranslationLanguage.sourceTitle(options.sourceLanguage) }
     var progress: Double { Double(checkpoints.count) / Double(max(1, chunkCount * options.stages.count)) }
     var statusText: String {
-        switch status { case .draft: "待翻译"; case .extracting: "整理术语"; case .reviewing: "等待术语校对"; case .translating: "翻译中"; case .paused: "已暂停"; case .complete: "翻译完成"; case .failed: "需要重试" }
+        switch status { case .draft: "待翻译"; case .extracting: "整理术语"; case .reviewing: "等待术语校对"; case .translating: "翻译中"; case .paused: "已暂停"; case .complete: "翻译完成"; case .failed: "需要重试"; case .awaitingCredits: "等待充值"; case .needsReview: "需要补全" }
     }
     var estimate: Int {
-        basePoints * options.stages.count + (glossaryMode == .custom || glossaryReady ? 0 : glossaryPoints)
+        max(0, basePoints * options.stages.count - checkpoints.count * max(1, basePoints / max(1, chunkCount))) + (glossaryMode == .custom || glossaryReady ? 0 : glossaryPoints)
     }
+
+    func estimatedPoints(tokensPerPoint: Int) -> Int { max(1, Int(ceil(Double(estimate) * 1000 / Double(max(1, tokensPerPoint))))) }
 
     var readableChapters: [ReadingChapter] {
         guard let final = options.stages.last else { return [] }
@@ -43,7 +53,7 @@ struct BookJob: Codable, Identifiable, Sendable {
     mutating func replan() {
         let plan = Chunker.plan(text: source, kind: options.documentKind)
         chunkCount = plan.chunks.count
-        basePoints = plan.chunks.reduce(0) { $0 + max(1, Int(ceil(Double($1.text.unicodeScalars.count) / 1000))) }
+        basePoints = plan.chunks.reduce(0) { $0 + max(1, Int(ceil((Double($1.text.utf8.count) + Double($1.context.utf8.count)) / 1500 + 2))) }
         chapters = plan.sections.map { section in ReadingChapter(id: section.index, title: section.title, chunks: plan.sectionForChunk.enumerated().filter { $0.element == section.index }.map(\.offset)) }
     }
     var sourceBatches: [String] {
@@ -60,6 +70,7 @@ struct BookJob: Codable, Identifiable, Sendable {
     var defaultPreferences = TranslationPreferences()
     var activeID: String?
     var message: String?
+    var incomingWorkID: String?
     var ownAPI = UserDefaults.standard.bool(forKey: "ownAPI")
     var endpoint = UserDefaults.standard.string(forKey: "endpoint") ?? "https://api.deepseek.com/v1"
     var model = UserDefaults.standard.string(forKey: "model") ?? "deepseek-chat"
@@ -98,8 +109,10 @@ struct BookJob: Codable, Identifiable, Sendable {
     func update(_ id: String, _ action: (inout BookJob) -> Void) {
         guard let index = jobs.firstIndex(where: { $0.id == id }) else { return }; let oldKind = jobs[index].options.documentKind; action(&jobs[index]); if jobs[index].options.documentKind != oldKind { jobs[index].replan() }; persist()
     }
-    func add(_ imported: ImportedText) -> String {
+    func add(_ imported: ImportedText) throws -> String {
         var job = BookJob(title: imported.title, source: imported.text, format: imported.format); job.options.preferences = defaultPreferences
+        if let data = imported.coverData { job.coverKey = try CoverStorage.save(data) }
+        job.options.sourceLanguage = SourceLanguageDetection.code(for: imported.text)
         job.options.documentKind = DocumentClassifier.detect(text: imported.text, title: imported.title, format: imported.format)
         job.replan()
         job.glossaryPoints = job.sourceBatches.reduce(0) { $0 + max(1, Int(ceil(Double($1.unicodeScalars.count) / 1000))) }
@@ -121,9 +134,10 @@ struct BookJob: Codable, Identifiable, Sendable {
         guard account.isLoggedIn else { throw TranslationError.message("请先登录账户，再使用翻译点数。") }
         return APIProvider(connection: .cloud(baseURL: url, token: account.session))
     }
-    func begin(_ id: String, account: CloudAccount, purchases: PurchaseStore, approved: Bool = false) {
+    func begin(_ id: String, account: CloudAccount, purchases: PurchaseStore, approved: Bool = false, partial: Bool = false) {
         guard task == nil, var job = job(id), job.status != .complete else { return }
         if job.status == .reviewing && !approved { return }
+        if job.reviewDraft != nil { repair(id, account: account, purchases: purchases); return }
         do {
             let own = job.status == .draft ? ownAPI : job.usesOwnAPI
             let provider = try provider(account: account, purchases: purchases, own: own)
@@ -131,6 +145,11 @@ struct BookJob: Codable, Identifiable, Sendable {
             if job.glossaryMode == .custom && !job.glossaryReady {
                 guard !libraryTerms.isEmpty, libraryTerms.allSatisfy({ !$0.target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else { throw TranslationError.message("请先在术语库中添加或导入术语。") }
                 update(id) { $0.terms = libraryTerms; $0.glossaryReady = true }
+            }
+            if partial && !job.glossaryReady && job.glossaryMode != .custom {
+                // The budget choice explicitly uses existing terms, leaving funds for readable text.
+                update(id) { $0.partialApproved = true; $0.terms = libraryTerms; $0.glossaryReady = $0.glossaryMode != .review }
+                if job.glossaryMode == .review { update(id) { $0.status = .reviewing }; return }
             }
             if approved {
                 guard job.terms.allSatisfy({ !$0.target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else { throw TranslationError.message("请补充空缺译名，或删除该术语后再确认。") }
@@ -161,10 +180,73 @@ struct BookJob: Codable, Identifiable, Sendable {
                     UINotificationFeedbackGenerator().notificationOccurred(.success)
                 } catch is CancellationError { self.update(id) { $0.status = .paused } }
                 catch let error as URLError where error.code == .cancelled { self.update(id) { $0.status = .paused } }
+                catch let failure as CoverageFailure { self.retainFailure(id, failure: failure) }
+                catch TranslationError.insufficientCredits { self.update(id) { $0.status = .awaitingCredits; $0.error = "点数不足以完整处理下一段。已完成内容已保存，充值后继续。" } }
                 catch { self.update(id) { $0.status = .failed; $0.error = error.localizedDescription } }
                 if account.isLoggedIn { try? await account.refresh() }
             }
         } catch { message = error.localizedDescription }
+    }
+    private func retainFailure(_ id: String, failure: CoverageFailure) {
+        update(id) { job in
+            if var retained = job.reviewDraft {
+                retained.output = failure.output; retained.issues = failure.issues; retained.prepared = nil; job.reviewDraft = retained
+            } else {
+                let index = Int(failure.request.requestID.split(separator: "-").dropLast().last ?? "0") ?? 0
+                job.reviewDraft = ReviewDraft(original: failure.request, output: failure.output, issues: failure.issues, index: index)
+            }
+            job.status = .needsReview; job.error = failure.localizedDescription
+        }
+    }
+    func repair(_ id: String, account: CloudAccount, purchases: PurchaseStore) {
+        guard task == nil, let job = job(id), let retained = job.reviewDraft else { return }
+        do {
+            let provider = try provider(account: account, purchases: purchases, own: job.usesOwnAPI)
+            var review = retained
+            if review.prepared == nil {
+                review.attempt += 1
+                var request = review.original
+                request.requestID += "-review-\(review.attempt)"
+                request.draft = review.output
+                request.reviewNotes = String(review.issues.joined(separator: "\n").prefix(1900))
+                review.prepared = request
+            }
+            guard let request = review.prepared else { return }
+            update(id) { $0.reviewDraft = review; $0.status = .translating; $0.error = nil }
+            activeID = id
+            task = Task { [weak self] in
+                guard let self else { return }
+                var succeeded = false
+                do {
+                    // Persist the exact paid retry identity before dispatch; pause/402 resumes it.
+                    try await self.save()
+                    let output = try await provider.complete(request)
+                    try Task.checkCancellation()
+                    let plan = Chunker.plan(text: job.source, kind: job.options.documentKind)
+                    let text = EditorNotes.filter(output, source: job.source, chunks: plan.chunks, index: retained.index)
+                    try await self.record(id, checkpoint: .init(index: retained.index, stage: retained.original.stage, text: text))
+                    self.update(id) { $0.reviewDraft = nil; $0.status = .paused; $0.error = nil }
+                    try await self.save(); succeeded = true
+                } catch is CancellationError { self.update(id) { $0.status = .paused } }
+                catch let error as URLError where error.code == .cancelled { self.update(id) { $0.status = .paused } }
+                catch let failure as CoverageFailure { self.retainFailure(id, failure: failure) }
+                catch TranslationError.insufficientCredits { self.update(id) { $0.status = .awaitingCredits; $0.error = "点数不足，充值后继续补全。" } }
+                catch { self.update(id) { $0.status = .needsReview; $0.error = error.localizedDescription } }
+                self.task = nil; self.activeID = nil
+                if account.isLoggedIn { try? await account.refresh() }
+                if succeeded { self.begin(id, account: account, purchases: purchases) }
+            }
+        } catch { message = error.localizedDescription }
+    }
+    func addPurchased(_ work: WorkContent) throws -> String {
+        if let existing = jobs.first(where: { $0.purchasedWorkID == work.id }) { return existing.id }
+        var job = BookJob(title: work.title, source: work.text, format: "EPUB")
+        job.purchasedWorkID = work.id; job.options.targetLanguage = work.targetLanguage
+        job.options.quality = .fast; job.options.documentKind = DocumentClassifier.detect(text: work.text, title: work.title, format: "EPUB")
+        if let encoded = work.coverBase64, let data = Data(base64Encoded: encoded) { job.coverKey = try CoverStorage.save(data) }
+        job.replan(); job.glossaryReady = true; job.result = work.text; job.status = .complete
+        job.checkpoints = Chunker.plan(text: work.text, kind: job.options.documentKind).chunks.map { .init(index: $0.index, stage: .translate, text: $0.text) }
+        jobs.insert(job, at: 0); persist(); return job.id
     }
     private func recordTerms(_ id: String, index batch: Int, terms: [Term]) async throws {
         guard let index = jobs.firstIndex(where: { $0.id == id }) else { return }

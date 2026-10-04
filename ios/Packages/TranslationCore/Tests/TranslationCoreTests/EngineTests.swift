@@ -82,7 +82,7 @@ final class EngineTests: XCTestCase, @unchecked Sendable {
         let request = TranslationRequest(requestID: "p", source: "bonjour", context: "", draft: "你好", stage: .linguist, options: options)
         XCTAssertTrue(request.prompt.contains("Preserve passages"))
         XCTAssertTrue(request.prompt.contains("at most 3"))
-        XCTAssertTrue(request.prompt.contains("[编者注"))
+        XCTAssertTrue(request.prompt.contains("⟦编者注:"))
         XCTAssertTrue(request.prompt.contains("remove uncertain claims"))
         XCTAssertEqual(TranslationOptions(quality: .publication).stages.last, .editor)
     }

@@ -1,13 +1,15 @@
 import SwiftUI
 import TranslationCore
 
-private enum JobSheet: String, Identifiable { case preferences, glossary; var id: String { rawValue } }
+private enum JobSheet: String, Identifiable { case preferences, glossary, wallet, repair; var id: String { rawValue } }
 struct JobView: View {
     let id: String
     @Environment(StudioStore.self) private var studio
     @Environment(CloudAccount.self) private var account
     @Environment(PurchaseStore.self) private var purchases
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var sheet: JobSheet?
+    @State private var partialChoice = false
     var body: some View {
         Group {
             if let job = studio.job(id) {
@@ -23,25 +25,31 @@ struct JobView: View {
                         }
                         if job.status != .complete { action(job) }
                         if !job.terms.isEmpty && job.status != .reviewing { Button { sheet = .glossary } label: { Label("查看本书术语 · \(job.terms.count) 个", systemImage: "text.book.closed").font(.system(size: 13)) }.padding(.top, 3) }
-                        Text("译稿在本机保存。退到后台会暂停，回到前台可继续。云端已开始的段落会完成并缓存，恢复时不重复扣点。额外审校增加处理时间与 API 用量，质量提升随文本而异。").font(.system(size: 11)).foregroundStyle(Ink.muted).lineSpacing(5)
                     }.padding(24)
                 }.background(Ink.paper)
             } else { ContentUnavailableView("作品不存在", systemImage: "book.closed") }
-        }.navigationTitle("翻译工作台").navigationBarTitleDisplayMode(.inline)
+        }.navigationTitle("翻译").navigationBarTitleDisplayMode(.inline)
         .sheet(item: $sheet) { destination in
             switch destination {
             case .preferences: PreferencesSheet(preferences: binding(\.options.preferences))
             case .glossary: JobGlossaryView(id: id)
+            case .wallet: WalletView()
+            case .repair: RepairDraftView(id: id)
             }
         }
+        .alert("点数可能不足", isPresented: $partialChoice) {
+            Button("用现有术语，先翻译部分") { studio.begin(id, account: account, purchases: purchases, partial: true) }
+            Button("充值") { sheet = .wallet }
+            Button("取消", role: .cancel) { }
+        } message: { Text("可先翻译到剩余点数不足以完成下一段时暂停，再充值续译。为保留正文用量，先使用现有术语库；选择「我先校对」仍会等你确认术语。实际点数按模型用量结算。") }
     }
     private func binding<T>(_ path: WritableKeyPath<BookJob, T>) -> Binding<T> {
         Binding(get: { studio.job(id)![keyPath: path] }, set: { value in studio.update(id) { $0[keyPath: path] = value } })
     }
     private func heading(_ job: BookJob) -> some View {
         HStack(alignment: .center, spacing: 20) {
-            BookCover(title: job.title)
-            VStack(alignment: .leading, spacing: 10) { Eyebrow(text: "TRANSLATION STUDIO"); Text(job.title).font(.system(size: 25, weight: .regular, design: .serif)).lineLimit(3); Text("\(job.format) · \(job.source.count.formatted()) 字符").font(.system(size: 11, design: .monospaced)).foregroundStyle(Ink.muted) }
+            BookCover(title: job.title, coverKey: job.coverKey)
+            VStack(alignment: .leading, spacing: 8) { Text(job.title).font(.system(size: 22, weight: .medium, design: .serif)).lineLimit(3); Text(metadata(job)).font(.system(size: 12)).foregroundStyle(Ink.muted) }
         }.foregroundStyle(Ink.text)
     }
     private func configuration(_ job: BookJob) -> some View {
@@ -49,8 +57,8 @@ struct JobView: View {
             PaperCard {
                 VStack(spacing: 9) {
                     HStack {
-                        if job.options.documentKind != .general { Label((job.genreWasCorrected ? "文稿类型 · " : "自动识别 · ") + job.options.documentKind.title, systemImage: "text.viewfinder").font(.system(size: 12, weight: .medium)) }
-                        else { Text("文稿排版").font(.system(size: 13, weight: .medium)) }
+                        Text(job.options.documentKind.title).font(.system(size: 13, weight: .medium))
+                        if !job.genreWasCorrected { Text("自动").font(.system(size: 11)).foregroundStyle(Ink.muted) }
                         Spacer()
                         Menu {
                             ForEach(DocumentKind.allCases.filter { $0 != .general }) { kind in Button(kind.title) { studio.update(id) { $0.options.documentKind = kind; $0.genreWasCorrected = true } } }
@@ -58,77 +66,75 @@ struct JobView: View {
                             Button("重新自动识别") { studio.update(id) { $0.options.documentKind = DocumentClassifier.detect(text: job.source, title: job.title, format: job.format); $0.genreWasCorrected = false } }
                         } label: { Image(systemName: "ellipsis").padding(6).foregroundStyle(Ink.muted) }.accessibilityLabel("纠正文稿类型")
                     }
-                    Picker("排版", selection: binding(\.options.layout)) { ForEach(LayoutPolicy.allCases) { Text($0.title).tag($0) } }
-                    Text("按文稿内容自动组织诗行、对白、引用、章节或代码。保留排版指保留内容结构；复杂 PDF 页布局近似重排。").font(.system(size: 11)).foregroundStyle(Ink.muted).lineSpacing(4)
+                    Picker("排版", selection: binding(\.options.layout)) { ForEach(LayoutPolicy.allCases) { Text($0.title).tag($0) } }.tint(Ink.text)
                 }
             }
-            HStack { Text("翻译为").font(.system(size: 14)); Spacer(); Picker("目标语言", selection: binding(\.options.targetLanguage)) { ForEach(["简体中文", "繁體中文", "English", "日本語", "한국어", "Français", "Deutsch", "Español", "Русский"], id: \.self) { Text($0).tag($0) } }.tint(Ink.text) }
+            HStack { Text("翻译为").font(.system(size: 14)); Spacer(); Picker("目标语言", selection: binding(\.options.targetLanguage)) { ForEach(TranslationLanguage.allCases) { language in Text(language.title).tag(language.targetName) }; if !TranslationLanguage.allCases.contains(where: { $0.targetName == job.options.targetLanguage }) { Text(job.options.targetLanguage).tag(job.options.targetLanguage) } }.tint(Ink.text) }
             VStack(alignment: .leading, spacing: 14) {
-                HStack { Text("翻译强度").font(.system(size: 15, weight: .semibold)); Spacer(); Eyebrow(text: "EFFORT") }
-                HStack(spacing: 9) {
-                    ForEach(Quality.allCases) { quality in
-                        Button {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { studio.update(id) { $0.options.quality = quality } }
-                            UISelectionFeedbackGenerator().selectionChanged()
-                        } label: {
-                            VStack(spacing: 10) { EffortBars(quality: quality); Text(quality.title).font(.system(size: 14, weight: .medium)) }.frame(maxWidth: .infinity).padding(.vertical, 20).background(job.options.quality == quality ? Ink.orange.opacity(0.09) : .white.opacity(0.6), in: RoundedRectangle(cornerRadius: 16)).overlay { RoundedRectangle(cornerRadius: 16).stroke(job.options.quality == quality ? Ink.orange : Ink.line, lineWidth: 1) }
-                        }.buttonStyle(.plain).foregroundStyle(Ink.text).accessibilityAddTraits(job.options.quality == quality ? .isSelected : [])
-                    }
-                }
-                if job.options.documentKind == .fiction { Text("小说按章处理。精译和出版档逐轮审校，让相邻段落在人物口吻、视角与叙事节奏上保持连贯。").font(.system(size: 11)).foregroundStyle(Ink.muted).lineSpacing(4) }
-                Text(job.options.quality.detail + (job.options.quality == .fast ? " · 实时流式阅读" : " · 每章审校完即可阅读")).font(.system(size: 11)).foregroundStyle(Ink.muted)
+                HStack { Text("翻译强度").font(.system(size: 15, weight: .semibold)); Spacer(); Text(job.options.quality.title).font(.system(size: 13, weight: .medium)) }
+                Text(job.options.stages.map(\.title).joined(separator: " · ")).font(.system(size: 12)).foregroundStyle(Ink.muted)
+                QualitySlider(selection: binding(\.options.quality))
             }
             PaperCard {
                 VStack(alignment: .leading, spacing: 15) {
-                    Text("译文的声音").font(.system(size: 14, weight: .semibold))
-                    Picker("翻译风格", selection: binding(\.options.style)) {
+                    HStack { Text("风格").font(.system(size: 14)); Spacer(); Picker("翻译风格", selection: binding(\.options.style)) {
                         ForEach(TranslationStyle.presets + studio.customStyles) { style in Text(style.name).tag(style) }
-                    }.pickerStyle(.menu).tint(Ink.text)
-                    Text(job.options.style.subtitle).font(.system(size: 12)).foregroundStyle(Ink.muted)
+                    }.pickerStyle(.menu).tint(Ink.text) }
                     Divider()
-                    Button { sheet = .preferences } label: { HStack { Label("语言与注释偏好", systemImage: "slider.horizontal.3"); Spacer(); Image(systemName: "chevron.right") }.font(.system(size: 13)).foregroundStyle(Ink.text) }
+                    Button { sheet = .preferences } label: { HStack { Text("语言与注释"); Spacer(); Image(systemName: "chevron.right") }.font(.system(size: 14)).foregroundStyle(Ink.text) }
                 }
             }
             VStack(alignment: .leading, spacing: 12) {
-                Text("术语如何确定").font(.system(size: 15, weight: .semibold))
+                Text("术语库").font(.system(size: 15, weight: .semibold))
                 Picker("术语处理", selection: binding(\.glossaryMode)) { ForEach(GlossaryMode.allCases) { Text($0.title).tag($0) } }.pickerStyle(.segmented)
-                Text(job.glossaryMode == .review ? "先提取整份文档中的人名、地名和专业词；由你确认译名后，再开始正文。" : job.glossaryMode == .automatic ? "系统按全文提取并统一译名，应用到翻译、校对、语言审校与主编定稿。" : "使用你在「术语」页维护的词表，译名会在所有阶段保持一致。") .font(.system(size: 12)).foregroundStyle(Ink.muted).lineSpacing(4)
+                if job.glossaryMode == .review { Text("确认术语后开始翻译。").font(.system(size: 12)).foregroundStyle(Ink.muted) }
+                if job.glossaryMode == .custom && studio.libraryTerms.isEmpty { Text("请先在术语页添加词表。").font(.system(size: 12)).foregroundStyle(Ink.muted) }
             }
         }.foregroundStyle(Ink.text)
     }
     private func reviewCard(_ job: BookJob) -> some View {
         PaperCard {
             VStack(alignment: .leading, spacing: 14) {
-                Label("术语已整理，等你过目", systemImage: "checklist").font(.system(size: 16, weight: .semibold)).foregroundStyle(Ink.orange)
-                Text("共 \(job.terms.count) 个候选术语。可以修改译名、删除不需要的词或补充自己的译法。").font(.system(size: 13)).foregroundStyle(Ink.muted).lineSpacing(5)
-                Button("校对术语表  →") { sheet = .glossary }.font(.system(size: 14, weight: .semibold))
+                HStack { Text("确认术语").font(.system(size: 15, weight: .semibold)); Spacer(); Text("\(job.terms.count) 个").font(.system(size: 12)).foregroundStyle(Ink.muted) }
+                Button("查看与修改") { sheet = .glossary }.font(.system(size: 14, weight: .medium))
             }
         }
     }
     private func pipeline(_ job: BookJob) -> some View {
         PaperCard {
             VStack(alignment: .leading, spacing: 22) {
-                HStack { Text(job.options.documentKind == .fiction ? "你的小说编辑部" : "你的翻译团队").font(.system(size: 15, weight: .semibold)); Spacer(); if job.status == .translating || job.status == .extracting { ThinkingDots() } }
-                if job.status == .extracting { Label("术语整理 · 全文提取中", systemImage: "text.magnifyingglass").font(.system(size: 13)).foregroundStyle(Ink.orange) }
+                HStack { Text("翻译进度").font(.system(size: 15, weight: .semibold)); Spacer(); if job.status == .translating || job.status == .extracting { ThinkingDots() } }
+                if job.status == .extracting { Label("整理术语", systemImage: "text.magnifyingglass").font(.system(size: 13)).foregroundStyle(Ink.orange) }
                 ForEach(job.options.stages, id: \.rawValue) { stage in
                     let count = job.checkpoints.filter { $0.stage == stage }.count
                     HStack(spacing: 13) {
                         Image(systemName: count == job.chunkCount ? "checkmark.circle.fill" : "circle.dotted").font(.system(size: 20)).foregroundStyle(count == job.chunkCount ? Ink.green : Ink.orange.opacity(count > 0 ? 1 : 0.4))
-                        VStack(alignment: .leading, spacing: 4) { Text(stage.title).font(.system(size: 14, weight: .medium)); Text(stageDescription(stage, kind: job.options.documentKind)).font(.system(size: 10)).foregroundStyle(Ink.muted) }
+                        Text(stage.title).font(.system(size: 14, weight: .medium))
                         Spacer(); Text("\(count) / \(job.chunkCount)").font(.system(size: 10, design: .monospaced)).foregroundStyle(Ink.muted)
-                    }
+                    }.accessibilityElement(children: .combine).accessibilityHint(stageDescription(stage, kind: job.options.documentKind))
                 }
-                ProgressView(value: job.progress).tint(Ink.orange).animation(.easeInOut(duration: 0.4), value: job.progress)
+                ProgressView(value: job.progress).tint(Ink.orange).animation(reduceMotion ? nil : .easeInOut(duration: 0.4), value: job.progress)
                 HStack { Text(job.statusText); Spacer(); Text("\(Int(job.progress * 100))%").monospacedDigit() }.font(.system(size: 11)).foregroundStyle(Ink.muted)
             }
         }
     }
     private func action(_ job: BookJob) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            if job.status == .draft { HStack { Text(studio.ownAPI ? "使用自己的 API · 由服务商计费" : "预计 \(job.estimate) 点 · 含术语与所选审校"); Spacer(); Text(studio.ownAPI ? studio.model : "DeepSeek").foregroundStyle(Ink.text).lineLimit(1) }.font(.system(size: 11)).foregroundStyle(Ink.muted) }
-            if studio.activeID == id { PrimaryButton(title: "暂停，稍后继续", icon: "pause") { studio.pause() } }
-            else { PrimaryButton(title: job.status == .reviewing ? "确认术语，开始翻译" : job.status == .draft ? "开始翻译" : "继续翻译", icon: "sparkle") { studio.begin(id, account: account, purchases: purchases, approved: job.status == .reviewing) }.disabled(studio.task != nil) }
+            if job.status == .draft { HStack { Text(studio.ownAPI ? "自带 API · 服务商计费" : "约 \(job.estimatedPoints(tokensPerPoint: account.tokensPerPoint)) 点"); Spacer(); Text(studio.ownAPI ? studio.model : "DeepSeek").foregroundStyle(Ink.text).lineLimit(1) }.font(.system(size: 12)).foregroundStyle(Ink.muted) }
+            if job.status == .awaitingCredits { Button("充值") { sheet = .wallet }.font(.system(size: 14)) }
+            if job.reviewDraft != nil && studio.activeID != id {
+                PrimaryButton(title: "核对待校稿", icon: "text.magnifyingglass") { sheet = .repair }
+            } else if studio.activeID == id { PrimaryButton(title: "暂停翻译", icon: "pause") { studio.pause() } }
+            else { PrimaryButton(title: job.status == .reviewing ? "确认术语，开始翻译" : job.status == .draft ? "开始翻译" : "继续翻译", icon: "sparkle") {
+                if !studio.ownAPI && job.status == .draft && account.isLoggedIn && job.estimatedPoints(tokensPerPoint: account.tokensPerPoint) > account.points && job.partialApproved != true { partialChoice = true }
+                else { studio.begin(id, account: account, purchases: purchases, approved: job.status == .reviewing) }
+            }.disabled(studio.task != nil) }
         }
+    }
+    private func metadata(_ job: BookJob) -> String {
+        let target = TranslationLanguage.allCases.first { $0.targetName == job.options.targetLanguage }?.title ?? job.options.targetLanguage
+        guard let source = job.sourceLanguage else { return "\(job.format) · \(job.source.count.formatted()) 字符" }
+        return "\(source) → \(target)"
     }
     private func stageDescription(_ stage: Stage, kind: DocumentKind) -> String {
         if kind == .fiction {
@@ -156,12 +162,12 @@ struct PreferencesForm: View {
     @Binding var preferences: TranslationPreferences
     var body: some View {
         Form {
-            Section { Picker("原文夹杂其他外语", selection: $preferences.foreignText) { ForEach(ForeignTextPolicy.allCases) { Text($0.title).tag($0) } } } header: { Text("多语言片段") } footer: { Text("例如英文小说中的法语对白。专有名词遵循术语表；代码保持原样。") }
+            Section { Picker("其他外语", selection: $preferences.foreignText) { ForEach(ForeignTextPolicy.allCases) { Text($0.title).tag($0) } } } header: { Text("混合语言") }
             Section {
                 Picker("编者注", selection: $preferences.annotations) { ForEach(AnnotationPolicy.allCases) { Text($0.title).tag($0) } }
                 Toggle("少量注释", isOn: $preferences.sparseNotes).disabled(preferences.annotations == .none)
-            } header: { Text("帮助读懂弦外之音") } footer: { Text("少量：每块最多 1 条；常规：最多 3 条。新增解释标注为「编者注」，存疑的背景不添加。模型仍可能出错，正式出版前建议人工复核。") }
-            Section { Toggle("精译档加入语言专家", isOn: $preferences.extraLanguageReview) } header: { Text("审校团队") } footer: { Text("出版档始终包含语言专家与主编。此选项为精译档再增加一轮语言审校，点数和 API 用量随之增加。") }
+            } header: { Text("解释与注释") } footer: { Text("俚语、双关与文化背景仅在全书首次出现时解释，新增内容标为「编者注」。") }
+            Section { Toggle("精译加入语言专家", isOn: $preferences.extraLanguageReview) } header: { Text("语言审校") } footer: { Text("出版档已包含。开启会增加精译档用量。") }
         }.scrollContentBackground(.hidden).background(Ink.paper)
     }
 }

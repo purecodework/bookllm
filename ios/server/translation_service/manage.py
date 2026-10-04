@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import time
 
+from .billing import TokenUsage
 from .ledger import Ledger, ServiceError
 
 
@@ -22,13 +23,14 @@ def main():
     complete.add_argument("--account", required=True)
     complete.add_argument("--request", required=True)
     complete.add_argument("--result-json", required=True, help='Verified recovered result, e.g. {"text":"..."} or glossary array')
+    complete.add_argument("--usage-json", help="Recovered provider usage file with prompt_tokens and completion_tokens; required for token-billed requests")
     args = parser.parse_args()
     if not Path(args.database).is_file():
         parser.error("Database does not exist")
     ledger = Ledger(args.database)
     if args.command == "pending":
         with ledger.connection() as db:
-            rows = db.execute("SELECT account_id,request_id,status,cost,operation,attempts,created_at,updated_at FROM requests WHERE status IN ('reserved','dispatched','uncertain') ORDER BY created_at").fetchall()
+            rows = db.execute("SELECT account_id,request_id,status,cost,reserved_cost,billing_mode,prompt_tokens,completion_tokens,actual_equivalent_points,absorbed_points,operation,attempts,created_at,updated_at FROM requests WHERE status IN ('reserved','dispatched','uncertain') ORDER BY created_at").fetchall()
         print(json.dumps([dict(row) for row in rows], ensure_ascii=False, indent=2))
     elif args.command == "audit":
         with ledger.connection() as db:
@@ -54,7 +56,7 @@ def main():
     elif args.command == "complete":
         response = json.loads(Path(args.result_json).read_text())
         with ledger.connection() as db:
-            row = db.execute("SELECT operation FROM requests WHERE account_id=? AND request_id=?", (args.account, args.request)).fetchone()
+            row = db.execute("SELECT operation,billing_mode FROM requests WHERE account_id=? AND request_id=?", (args.account, args.request)).fetchone()
         if row is None:
             parser.error("Request does not exist")
         if row["operation"] == "translate":
@@ -66,7 +68,15 @@ def main():
             response = [term.model_dump() for term in TypeAdapter(list[Term]).validate_python(response)]
             if len(response) > 60:
                 parser.error("Too many recovered terms")
-        ledger.complete(args.account, args.request, response)
+        usage = None
+        if args.usage_json:
+            try:
+                usage = TokenUsage.from_provider(json.loads(Path(args.usage_json).read_text()))
+            except (ValueError, OSError):
+                parser.error("Invalid verified usage JSON")
+        if row["billing_mode"] == "tokens" and usage is None:
+            parser.error("Token-billed reconciliation requires the provider's verified --usage-json; do not substitute an estimate")
+        ledger.complete(args.account, args.request, response, usage)
         print("Verified result recorded. Retrying the original requestID returns it without additional debit.")
 
 

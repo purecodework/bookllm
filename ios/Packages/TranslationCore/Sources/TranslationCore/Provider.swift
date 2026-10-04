@@ -8,13 +8,16 @@ public struct APIProvider: TranslationProvider {
     public let connection: Connection
     public init(connection: Connection) { self.connection = connection }
     public func complete(_ request: TranslationRequest) async throws -> String {
+        let text: String
         switch connection {
         case .ownKey(let url, let key, let model):
-            return try await chat(url: url, key: key, model: model, system: request.prompt, input: request.input)
+            text = try await chat(url: url, key: key, model: model, system: request.prompt, input: request.input)
         case .cloud(let url, let token):
             let data = try await post(url: url.appendingPathComponent("translate"), key: token, body: JSONEncoder().encode(request))
-            return try JSONDecoder().decode(TextResponse.self, from: data).text
+            text = try JSONDecoder().decode(TextResponse.self, from: data).text
         }
+        try CoverageValidator.validateCompletion(request: request, output: text)
+        return text
     }
     public func stream(_ request: TranslationRequest, onPartial: @escaping @Sendable (String) async -> Void) async throws -> String {
         #if canImport(FoundationNetworking)
@@ -34,6 +37,7 @@ public struct APIProvider: TranslationProvider {
         network.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization"); network.setValue("application/json", forHTTPHeaderField: "Content-Type"); network.setValue("text/event-stream", forHTTPHeaderField: "Accept")
         let (bytes, response) = try await URLSession.shared.bytes(for: network)
         guard let http = response as? HTTPURLResponse else { throw TranslationError.transient("网络响应无效。") }
+        if http.statusCode == 402 { throw TranslationError.insufficientCredits }
         if http.statusCode == 429 { throw TranslationError.rateLimited(Double(http.value(forHTTPHeaderField: "Retry-After") ?? "2") ?? 2) }
         if http.statusCode == 409 {
             if let retry = http.value(forHTTPHeaderField: "Retry-After") { throw TranslationError.pending(Double(retry) ?? 1) }
@@ -67,6 +71,7 @@ public struct APIProvider: TranslationProvider {
             }
         }
         guard stopped, !result.isEmpty else { throw TranslationError.transient("流式连接提前结束，请继续翻译。") }
+        try CoverageValidator.validateCompletion(request: request, output: result)
         return result
         #endif
     }
@@ -95,6 +100,7 @@ public struct APIProvider: TranslationProvider {
         request.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization"); request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let response = response as? HTTPURLResponse else { throw TranslationError.transient("网络响应无效。") }
+        if response.statusCode == 402 { throw TranslationError.insufficientCredits }
         if response.statusCode == 429 { throw TranslationError.rateLimited(Double(response.value(forHTTPHeaderField: "Retry-After") ?? "2") ?? 2) }
         if response.statusCode == 409 {
             if let retry = response.value(forHTTPHeaderField: "Retry-After") { throw TranslationError.pending(Double(retry) ?? 1) }

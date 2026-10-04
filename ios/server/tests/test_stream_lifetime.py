@@ -5,6 +5,7 @@ from dataclasses import replace
 import pytest
 
 from translation_service.app import create_app
+from translation_service.billing import TokenUsage
 from translation_service.ledger import ServiceError
 from translation_service.models import TranslationRequest
 from translation_service.provider import AmbiguousProviderFailure, DefiniteProviderFailure
@@ -22,7 +23,7 @@ class ControlledStream:
         self.calls = 0
         self.closed = False
 
-    async def stream(self, messages):
+    async def stream(self, messages, *, max_tokens=None):
         self.calls += 1
         try:
             self.first_started.set()
@@ -34,6 +35,7 @@ class ControlledStream:
             if self.failure:
                 raise self.failure
             yield "，完整末尾。"
+            yield TokenUsage(20, 10)
         finally:
             self.closed = True
 
@@ -66,7 +68,8 @@ async def test_disconnect_after_real_token_completes_paid_work_and_resume_replay
         with pytest.raises(ServiceError) as pending:
             await endpoint(request, owner)
         assert pending.value.status == 409 and pending.value.retry_after == 1
-        assert app.state.ledger.account(owner)["points"] == 99
+        held = app.state.ledger.request_status(owner, request.requestID)["reservedPoints"]
+        assert app.state.ledger.account(owner)["points"] == 100 - held
         model.release.set()
         await finish_workers(app)
         state = app.state.ledger.request_status(owner, request.requestID)
@@ -99,7 +102,7 @@ async def test_request_cancelled_before_first_token_does_not_cancel_upstream(set
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("failure,status,balance", [
-    (AmbiguousProviderFailure(503, "provider connection lost", 5), "uncertain", 99),
+    (AmbiguousProviderFailure(503, "provider connection lost", 5), "uncertain", None),
     (DefiniteProviderFailure(502, "invalid finish marker"), "refunded", 100),
 ])
 async def test_disconnect_does_not_hide_genuine_upstream_failure(settings, failure, status, balance):
@@ -114,7 +117,7 @@ async def test_disconnect_does_not_hide_genuine_upstream_failure(settings, failu
         await finish_workers(app)
         state = app.state.ledger.request_status(owner, request.requestID)
         assert state["status"] == status and "result" not in state
-        assert app.state.ledger.account(owner)["points"] == balance
+        assert app.state.ledger.account(owner)["points"] == (100 - state["reservedPoints"] if balance is None else balance)
 
 
 @pytest.mark.asyncio
@@ -128,7 +131,8 @@ async def test_shutdown_cancels_only_unfinished_application_workers_and_marks_un
     assert model.closed
     assert not app.state.stream_tasks
     assert app.state.ledger.request_status(owner, request.requestID)["status"] == "uncertain"
-    assert app.state.ledger.account(owner)["points"] == 99
+    state = app.state.ledger.request_status(owner, request.requestID)
+    assert app.state.ledger.account(owner)["points"] == 100 - state["reservedPoints"]
     await response.body_iterator.aclose()
     with pytest.raises(ServiceError) as closing:
         await endpoint(request, owner)
@@ -151,9 +155,10 @@ async def test_shutdown_grace_allows_completion_and_retains_replay(settings):
 @pytest.mark.asyncio
 async def test_slow_subscriber_queue_is_bounded_and_never_blocks_completion(settings):
     class ManyTokens:
-        async def stream(self, messages):
+        async def stream(self, messages, *, max_tokens=None):
             for _ in range(300):
                 yield "字"
+            yield TokenUsage(20, 300)
     app, owner, endpoint, request = stream_app(settings, ManyTokens())
     async with app.router.lifespan_context(app):
         response = await endpoint(request, owner)

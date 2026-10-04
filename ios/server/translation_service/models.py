@@ -54,6 +54,7 @@ class Preferences(StrictModel):
 
 class Options(StrictModel):
     targetLanguage: str = Field(min_length=1, max_length=80)
+    sourceLanguage: str | None = Field(default=None, min_length=2, max_length=32, pattern=r"^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$")
     quality: Quality
     documentKind: str = "fiction"
     layout: str = "preserve"
@@ -88,6 +89,7 @@ class TranslationRequest(StrictModel):
     source: str = Field(min_length=1, max_length=12000)
     context: str = Field(default="", max_length=4000)
     draft: str = Field(default="", max_length=40000)
+    reviewNotes: str | None = Field(default=None, max_length=2000)
     stage: Stage
     options: Options
 
