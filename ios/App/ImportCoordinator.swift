@@ -16,7 +16,7 @@ enum ImportFiles {
         let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
         guard let size = attributes[.size] as? NSNumber, size.intValue <= 40_000_000 else { throw TranslationError.message("请导入 40 MB 以内的文件。") }
         let id = UUID().uuidString, file = "source." + url.pathExtension.lowercased()
-        let draft = ImportDraft(id: id, title: url.deletingPathExtension().lastPathComponent, file: file)
+        let draft = ImportDraft(id: id, title: generatedScan ? "扫描文稿" : url.deletingPathExtension().lastPathComponent, file: file)
         try FileManager.default.createDirectory(at: directory(id), withIntermediateDirectories: true)
         do {
             try FileManager.default.copyItem(at: url, to: draft.url)
