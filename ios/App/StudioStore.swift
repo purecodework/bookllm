@@ -53,7 +53,13 @@ struct BookJob: Codable, Identifiable, Sendable {
     mutating func replan() {
         let plan = Chunker.plan(text: source, kind: options.documentKind)
         chunkCount = plan.chunks.count
-        basePoints = plan.chunks.reduce(0) { $0 + max(1, Int(ceil((Double($1.text.utf8.count) + Double($1.context.utf8.count)) / 1500 + 2))) }
+        var estimated = 0
+        for chunk in plan.chunks {
+            let bytes: Int = chunk.text.utf8.count + chunk.context.utf8.count
+            let units: Double = Double(bytes) / 1500.0 + 2.0
+            estimated += max(1, Int(ceil(units)))
+        }
+        basePoints = estimated
         chapters = plan.sections.map { section in ReadingChapter(id: section.index, title: section.title, chunks: plan.sectionForChunk.enumerated().filter { $0.element == section.index }.map(\.offset)) }
     }
     var sourceBatches: [String] {

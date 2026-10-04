@@ -4,18 +4,32 @@ import Foundation
 /// Stored drafts retain their keys so subsequent review passes cannot reset book-wide identity.
 public enum EditorNotes {
     private struct Note: Decodable { var source: String; var text: String }
+    public struct Scope: Sendable {
+        private let source: String
+        private let ranges: [Int: Range<String.Index>]
+        public init(source: String, chunks: [TextChunk]) {
+            self.source = source
+            var position = source.startIndex
+            var owned: [Int: Range<String.Index>] = [:]
+            for chunk in chunks {
+                guard let range = source.range(of: chunk.text, range: position..<source.endIndex) else { continue }
+                owned[chunk.index] = range; position = range.upperBound
+            }
+            ranges = owned
+        }
+        public func filter(_ text: String, index: Int, display: Bool = false) -> String {
+            EditorNotes.filter(text, source: source, owned: ranges[index], display: display)
+        }
+    }
     public static func filter(_ text: String, source: String, chunks: [TextChunk], index: Int, display: Bool = false) -> String {
-        guard let regex = try? NSRegularExpression(pattern: "⟦编者注:(\\{[^⟧]*\\})⟧") else { return text }
+        guard text.contains("⟦编者注:") else { return text }
+        return Scope(source: source, chunks: chunks).filter(text, index: index, display: display)
+    }
+    private static func filter(_ text: String, source: String, owned: Range<String.Index>?, display: Bool) -> String {
+        guard text.contains("⟦编者注:"), let regex = try? NSRegularExpression(pattern: "⟦编者注:(\\{[^⟧]*\\})⟧") else { return text }
         let body = text as NSString
         var result = text
         var seen = Set<String>()
-        var position = source.startIndex
-        var owned: Range<String.Index>?
-        for chunk in chunks {
-            guard let range = source.range(of: chunk.text, range: position..<source.endIndex) else { continue }
-            if chunk.index == index { owned = range; break }
-            position = range.upperBound
-        }
         var replacements: [(NSRange, String)] = []
         for match in regex.matches(in: text, range: NSRange(location: 0, length: body.length)) {
             let json = body.substring(with: match.range(at: 1))

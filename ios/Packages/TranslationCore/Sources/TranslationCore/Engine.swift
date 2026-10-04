@@ -17,6 +17,7 @@ public struct TranslationEngine: Sendable {
         }
         let plan = Chunker.plan(text: source, kind: options.documentKind)
         let chunks = plan.chunks
+        let notes = EditorNotes.Scope(source: source, chunks: chunks)
         let throughput = Throughput(maximum: options.quality.maxConcurrency)
         var output = Array(repeating: "", count: chunks.count)
         try await withThrowingTaskGroup(of: (Int, String).self) { group in
@@ -35,12 +36,12 @@ public struct TranslationEngine: Sendable {
                             let request = TranslationRequest(requestID: "\(jobID)-\(chunk.index)-\(stage.rawValue)", source: chunk.text, context: options.documentKind == .fiction ? FictionContext.make(source: source, plan: plan, index: chunk.index) : chunk.context, draft: draft, stage: stage, options: chunkOptions)
                             draft = try await Self.retry(throughput: throughput) {
                                 if options.quality == .fast {
-                                    return try await provider.stream(request) { text in await onPartial(chunk.index, EditorNotes.filter(text, source: source, chunks: chunks, index: chunk.index)) }
+                                    return try await provider.stream(request) { text in await onPartial(chunk.index, notes.filter(text, index: chunk.index)) }
                                 }
                                 return try await provider.complete(request)
                             }
                             guard !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw TranslationError.message("模型返回了空译文，请重试。") }
-                            draft = EditorNotes.filter(draft, source: source, chunks: chunks, index: chunk.index)
+                            draft = notes.filter(draft, index: chunk.index)
                             try await onUpdate(Checkpoint(index: chunk.index, stage: stage, text: draft))
                         }
                         return (chunk.index, draft)

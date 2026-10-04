@@ -63,6 +63,7 @@ public struct FictionEngine: Sendable {
     ) async throws -> String {
         try Task.checkCancellation()
         let plan = Chunker.plan(text: source, kind: .fiction)
+        let notes = EditorNotes.Scope(source: source, chunks: plan.chunks)
         let throughput = Throughput(maximum: options.quality.maxConcurrency)
         var cached: [PassKey: String] = [:]
         for checkpoint in checkpoints { cached[PassKey(index: checkpoint.index, stage: checkpoint.stage)] = checkpoint.text }
@@ -106,7 +107,7 @@ public struct FictionEngine: Sendable {
                                 )
                                 let text = try await TranslationEngine.retry(throughput: throughput) { try await provider.complete(request) }
                                 guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw TranslationError.message("模型返回了空译文，请重试。") }
-                                return Checkpoint(index: chunk.index, stage: stage, text: EditorNotes.filter(text, source: source, chunks: plan.chunks, index: chunk.index))
+                                return Checkpoint(index: chunk.index, stage: stage, text: notes.filter(text, index: chunk.index))
                             }
                             next += 1; active += 1
                         }
