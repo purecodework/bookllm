@@ -53,8 +53,19 @@ class Ledger:
         self.per_account_concurrency = per_account_concurrency
         self.global_concurrency = global_concurrency
         with self.connection() as db:
+            # A fresh database can return SQLITE_BUSY immediately when concurrent
+            # workers switch journal mode, even with busy_timeout configured.
+            deadline = time.monotonic() + 10
+            while True:
+                try:
+                    db.execute("PRAGMA journal_mode=WAL").fetchone()
+                    break
+                except sqlite3.OperationalError as error:
+                    code = getattr(error, "sqlite_errorcode", 0) & 0xFF
+                    if code not in (sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED) or time.monotonic() >= deadline:
+                        raise
+                    time.sleep(0.025)
             db.executescript("""
-                PRAGMA journal_mode=WAL;
                 CREATE TABLE IF NOT EXISTS accounts (
                     id TEXT PRIMARY KEY, apple_subject TEXT UNIQUE NOT NULL,
                     points INTEGER NOT NULL DEFAULT 0 CHECK(points >= 0),

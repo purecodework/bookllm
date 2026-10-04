@@ -5,6 +5,7 @@ import TranslationCore
 struct ImportSessionView: View {
     @Environment(ImportCoordinator.self) private var importer
     @Environment(StudioStore.self) private var studio
+    @State private var discarding = false
     var body: some View {
         NavigationStack {
             Group {
@@ -32,7 +33,13 @@ struct ImportSessionView: View {
                     }.padding(26)
                 }
             }.background(Ink.paper).navigationTitle(importer.phase == .reviewing ? "核对识别原稿" : "导入").navigationBarTitleDisplayMode(.inline)
-                .toolbar { if importer.phase == .reviewing { ToolbarItem(placement: .topBarTrailing) { Button("稍后核对") { importer.presented = false } } } }
+                .toolbar {
+                    if importer.phase == .reviewing {
+                        ToolbarItem(placement: .topBarLeading) { Button("放弃", role: .destructive) { discarding = true } }
+                        ToolbarItem(placement: .topBarTrailing) { Button("稍后核对") { importer.presented = false } }
+                    }
+                }
+                .confirmationDialog("放弃这次导入？", isPresented: $discarding, titleVisibility: .visible) { Button("放弃导入", role: .destructive) { importer.discard() } } message: { Text("识别稿将删除，原始文件不会改动。") }
         }.interactiveDismissDisabled()
     }
 }

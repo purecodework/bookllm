@@ -11,6 +11,8 @@ enum ImportFiles {
     static func directory(_ id: String) -> URL { root.appendingPathComponent(UUID(uuidString: id)?.uuidString ?? "invalid", isDirectory: true) }
     static func copy(_ url: URL) throws -> ImportDraft {
         let scoped = url.startAccessingSecurityScopedResource(); defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+        let generatedScan = url.deletingLastPathComponent().standardizedFileURL == FileManager.default.temporaryDirectory.standardizedFileURL && url.lastPathComponent.hasPrefix("扫描文稿-") && url.pathExtension == "pdf"
+        defer { if generatedScan { try? FileManager.default.removeItem(at: url) } }
         let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
         guard let size = attributes[.size] as? NSNumber, size.intValue <= 40_000_000 else { throw TranslationError.message("请导入 40 MB 以内的文件。") }
         let id = UUID().uuidString, file = "source." + url.pathExtension.lowercased()
@@ -66,7 +68,7 @@ enum ImportFiles {
                 let prepared = try await Task.detached(priority: .userInitiated) { try ImportFiles.copy(url) }.value
                 draft = prepared; try Task.checkCancellation(); task = nil; run(prepared)
             } catch is CancellationError { phase = .paused; task = nil }
-            catch { error = error.localizedDescription; phase = .failed; task = nil }
+            catch { self.error = error.localizedDescription; phase = .failed; task = nil }
         }
     }
     func resume(studio: StudioStore) { self.studio = studio; guard task == nil, let draft else { return }; presented = true; run(draft) }
