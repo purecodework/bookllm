@@ -123,7 +123,7 @@ struct JobView: View {
         VStack(alignment: .leading, spacing: 12) {
             if job.status == .draft { HStack { Text(studio.ownAPI ? "自带 API · 服务商计费" : "约 \(job.estimatedPoints(tokensPerPoint: account.tokensPerPoint)) 点"); Spacer(); Text(studio.ownAPI ? studio.model : "DeepSeek").foregroundStyle(Ink.text).lineLimit(1) }.font(.system(size: 12)).foregroundStyle(Ink.muted) }
             if job.status == .awaitingCredits { Button("充值") { sheet = .wallet }.font(.system(size: 14)) }
-            if job.status == .draft && studio.ownAPI && !purchases.localOwnAPIUnlocked && !account.ownAPIUnlocked {
+            if job.status == .draft && studio.ownAPI && !studio.canUseOwnAPI(account: account, purchases: purchases) {
                 PrimaryButton(title: "买断解锁", icon: "key.horizontal") { sheet = .unlock }
             } else if job.reviewDraft != nil && studio.activeID != id {
                 PrimaryButton(title: "核对待校稿", icon: "text.magnifyingglass") { sheet = .repair }

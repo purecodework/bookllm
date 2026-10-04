@@ -124,14 +124,15 @@ struct BookJob: Codable, Identifiable, Sendable {
         job.glossaryPoints = job.sourceBatches.reduce(0) { $0 + max(1, Int(ceil(Double($1.unicodeScalars.count) / 1000))) }
         jobs.insert(job, at: 0); persist(); return job.id
     }
+    func canUseOwnAPI(account: CloudAccount, purchases: PurchaseStore) -> Bool {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--byok-testing") { return true }
+        #endif
+        return purchases.localOwnAPIUnlocked || account.ownAPIUnlocked
+    }
     func provider(account: CloudAccount, purchases: PurchaseStore, own: Bool) throws -> APIProvider {
         if own {
-            #if DEBUG
-            let debugUnlocked = ProcessInfo.processInfo.arguments.contains("--byok-testing")
-            #else
-            let debugUnlocked = false
-            #endif
-            guard purchases.localOwnAPIUnlocked || account.ownAPIUnlocked || debugUnlocked else { throw TranslationError.message("请先买断解锁自带 API。") }
+            guard canUseOwnAPI(account: account, purchases: purchases) else { throw TranslationError.message("请先买断解锁自带 API。") }
             guard let url = URL(string: endpoint), url.scheme == "https", url.host != nil else { throw TranslationError.message("请输入有效的 HTTPS API 地址。") }
             let key = Vault.read("apiKey"); guard !key.isEmpty else { throw TranslationError.message("请先在设置中保存 API 密钥。") }
             return APIProvider(connection: .ownKey(baseURL: url, key: key, model: model))
