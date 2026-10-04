@@ -5,13 +5,14 @@ import CoreText
 import ZIPFoundation
 import TranslationCore
 
-struct ImportedText: Sendable { var title: String; var text: String; var format: String; var coverData: Data? = nil }
+struct ImportedText: Sendable { var title: String; var text: String; var format: String; var coverData: Data? = nil; var ocrPages: [OCRPage]? = nil; var sourceDocumentID: String? = nil }
 enum DocumentIO {
-    static func read(_ url: URL) throws -> ImportedText {
+    static func read(_ url: URL, cached: [Int: OCRPage] = [:], onPage: @escaping @Sendable (OCRPage, OCRProgress) async throws -> Void = { _, _ in }) async throws -> ImportedText {
         let scoped = url.startAccessingSecurityScopedResource(); defer { if scoped { url.stopAccessingSecurityScopedResource() } }
         let attrs = try FileManager.default.attributesOfItem(atPath: url.path)
         guard ((attrs[.size] as? NSNumber)?.intValue ?? 0) <= 40_000_000 else { throw TranslationError.message("请导入 40 MB 以内的文件。") }
         let ext = url.pathExtension.lowercased(), text: String
+        var pages: [OCRPage]?
         var coverData: Data?
         switch ext {
         case "txt", "md", "markdown":
@@ -19,15 +20,22 @@ enum DocumentIO {
             guard let decoded = String(data: data, encoding: .utf8) ?? String(data: data, encoding: .utf16) else { throw TranslationError.message("文本编码暂不支持，请转换为 UTF-8。") }; text = decoded
         case "pdf":
             guard let pdf = PDFDocument(url: url), !pdf.isLocked else { throw TranslationError.message("无法读取或 PDF 已加密。") }
-            text = (0..<pdf.pageCount).compactMap { pdf.page(at: $0)?.string }.joined(separator: "\n\n")
+            let processed = try await DocumentOCR.readPDF(url: url, cached: cached, onPage: onPage)
+            pages = processed
+            text = OCRLayout.joined(processed)
             coverData = DocumentCoverExtractor.pdf(pdf)
+        case "png", "jpg", "jpeg", "heic", "heif", "tif", "tiff":
+            let page: OCRPage
+            if let saved = cached[1] { page = saved } else { page = try await DocumentOCR.readImage(url: url) }
+            try await onPage(page, .init(completed: 1, total: 1, recognized: 1))
+            pages = [page]; text = page.text; coverData = DocumentCoverExtractor.image(url)
         case "epub": let imported = try epub(url); text = imported.text; coverData = imported.cover
         case "docx": let imported = try docx(url); text = imported.text; coverData = imported.cover
-        default: throw TranslationError.message("支持 TXT、Markdown、EPUB、PDF 和 DOCX。")
+        default: throw TranslationError.message("支持 TXT、Markdown、EPUB、PDF、DOCX 与图片。")
         }
-        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw TranslationError.message("未提取到文本。扫描版 PDF 需要先进行 OCR。") }
+        guard pages != nil || !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw TranslationError.message("未提取到文本，请检查原文件。") }
         guard text.count <= 2_000_000 else { throw TranslationError.message("文档过长，请按卷或章节拆分后导入。") }
-        return .init(title: url.deletingPathExtension().lastPathComponent, text: text, format: ext.uppercased(), coverData: coverData)
+        return .init(title: url.deletingPathExtension().lastPathComponent, text: text, format: ext.uppercased(), coverData: coverData, ocrPages: pages)
     }
     private static func entry(_ path: String, archive: Archive) throws -> Data {
         guard let entry = archive[path], entry.uncompressedSize <= 20_000_000 else { throw TranslationError.message("文档内容缺失或超过安全解压限制。") }

@@ -34,6 +34,8 @@ def content_hash(operation: str, payload: dict) -> str:
         options = dict(payload["options"])
         if options.get("sourceLanguage") is None:
             options.pop("sourceLanguage", None)
+        if options.get("sourceWasOCR") is None:
+            options.pop("sourceWasOCR", None)
         payload["options"] = options
     canonical = json.dumps({"operation": operation, "payload": payload}, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode()).hexdigest()

@@ -1,7 +1,7 @@
 import SwiftUI
 import TranslationCore
 
-private enum JobSheet: String, Identifiable { case preferences, glossary, wallet, repair, unlock; var id: String { rawValue } }
+private enum JobSheet: String, Identifiable { case preferences, glossary, wallet, repair, unlock, ocr; var id: String { rawValue } }
 struct JobView: View {
     let id: String
     @Environment(StudioStore.self) private var studio
@@ -16,6 +16,7 @@ struct JobView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 25) {
                         heading(job)
+                        if job.ocrPages != nil { Button("查看识别原稿") { sheet = .ocr }.font(.system(size: 13)) }
                         if job.status == .draft { configuration(job) }
                         if job.status == .reviewing { reviewCard(job) }
                         if job.status != .draft { pipeline(job) }
@@ -36,6 +37,21 @@ struct JobView: View {
             case .wallet: WalletView(ownOverride: false)
             case .unlock: WalletView(ownOverride: true)
             case .repair: RepairDraftView(id: id)
+            case .ocr:
+                if let job = studio.job(id) {
+                    NavigationStack {
+                        OCRReviewView(imported: .init(title: job.title, text: job.source, format: job.format, ocrPages: job.ocrPages, sourceDocumentID: job.sourceDocumentID), readOnly: job.status != .draft, saveTitle: "保存原稿") { reviewed in
+                            studio.update(id) {
+                                $0.source = reviewed.text; $0.ocrPages = reviewed.ocrPages
+                                $0.options.sourceWasOCR = reviewed.ocrPages?.contains(where: { $0.usedOCR }) == true ? true : nil
+                                $0.options.sourceLanguage = SourceLanguageDetection.code(for: reviewed.text)
+                                if !$0.genreWasCorrected { $0.options.documentKind = DocumentClassifier.detect(text: reviewed.text, title: $0.title, format: $0.format) }
+                                $0.replan()
+                            }
+                            sheet = nil
+                        }.navigationTitle("识别原稿").navigationBarTitleDisplayMode(.inline).toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { sheet = nil } } }
+                    }
+                }
             }
         }
         .alert("点数可能不足", isPresented: $partialChoice) {

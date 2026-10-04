@@ -13,7 +13,7 @@ struct OnboardingView: View {
             Image(systemName: page == 0 ? "book.closed" : page == 1 ? "slider.horizontal.3" : "key.horizontal").font(.system(size: 44, weight: .light)).foregroundStyle(Ink.orange)
             Text(page == 0 ? "导入，开始读。" : page == 1 ? "选一种翻译强度。" : "选一种使用方式。").font(.system(size: 30, weight: .medium, design: .serif))
             if page == 0 {
-                Text("EPUB、PDF、DOCX、TXT、Markdown。\n自动识别语言与文稿类型，保留已有封面。").font(.system(size: 15)).foregroundStyle(Ink.muted).lineSpacing(7)
+                Text("EPUB、PDF、DOCX、TXT、Markdown。\n扫描页和图片自动 OCR。识别语言与文稿类型，保留已有封面。").font(.system(size: 15)).foregroundStyle(Ink.muted).lineSpacing(7)
             } else if page == 1 {
                 VStack(alignment: .leading, spacing: 16) {
                     intro("快速", "一边翻译，一边阅读")

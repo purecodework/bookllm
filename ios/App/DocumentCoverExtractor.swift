@@ -47,6 +47,9 @@ enum DocumentCoverExtractor {
         return result
     }
 
+    static func image(_ url: URL) -> Data? {
+        guard let data = try? Data(contentsOf: url) else { return nil }; return raster(data)
+    }
     static func pdf(_ document: PDFDocument) -> Data? {
         guard let page = document.page(at: 0), let reference = page.pageRef else { return nil }
         let bounds = page.bounds(for: .mediaBox)

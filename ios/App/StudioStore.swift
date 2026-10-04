@@ -12,6 +12,8 @@ struct BookJob: Codable, Identifiable, Sendable {
     var source: String
     var format: String
     var coverKey: String? = nil
+    var ocrPages: [OCRPage]?
+    var sourceDocumentID: String?
     var partialApproved: Bool?
     var reviewDraft: ReviewDraft?
     var purchasedWorkID: String?
@@ -116,7 +118,10 @@ struct BookJob: Codable, Identifiable, Sendable {
         guard let index = jobs.firstIndex(where: { $0.id == id }) else { return }; let oldKind = jobs[index].options.documentKind; action(&jobs[index]); if jobs[index].options.documentKind != oldKind { jobs[index].replan() }; persist()
     }
     func add(_ imported: ImportedText) throws -> String {
+        guard !imported.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, imported.text.count <= 2_000_000 else { throw TranslationError.message("请确认原稿有正文且不超过 200 万字符。") }
         var job = BookJob(title: imported.title, source: imported.text, format: imported.format); job.options.preferences = defaultPreferences
+        job.ocrPages = imported.ocrPages; job.sourceDocumentID = imported.sourceDocumentID
+        job.options.sourceWasOCR = imported.ocrPages?.contains(where: { $0.usedOCR }) == true ? true : nil
         if let data = imported.coverData { job.coverKey = try CoverStorage.save(data) }
         job.options.sourceLanguage = SourceLanguageDetection.code(for: imported.text)
         job.options.documentKind = DocumentClassifier.detect(text: imported.text, title: imported.title, format: imported.format)

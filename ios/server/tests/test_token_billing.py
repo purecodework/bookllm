@@ -234,7 +234,11 @@ def test_optional_language_and_review_fields_keep_historical_hash():
     expanded = json.loads(json.dumps(original))
     expanded["options"]["sourceLanguage"] = None
     expanded["reviewNotes"] = None
+    expanded["options"]["sourceWasOCR"] = None
     assert content_hash("translate", original) == content_hash("translate", expanded)
+    expanded["options"]["sourceWasOCR"] = True
+    assert content_hash("translate", original) != content_hash("translate", expanded)
+    expanded["options"]["sourceWasOCR"] = None
     expanded["options"]["sourceLanguage"] = "en"
     assert content_hash("translate", original) != content_hash("translate", expanded)
     expanded["options"]["sourceLanguage"] = None

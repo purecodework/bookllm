@@ -20,6 +20,8 @@
     <string>$(CURRENT_PROJECT_VERSION)</string>
     <key>CloudBaseURL</key>
     <string>$(CLOUD_BASE_URL)</string>
+    <key>NSCameraUsageDescription</key>
+    <string>扫描纸质书页和文档，文字在本机识别。</string>
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>LSSupportsOpeningDocumentsInPlace</key>
@@ -60,6 +62,7 @@
             <string>Alternate</string>
             <key>LSItemContentTypes</key>
             <array>
+                <string>public.image</string>
                 <string>public.plain-text</string>
                 <string>net.daringfireball.markdown</string>
                 <string>com.adobe.pdf</string>

@@ -1,21 +1,28 @@
 import SwiftUI
 import UniformTypeIdentifiers
 import TranslationCore
+import VisionKit
 
 private enum LibrarySheet: String, Identifiable { case paste, wallet, work; var id: String { rawValue } }
 struct LibraryView: View {
     @Environment(StudioStore.self) private var studio
+    @Environment(ImportCoordinator.self) private var importer
     @Environment(CloudAccount.self) private var account
     @State private var importing = false
+    @State private var scanning = false
+    @State private var scannedURL: URL?
     @State private var sheet: LibrarySheet?
     @State private var path: [String] = []
     @State private var filter = 0
-    private var filtered: [BookJob] { studio.jobs.filter { filter == 0 || (filter == 1 ? ["EPUB", "TXT"].contains($0.format) : ["PDF", "DOCX", "MD"].contains($0.format)) } }
+    private var filtered: [BookJob] { studio.jobs.filter { filter == 0 || (filter == 1 ? ["EPUB", "TXT"].contains($0.format) : !["EPUB", "TXT"].contains($0.format)) } }
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 header
                 importCard
+                if importer.hasPending {
+                    Button { importer.resume(studio: studio) } label: { HStack { Label("继续导入与识别", systemImage: "doc.text.viewfinder"); Spacer(); Image(systemName: "chevron.right") }.font(.system(size: 13)).padding(16).foregroundStyle(Ink.text).background(.white.opacity(0.6), in: RoundedRectangle(cornerRadius: 14)) }
+                }
                 if !studio.jobs.isEmpty {
                     Picker("文档类型", selection: $filter) { Text("全部").tag(0); Text("书籍").tag(1); Text("文档").tag(2) }.pickerStyle(.segmented)
                 }
@@ -36,15 +43,18 @@ struct LibraryView: View {
             }.padding(24)
         }.background(Ink.paper).toolbar(.hidden, for: .navigationBar)
         .navigationDestination(for: String.self) { JobView(id: $0) }
-        .fileImporter(isPresented: $importing, allowedContentTypes: [.plainText, .pdf, UTType(filenameExtension: "epub") ?? .data, UTType(filenameExtension: "md") ?? .plainText, UTType(filenameExtension: "docx") ?? .data]) { result in
-            Task {
-                do {
-                    let url = try result.get()
-                    let imported = try await Task.detached(priority: .userInitiated) { try DocumentIO.read(url) }.value
-                    let id = try studio.add(imported); path.append(id)
-                } catch { studio.message = error.localizedDescription }
-            }
+        .fileImporter(isPresented: $importing, allowedContentTypes: [.plainText, .pdf, .image, UTType(filenameExtension: "epub") ?? .data, UTType(filenameExtension: "md") ?? .plainText, UTType(filenameExtension: "docx") ?? .data]) { result in
+            do { importer.start(try result.get(), studio: studio) } catch { studio.message = error.localizedDescription }
         }
+        .sheet(isPresented: $scanning, onDismiss: {
+            if let scannedURL { importer.start(scannedURL, studio: studio); self.scannedURL = nil }
+        }) {
+            DocumentScanner(cancelled: { scanning = false }) { result in
+                switch result { case .success(let url): scannedURL = url; case .failure(let error): studio.message = error.localizedDescription }
+                scanning = false
+            }.ignoresSafeArea()
+        }
+        .onChange(of: importer.jobID) { _, value in if let value { path = [value]; importer.jobID = nil } }
         .sheet(item: $sheet) { item in switch item { case .paste: PasteView(); case .wallet: WalletView(); case .work: WorkLookupView() } }
         .navigationDestination(isPresented: Binding(get: { !path.isEmpty }, set: { if !$0 { path = [] } })) { if let id = path.last { JobView(id: id) } }
     }
@@ -52,6 +62,7 @@ struct LibraryView: View {
         HStack(alignment: .center) {
             HStack(spacing: 9) { Text("书架").font(.system(size: 22, weight: .semibold)); if !studio.jobs.isEmpty { Text("\(studio.jobs.count)").font(.system(size: 13)).foregroundStyle(Ink.muted) } }
             Spacer()
+            if VNDocumentCameraViewController.isSupported { Button { scanning = true } label: { Image(systemName: "doc.viewfinder").font(.system(size: 18)).padding(8) }.accessibilityLabel("扫描纸张") }
             Button { sheet = .work } label: { Image(systemName: "link").font(.system(size: 16)).padding(8) }.accessibilityLabel("通过链接或 ID 打开译作")
             if !studio.ownAPI { Button { sheet = .wallet } label: { HStack(spacing: 5) { Image(systemName: "sparkle").foregroundStyle(Ink.orange); Text(account.isLoggedIn ? "\(account.points)" : "点数") }.font(.system(size: 12, weight: .medium)).padding(.horizontal, 11).padding(.vertical, 8).background(.white.opacity(0.65), in: Capsule()).overlay { Capsule().stroke(Ink.line) } }.foregroundStyle(Ink.text) }
         }

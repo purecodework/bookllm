@@ -46,7 +46,7 @@ struct SettingsView: View {
             }
             Section {
                 Button("使用介绍") { introduction = true }
-                Text("导入与导出：EPUB、PDF、DOCX、TXT、Markdown。保留封面和正文结构；扫描 PDF 需先 OCR，复杂页面版式可能变化。").font(.system(size: 12)).foregroundStyle(Ink.muted)
+                Text("导入与导出：EPUB、PDF、DOCX、TXT、Markdown。保留封面和正文结构；扫描 PDF 和图片在本机自动 OCR，识别原稿可先核对；复杂页面版式可能变化。").font(.system(size: 12)).foregroundStyle(Ink.muted)
             }
         }.scrollContentBackground(.hidden).background(Ink.paper).navigationTitle("设置").navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $wallet) { WalletView() }.sheet(isPresented: $introduction) { OnboardingView() }

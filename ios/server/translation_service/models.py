@@ -54,6 +54,7 @@ class Preferences(StrictModel):
 
 class Options(StrictModel):
     targetLanguage: str = Field(min_length=1, max_length=80)
+    sourceWasOCR: bool | None = None
     sourceLanguage: str | None = Field(default=None, min_length=2, max_length=32, pattern=r"^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$")
     quality: Quality
     documentKind: str = "fiction"

@@ -176,3 +176,18 @@ def test_fiction_neighbors_are_continuity_references_without_importing_events():
     prompt = translation_messages(TranslationRequest.model_validate(payload))[0]["content"]
     for phrase in ("plot chronology and causality", "character aliases", "narrative perspective and tense", "distinct character dialogue", "deliberate ambiguity", "foreshadowing", "intentional register shifts", "continuity references only", "never import their events or text"):
         assert phrase in prompt
+
+
+@pytest.mark.parametrize("stage", ["translate", "proofread", "linguist", "editor"])
+def test_ocr_guidance_reaches_all_style_aware_stages(stage):
+    payload = body()
+    payload.update(stage=stage, draft="" if stage == "translate" else "Reviewed draft")
+    payload["options"].update(sourceWasOCR=True, quality="publication")
+    prompt = translation_messages(TranslationRequest.model_validate(payload))[0]["content"]
+    assert "OCR source" in prompt
+    assert "Never invent missing text" in prompt
+    assert "uncertain name, number, equation or citation" in prompt
+    assert "not speculative OCR repairs" in prompt
+    assert payload["options"]["style"]["instruction"] in prompt
+    payload["options"].pop("sourceWasOCR")
+    assert "OCR source" not in translation_messages(TranslationRequest.model_validate(payload))[0]["content"]
