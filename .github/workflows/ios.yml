@@ -47,3 +47,20 @@ jobs:
           name: BookLLM-iOS-Simulator
           path: ios/build/Build/Products/Debug-iphonesimulator/BookLLM.app
           if-no-files-found: error
+
+  server-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: ios/server/requirements*.txt
+      - name: Install cloud service dependencies
+        working-directory: ios/server
+        run: python -m pip install -r requirements-dev.txt
+      - name: Cloud billing and work purchase tests
+        working-directory: ios/server
+        run: python -m pytest -q

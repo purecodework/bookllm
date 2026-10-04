@@ -35,7 +35,7 @@ public struct TranslationEngine: Sendable {
                             let request = TranslationRequest(requestID: "\(jobID)-\(chunk.index)-\(stage.rawValue)", source: chunk.text, context: options.documentKind == .fiction ? FictionContext.make(source: source, plan: plan, index: chunk.index) : chunk.context, draft: draft, stage: stage, options: chunkOptions)
                             draft = try await Self.retry(throughput: throughput) {
                                 if options.quality == .fast {
-                                    return try await provider.stream(request) { text in await onPartial(chunk.index, text) }
+                                    return try await provider.stream(request) { text in await onPartial(chunk.index, EditorNotes.filter(text, source: source, chunks: chunks, index: chunk.index)) }
                                 }
                                 return try await provider.complete(request)
                             }

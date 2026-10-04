@@ -1,7 +1,7 @@
 import SwiftUI
 import TranslationCore
 
-private enum JobSheet: String, Identifiable { case preferences, glossary, wallet, repair; var id: String { rawValue } }
+private enum JobSheet: String, Identifiable { case preferences, glossary, wallet, repair, unlock; var id: String { rawValue } }
 struct JobView: View {
     let id: String
     @Environment(StudioStore.self) private var studio
@@ -34,6 +34,7 @@ struct JobView: View {
             case .preferences: PreferencesSheet(preferences: binding(\.options.preferences))
             case .glossary: JobGlossaryView(id: id)
             case .wallet: WalletView(ownOverride: false)
+            case .unlock: WalletView(ownOverride: true)
             case .repair: RepairDraftView(id: id)
             }
         }
@@ -122,7 +123,9 @@ struct JobView: View {
         VStack(alignment: .leading, spacing: 12) {
             if job.status == .draft { HStack { Text(studio.ownAPI ? "自带 API · 服务商计费" : "约 \(job.estimatedPoints(tokensPerPoint: account.tokensPerPoint)) 点"); Spacer(); Text(studio.ownAPI ? studio.model : "DeepSeek").foregroundStyle(Ink.text).lineLimit(1) }.font(.system(size: 12)).foregroundStyle(Ink.muted) }
             if job.status == .awaitingCredits { Button("充值") { sheet = .wallet }.font(.system(size: 14)) }
-            if job.reviewDraft != nil && studio.activeID != id {
+            if job.status == .draft && studio.ownAPI && !purchases.localOwnAPIUnlocked && !account.ownAPIUnlocked {
+                PrimaryButton(title: "买断解锁", icon: "key.horizontal") { sheet = .unlock }
+            } else if job.reviewDraft != nil && studio.activeID != id {
                 PrimaryButton(title: "核对待校稿", icon: "text.magnifyingglass") { sheet = .repair }
             } else if studio.activeID == id { PrimaryButton(title: "暂停翻译", icon: "pause") { studio.pause() } }
             else { PrimaryButton(title: job.status == .reviewing ? "确认术语，开始翻译" : job.status == .draft ? "开始翻译" : "继续翻译", icon: "sparkle") {

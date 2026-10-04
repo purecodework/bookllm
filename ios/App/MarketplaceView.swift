@@ -18,7 +18,7 @@ enum WorkLink {
            (url.scheme == "bookllm" && url.host == "work") || (url.scheme == "https" && url.pathComponents.contains("w")) { return id.uuidString.lowercased() }
         return nil
     }
-    static func share(_ id: String, account: CloudAccount) -> URL? {
+    @MainActor static func share(_ id: String, account: CloudAccount) -> URL? {
         guard let base = account.baseURL, var parts = URLComponents(url: base, resolvingAgainstBaseURL: false) else { return nil }
         parts.path = "/w/" + id; parts.query = nil; parts.fragment = nil; return parts.url
     }
@@ -62,7 +62,7 @@ struct WorkPurchaseView: View {
                         PrimaryButton(title: work.purchased || work.isOwner ? "阅读译作" : "购买并阅读", icon: "book") { Task { await buyAndRead(work) } }.disabled(busy)
                         if !work.purchased && !work.isOwner { Button("充值") { wallet = true }.font(.system(size: 13)) }
                     }
-                } else if account.isLoggedIn { ProgressView() }
+                } else if account.isLoggedIn { if error == nil { ProgressView() } else { Button("重试") { Task { await load() } } } }
                 else { Text("登录后查看与购买译作。").font(.system(size: 14)); AppleLoginView() }
                 if let error { Text(error).font(.system(size: 13)).foregroundStyle(Ink.orange) }
             }.padding(24)
@@ -82,7 +82,7 @@ struct WorkPurchaseView: View {
             let content: WorkContent = try await account.send("works/\(workID)/content")
             reader = try studio.addPurchased(content)
             try await account.refresh(); error = nil
-        } catch { error = error.localizedDescription; try? await account.refresh() }
+        } catch { self.error = error.localizedDescription; try? await account.refresh() }
     }
 }
 struct PublishWorkView: View {

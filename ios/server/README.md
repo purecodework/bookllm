@@ -97,3 +97,11 @@ python -m translation_service.manage --database ./data/bookllm.sqlite3 complete 
 测试也覆盖真实 token 与预留不同的原子退差额、并发结算、余额不足后的充值恢复、已完成阶段重放、超额由运营吸收、上下文与草稿参与预算、usage 尾帧、缺失或伪造 usage 退款。测试使用独立临时 SQLite、生成的 RSA 测试签名与 mock 上游，覆盖流式订阅者中途断开、首 token 前取消、慢读取的有界队列、后台完成后恢复与不重复扣点、服务关闭收尾，以及并发余额争用、同一购买重放、账户隔离、绑定校验、签名和 nonce 边界、伪收据拒绝、流水一致性、退款及逆序通知、质量偏好提示词、真实 SSE 增量与未完成输出。无需访问真实 Apple / DeepSeek。仍需要用真实沙盒购买、OCSP、Apple 登录和 DeepSeek 翻译完成联调后发布。
 
 生产基础设施应使用 HTTPS、私有文件权限、备份且加密的本地持久磁盘，并在代理限制请求体 256 KiB、登录与收据验证的速率；不记录 Authorization、JWS、源文或模型 Key。SQLite 适合同一台机器多个 worker；不要跨主机共用 NFS 数据库。多副本部署需迁移为共享 PostgreSQL 事务账本。翻译缓存包含用户译文，需制定保留期限与账户删除流程。此目录实现可运行服务，未部署到外部，也没有配置真实购买或模型密钥。
+
+## 译作点数交易
+
+`POST /v1/works` 接受经过权利确认的译本发布：`publicationID` 为 UUID，`title`、`text`、`targetLanguage`、`styleName`、`price`（1–100000 整数）、`rightsConfirmed: true`，可选 PNG/JPEG `coverBase64`（解码后不超过 2 MB）。同一账户同一 publicationID 使用相同内容时幂等；改变已发布内容或价格会返回 409。正文最多 200 万字符，发布路由请求体最多 12 MB，其他路由维持 256 KiB。部署代理需要单独允许 `/v1/works` 的 12 MB 请求上限，并为账户登录与发布设置访问速率限制。
+
+`GET /v1/works/{UUID}` 只返回元数据；`POST /v1/works/{UUID}/purchase` 原子扣点并记作者收益，重放返回 `charged: 0`；`GET /v1/works/{UUID}/content` 仅作者或已购者可下载。全部 API 需要同一 Apple 会话鉴权。公开 `/w/{UUID}` 是仅包含元数据的 HTML 打开页，输出转义且带 CSP，不暴露正文或封面。记录与购买关系存在同一 SQLite 数据库，需一并备份。当前译作只能按 ID/链接访问，没有公开目录或搜索，价格不可变。作者收入为应用内点数，有退款债务时先偿债。
+
+`GET /v1/account` 额外返回 `tokensPerPoint`，客户端用于规则展示与近似预算。新服务端兼容未提供 sourceLanguage/reviewNotes 的旧请求；首次编者注身份保留在译文中，由原生引擎按全书第一次源词位置过滤。

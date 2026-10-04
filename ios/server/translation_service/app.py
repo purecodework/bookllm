@@ -102,7 +102,7 @@ def create_app(settings: Settings, *, identity_verifier=None, purchase_verifier=
     async def session(body: SessionRequest):
         claims = await identity.verify(body.identityToken, body.nonce)
         result = await run_in_threadpool(ledger.login, claims["sub"], settings.apple_bundle_id, hashlib.sha256(body.identityToken.encode()).hexdigest(), hashlib.sha256(body.nonce.encode()).hexdigest(), claims["exp"])
-        return {**result, "token": sessions.issue(result["accountID"])}
+        return {**result, "token": sessions.issue(result["accountID"]), "tokensPerPoint": settings.tokens_per_point}
 
     @app.get("/v1/account")
     async def account(owner: str = Depends(account_id)):

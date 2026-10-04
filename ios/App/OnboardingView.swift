@@ -31,7 +31,7 @@ struct OnboardingView: View {
                 else { withAnimation(.easeInOut(duration: 0.2)) { page += 1 } }
             }
             if page > 0 { Button("上一步") { page -= 1 }.font(.system(size: 13)).frame(maxWidth: .infinity) }
-        }.padding(28).background(Ink.paper).interactiveDismissDisabled()
+        }.padding(28).background(Ink.paper).interactiveDismissDisabled().onAppear { own = studio.ownAPI }
     }
     private func intro(_ title: String, _ detail: String) -> some View {
         HStack { Text(title).font(.system(size: 15, weight: .medium)).frame(width: 42, alignment: .leading); Text(detail).font(.system(size: 14)).foregroundStyle(Ink.muted) }
