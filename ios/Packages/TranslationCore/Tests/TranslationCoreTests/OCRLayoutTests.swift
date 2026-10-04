@@ -57,6 +57,9 @@ final class OCRLayoutTests: XCTestCase {
         let page = OCRPage(number: 1, text: "A1ice paid 8.00", usedOCR: true, lines: [line(0, "A1ice paid 8.00", y: 0.1, confidence: 0.5)])
         let restored = try JSONDecoder().decode(OCRPage.self, from: JSONEncoder().encode(page))
         XCTAssertEqual(restored.uncertainLines.count, 1)
+        let blank = OCRPage(number: 2, text: "", usedOCR: true, confirmedEmpty: true)
+        XCTAssertEqual(try JSONDecoder().decode(OCRPage.self, from: JSONEncoder().encode(blank)).confirmedEmpty, true)
+        XCTAssertNil(try JSONDecoder().decode(OCRPage.self, from: JSONEncoder().encode(page)).confirmedEmpty)
         let options = TranslationOptions(quality: .publication, sourceWasOCR: true)
         for stage in options.stages {
             let request = TranslationRequest(requestID: "ocr-\(stage)", source: page.text, context: "", draft: "", stage: stage, options: options)

@@ -11,7 +11,8 @@ struct DocumentScanner: UIViewControllerRepresentable {
         let controller = VNDocumentCameraViewController(); controller.delegate = context.coordinator; return controller
     }
     func updateUIViewController(_ controller: VNDocumentCameraViewController, context: Context) {}
-    @MainActor final class Coordinator: NSObject, VNDocumentCameraViewControllerDelegate {
+    // VisionKit delivers UI delegate callbacks on the main thread; older SDKs lack actor annotations.
+    @MainActor final class Coordinator: NSObject, @preconcurrency VNDocumentCameraViewControllerDelegate {
         let completed: (Result<URL, Error>) -> Void
         let cancelled: () -> Void
         init(cancelled: @escaping () -> Void, completed: @escaping (Result<URL, Error>) -> Void) { self.cancelled = cancelled; self.completed = completed }

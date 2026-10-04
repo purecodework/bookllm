@@ -34,7 +34,7 @@ public enum DocumentOCR {
                             let image = try render(page: page, maximum: 3000)
                             var scanned = try recognize(image: image, orientation: .up, number: index + 1, cancellation: cancellation)
                             if !scanned.uncertainLines.isEmpty || scanned.text.isEmpty {
-                                let retry = try recognize(image: render(page: page, maximum: 4096), orientation: .up, number: index + 1, cancellation: cancellation)
+                                let retry = try recognizeOriented(image: render(page: page, maximum: 4096), number: index + 1, cancellation: cancellation)
                                 if score(retry) > score(scanned) { scanned = retry }
                             }
                             // Sparse real text pages retain their selectable text if OCR adds nothing useful.
@@ -64,16 +64,7 @@ public enum DocumentOCR {
                       let image = CGImageSourceCreateThumbnailAtIndex(source, 0, [kCGImageSourceCreateThumbnailFromImageAlways: true, kCGImageSourceThumbnailMaxPixelSize: 4096, kCGImageSourceCreateThumbnailWithTransform: true, kCGImageSourceShouldCacheImmediately: true] as CFDictionary) else {
                     throw TranslationError.message("请使用可读取的 JPEG、PNG、HEIC 或单页 TIFF；多帧图片请先转换成 PDF。")
                 }
-                var result = try recognize(image: image, orientation: .up, number: 1, cancellation: cancellation)
-                if result.text.isEmpty {
-                    for orientation in [CGImagePropertyOrientation.right, .left, .down] {
-                        try Task.checkCancellation()
-                        let rotated = try recognize(image: image, orientation: orientation, number: 1, cancellation: cancellation)
-                        if score(rotated) > score(result) { result = rotated }
-                        if !result.text.isEmpty && result.uncertainLines.isEmpty { break }
-                    }
-                }
-                return result
+                return try recognizeOriented(image: image, number: 1, cancellation: cancellation)
             }
         } onCancel: { cancellation.cancel() }
     }
@@ -83,7 +74,7 @@ public enum DocumentOCR {
         guard let document = PDFDocument(url: url), !document.isLocked, let page = document.page(at: number - 1) else { throw TranslationError.message("原页无法读取。") }
         let cancellation = Cancellation()
         return try await withTaskCancellationHandler {
-            try autoreleasepool { try recognize(image: render(page: page, maximum: 4096), orientation: .up, number: number, cancellation: cancellation) }
+            try autoreleasepool { try recognizeOriented(image: render(page: page, maximum: 4096), number: number, cancellation: cancellation) }
         } onCancel: { cancellation.cancel() }
     }
     public static func preview(url: URL, page number: Int) throws -> Data {
@@ -103,6 +94,18 @@ public enum DocumentOCR {
     }
     private static func score(_ page: OCRPage) -> Double {
         page.lines.reduce(0) { $0 + Double(min(80, $1.text.count)) * $1.confidence }
+    }
+    private static func recognizeOriented(image: CGImage, number: Int, cancellation: Cancellation) throws -> OCRPage {
+        var result = try recognize(image: image, orientation: .up, number: number, cancellation: cancellation)
+        if result.text.isEmpty {
+            for orientation in [CGImagePropertyOrientation.right, .left, .down] {
+                try Task.checkCancellation()
+                let rotated = try recognize(image: image, orientation: orientation, number: number, cancellation: cancellation)
+                if score(rotated) > score(result) { result = rotated }
+                if !result.text.isEmpty && result.uncertainLines.isEmpty { break }
+            }
+        }
+        return result
     }
     private static func recognize(image: CGImage, orientation: CGImagePropertyOrientation, number: Int, cancellation: Cancellation) throws -> OCRPage {
         try Task.checkCancellation()
