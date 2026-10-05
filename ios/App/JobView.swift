@@ -1,7 +1,7 @@
 import SwiftUI
 import TranslationCore
 
-private enum JobSheet: String, Identifiable { case preferences, glossary, glossaryLibrary, wallet, repair, unlock, ocr; var id: String { rawValue } }
+private enum JobSheet: String, Identifiable { case preferences, glossary, wallet, repair, unlock, ocr; var id: String { rawValue } }
 struct JobView: View {
     let id: String
     @Environment(StudioStore.self) private var studio
@@ -34,8 +34,6 @@ struct JobView: View {
             switch destination {
             case .preferences: PreferencesSheet(preferences: binding(\.options.preferences))
             case .glossary: JobGlossaryView(id: id)
-            case .glossaryLibrary:
-                NavigationStack { GlossaryLibraryView().toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { sheet = nil } } } }
             case .wallet: WalletView(ownOverride: false)
             case .unlock: WalletView(ownOverride: true)
             case .repair: RepairDraftView(id: id)
@@ -105,17 +103,9 @@ struct JobView: View {
             }
             VStack(alignment: .leading, spacing: 12) {
                 Text("术语库").font(.system(size: 15, weight: .semibold))
-                HStack {
-                    Text("术语处理").font(.system(size: 14))
-                    Spacer()
-                    Picker("术语处理", selection: Binding(get: { job.glossaryMode == .custom ? .accumulated : job.glossaryMode }, set: { value in studio.update(id) { $0.glossaryMode = value } })) {
-                        ForEach(GlossaryMode.allCases) { Text($0.title).tag($0) }
-                    }.pickerStyle(.menu).tint(Ink.text)
-                }
-                Text(job.glossaryMode.detail).font(.system(size: 12)).foregroundStyle(Ink.muted)
-                Button { sheet = .glossaryLibrary } label: {
-                    HStack { Text("导入我的术语库"); Spacer(); if !studio.libraryTerms.isEmpty { Text("\(studio.libraryTerms.count) 个").foregroundStyle(Ink.muted) }; Image(systemName: "chevron.right") }.font(.system(size: 13)).foregroundStyle(Ink.text)
-                }
+                Picker("术语处理", selection: binding(\.glossaryMode)) { ForEach(GlossaryMode.allCases) { Text($0.title).tag($0) } }.pickerStyle(.segmented)
+                if job.glossaryMode == .review { Text("确认术语后开始翻译。").font(.system(size: 12)).foregroundStyle(Ink.muted) }
+                if job.glossaryMode == .custom && studio.libraryTerms.isEmpty { Text("请先在术语页添加词表。").font(.system(size: 12)).foregroundStyle(Ink.muted) }
             }
         }.foregroundStyle(Ink.text)
     }

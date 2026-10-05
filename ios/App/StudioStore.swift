@@ -21,8 +21,7 @@ struct BookJob: Codable, Identifiable, Sendable {
     var publicationPrice: Int?
     var created = Date()
     var options = TranslationOptions()
-    var glossaryMode = GlossaryMode.accumulated
-    var glossarySeed: [Term]?
+    var glossaryMode = GlossaryMode.automatic
     var terms: [Term] = []
     var checkpoints: [Checkpoint] = []
     var status = JobStatus.draft
@@ -166,13 +165,6 @@ struct BookJob: Codable, Identifiable, Sendable {
             let own = job.status == .draft ? ownAPI : job.usesOwnAPI
             let provider = try provider(account: account, purchases: purchases, own: own)
             if job.status == .draft { update(id) { $0.usesOwnAPI = own }; job.usesOwnAPI = own }
-            if job.glossarySeed == nil {
-                update(id) { $0.glossarySeed = libraryTerms; $0.terms = Self.mergeTerms(libraryTerms + $0.terms) }
-                job = self.job(id) ?? job
-            }
-            if job.glossaryMode == .accumulated && !job.glossaryReady {
-                update(id) { $0.glossaryReady = true }
-            }
             if job.glossaryMode == .custom && !job.glossaryReady {
                 guard !libraryTerms.isEmpty, libraryTerms.allSatisfy({ !$0.target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else { throw TranslationError.message("请先在术语库中添加或导入术语。") }
                 update(id) { $0.terms = libraryTerms; $0.glossaryReady = true }
@@ -204,16 +196,7 @@ struct BookJob: Codable, Identifiable, Sendable {
                     guard var current = self.job(id) else { return }
                     current.options.glossary = current.terms
                     self.update(id) { $0.options.glossary = current.terms; $0.status = .translating; $0.error = nil }
-                    let translationProvider: any TranslationProvider
-                    if current.glossaryMode == .accumulated {
-                        translationProvider = IncrementalGlossaryProvider(provider: provider, jobID: id,
-                            chunks: Chunker.plan(text: current.source, kind: current.options.documentKind).chunks,
-                            target: current.options.targetLanguage, seed: current.glossarySeed ?? current.terms,
-                            snapshots: current.termBatches) { [weak self] index, terms in
-                                try await self?.recordTerms(id, index: index, terms: terms)
-                            }
-                    } else { translationProvider = provider }
-                    let result = try await TranslationEngine().run(jobID: id, source: current.source, options: current.options, provider: translationProvider, checkpoints: current.checkpoints, onPartial: { [weak self] index, text in await self?.partial(id, index: index, text: text) }) { [weak self] checkpoint in
+                    let result = try await TranslationEngine().run(jobID: id, source: current.source, options: current.options, provider: provider, checkpoints: current.checkpoints, onPartial: { [weak self] index, text in await self?.partial(id, index: index, text: text) }) { [weak self] checkpoint in
                         try await self?.record(id, checkpoint: checkpoint)
                     }
                     self.update(id) { $0.result = result; $0.status = .complete }
@@ -291,13 +274,10 @@ struct BookJob: Codable, Identifiable, Sendable {
     private func recordTerms(_ id: String, index batch: Int, terms: [Term]) async throws {
         guard let index = jobs.firstIndex(where: { $0.id == id }) else { return }
         jobs[index].termBatches[batch] = terms
-        jobs[index].terms = Self.mergeTerms((jobs[index].glossarySeed ?? []) + jobs[index].termBatches.keys.sorted().flatMap { jobs[index].termBatches[$0] ?? [] })
+        var known = Set<String>()
+        jobs[index].terms = jobs[index].termBatches.keys.sorted().flatMap { jobs[index].termBatches[$0] ?? [] }.filter { !$0.source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !$0.target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.source.count <= 200 && $0.target.count <= 400 && known.insert($0.source.lowercased()).inserted }
         jobs[index].glossaryBatch = jobs[index].termBatches.count
         try await save()
-    }
-    private static func mergeTerms(_ candidates: [Term]) -> [Term] {
-        var known = Set<String>()
-        return candidates.filter { !$0.source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !$0.target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.source.count <= 200 && $0.target.count <= 400 && known.insert($0.source.lowercased()).inserted }
     }
     private func record(_ id: String, checkpoint: Checkpoint) async throws {
         guard let index = jobs.firstIndex(where: { $0.id == id }) else { return }
