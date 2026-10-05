@@ -6,7 +6,7 @@ final class StyleContinuityTests: XCTestCase {
         let custom = TranslationStyle(id: "my-style", name: "我的声音", subtitle: "柔和", instruction: "Use a quiet, gently ironic storyteller voice with deliberate short cadences.")
         for style in TranslationStyle.presets + [custom] {
             for stage in Stage.allCases {
-                let request = TranslationRequest(requestID: "style-\(stage.rawValue)", source: "Alice arrived.", context: "", draft: stage == .translate ? "" : "爱丽丝到达了。", stage: stage, options: .init(quality: .publication, style: style))
+                let request = TranslationRequest(requestID: "style-\(stage.rawValue)", source: "Alice arrived.", context: "", draft: stage == .translate ? "" : "爱丽丝到达了。", stage: stage, options: .init(quality: .definitive, style: style))
                 XCTAssertTrue(request.prompt.contains(style.instruction))
                 XCTAssertTrue(request.prompt.contains("selected prose style applies to every pass"))
                 XCTAssertTrue(request.prompt.contains("Map every source paragraph and structural unit"))

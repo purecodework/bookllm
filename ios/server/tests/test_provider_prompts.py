@@ -191,3 +191,33 @@ def test_ocr_guidance_reaches_all_style_aware_stages(stage):
     assert payload["options"]["style"]["instruction"] in prompt
     payload["options"].pop("sourceWasOCR")
     assert "OCR source" not in translation_messages(TranslationRequest.model_validate(payload))[0]["content"]
+
+
+@pytest.mark.parametrize("quality,stages", [
+    ("fast", ["translate"]),
+    ("refined", ["translate", "proofread"]),
+    ("deep", ["translate", "proofread", "linguist"]),
+    ("publication", ["translate", "proofread", "linguist", "editor"]),
+    ("definitive", ["translate", "proofread", "linguist", "editor", "verify"]),
+])
+def test_strength_contract_enables_exact_pipeline_and_rejects_extra_passes(quality, stages):
+    from pydantic import ValidationError
+    from translation_service.models import Stage
+    payload = body()
+    payload["options"].update(quality=quality, sourceWasOCR=True)
+    payload["options"]["preferences"]["extraLanguageReview"] = False
+    for stage in Stage:
+        payload.update(stage=stage.value, draft="" if stage == Stage.translate else "Complete draft")
+        if stage.value not in stages:
+            with pytest.raises(ValidationError, match="Stage is not enabled"):
+                TranslationRequest.model_validate(payload)
+        else:
+            request = TranslationRequest.model_validate(payload)
+            assert [s.value for s in request.options.allowed_stages()] == stages
+            prompt = translation_messages(request)[0]["content"]
+            assert "OCR source" in prompt
+            assert request.options.style.instruction in prompt
+            if stage == Stage.verify:
+                assert "Correct only demonstrable problems" in prompt
+                assert "including unchanged text" in prompt
+                assert "first-occurrence" in prompt

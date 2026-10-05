@@ -9,7 +9,9 @@ class StrictModel(BaseModel):
 class Quality(StrEnum):
     fast = "fast"
     refined = "refined"
+    deep = "deep"
     publication = "publication"
+    definitive = "definitive"
 
 
 class Stage(StrEnum):
@@ -17,6 +19,7 @@ class Stage(StrEnum):
     proofread = "proofread"
     linguist = "linguist"
     editor = "editor"
+    verify = "verify"
 
 
 class Term(StrictModel):
@@ -82,6 +85,10 @@ class Options(StrictModel):
             return [Stage.translate]
         if self.quality == Quality.refined:
             return [Stage.translate, Stage.proofread] + ([Stage.linguist] if self.preferences.extraLanguageReview else [])
+        if self.quality == Quality.deep:
+            return [Stage.translate, Stage.proofread, Stage.linguist]
+        if self.quality == Quality.publication:
+            return [Stage.translate, Stage.proofread, Stage.linguist, Stage.editor]
         return list(Stage)
 
 

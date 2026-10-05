@@ -1,22 +1,36 @@
 import Foundation
 
 public enum Quality: String, Codable, CaseIterable, Sendable, Identifiable {
-    case fast, refined, publication
+    // Preserve existing wire values and their paid checkpoint semantics.
+    case fast, refined, deep, publication, definitive
     public var id: String { rawValue }
-    public var title: String { switch self { case .fast: "快速"; case .refined: "精译"; case .publication: "出版" } }
-    public var detail: String { switch self { case .fast: "译者 · 轻快读懂"; case .refined: "译者 + 校对 · 忠实流畅"; case .publication: "译者 + 校对 + 语言专家 + 主编" } }
-    public var stages: [Stage] { switch self { case .fast: [.translate]; case .refined: [.translate, .proofread]; case .publication: Stage.allCases } }
-    public var maxConcurrency: Int { self == .publication ? 3 : 4 }
+    public var title: String { switch self { case .fast: "速读"; case .refined: "精译"; case .deep: "深校"; case .publication: "精修"; case .definitive: "定稿" } }
+    public var detail: String { switch self {
+        case .fast: "边译边读"
+        case .refined: "核对原意与遗漏"
+        case .deep: "深查语言、习语与人物口吻"
+        case .publication: "统筹文风与章节衔接"
+        case .definitive: "最后核验事实、术语与完整性"
+    } }
+    public var stages: [Stage] { switch self {
+        case .fast: [.translate]
+        case .refined: [.translate, .proofread]
+        case .deep: [.translate, .proofread, .linguist]
+        case .publication: [.translate, .proofread, .linguist, .editor]
+        case .definitive: Stage.allCases
+    } }
+    public var maxConcurrency: Int { self == .publication || self == .definitive ? 3 : 4 }
 }
 public enum Stage: String, Codable, CaseIterable, Sendable {
-    case translate, proofread, linguist, editor
-    public var title: String { switch self { case .translate: "译者"; case .proofread: "校对"; case .linguist: "语言专家"; case .editor: "主编" } }
+    case translate, proofread, linguist, editor, verify
+    public var title: String { switch self { case .translate: "译者"; case .proofread: "校对"; case .linguist: "语言专家"; case .editor: "主编"; case .verify: "终审" } }
     public var instruction: String {
         switch self {
         case .translate: "Translate the source faithfully in the selected prose style. Preserve paragraph structure, headings and all content."
         case .proofread: "Correct omissions, mistranslations, names, numbers and inconsistent terms in the draft against the source. Restore missing source content. Preserve the selected prose style and valid stylistic choices; do not flatten literary cadence, humor, colloquial register or character voice into your own default style. Make factual corrections within the requested style."
         case .linguist: "Review multilingual passages, idioms, register, dialogue and natural phrasing against the source. Respect the selected prose style; correct language problems without replacing its legitimate cadence or register. Verify character voice, pronoun references and narrative perspective against the source. Preserve intentional changes in character register. Verify any editor notes and remove uncertain claims. Follow foreign-language preferences without omitting meaning."
         case .editor: "Produce the complete final editorial revision within the selected prose style. Harmonize inconsistencies within that style rather than choosing a different style. Enforce glossary consistently; check transitions and narrative perspective using neighboring prior-stage drafts when available. Preserve intentional changes of character voice and every fact and paragraph. Never rewrite the plot, invent events or remove source content to polish the prose."
+        case .verify: "Act as the final verifier after the chief editor. Check the entire revised draft against the original source for missing or repeated content, names, numbers, citations, terminology, verse, dialogue and code. Correct only demonstrable problems; preserve all valid wording, the selected prose style and character voices. Do not add a polishing rewrite, invent missing facts or speculate about uncertain OCR glyphs. Respect the annotation preference: retain valid keyed first-occurrence notes only when enabled and remove unsupported explanations. Return the complete verified draft, including unchanged text."
         }
     }
 }
@@ -80,6 +94,7 @@ public struct TranslationOptions: Codable, Hashable, Sendable {
     public var preferences: TranslationPreferences
     public var documentKind: DocumentKind
     public var layout: LayoutPolicy
+    public var effectiveQuality: Quality { quality == .refined && preferences.extraLanguageReview ? .deep : quality }
     public var stages: [Stage] { quality == .refined && preferences.extraLanguageReview ? [.translate, .proofread, .linguist] : quality.stages }
     public init(targetLanguage: String = "简体中文", quality: Quality = .refined, style: TranslationStyle = TranslationStyle.presets[0], glossary: [Term] = [], preferences: TranslationPreferences = .init(), documentKind: DocumentKind = .fiction, layout: LayoutPolicy = .preserve, sourceLanguage: String? = nil, sourceWasOCR: Bool? = nil) { self.sourceWasOCR = sourceWasOCR; self.sourceLanguage = sourceLanguage; self.documentKind = documentKind; self.layout = layout; self.preferences = preferences; self.targetLanguage = targetLanguage; self.quality = quality; self.style = style; self.glossary = glossary }
 }

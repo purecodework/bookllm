@@ -16,9 +16,11 @@ struct OnboardingView: View {
                 Text("EPUB、PDF、DOCX、TXT、Markdown。\n扫描页和图片自动 OCR。识别语言与文稿类型，保留已有封面。").font(.system(size: 15)).foregroundStyle(Ink.muted).lineSpacing(7)
             } else if page == 1 {
                 VStack(alignment: .leading, spacing: 16) {
-                    intro("快速", "一边翻译，一边阅读")
+                    intro("速读", "一边翻译，一边阅读")
                     intro("精译", "译者与校对，逐章阅读")
-                    intro("出版", "加入语言专家与主编，逐章定稿")
+                    intro("深校", "加入语言专家")
+                    intro("精修", "主编统一文风与衔接")
+                    intro("定稿", "最后核验，逐章阅读")
                 }
                 Text("文风、术语和首次编者注都可以调整。").font(.system(size: 13)).foregroundStyle(Ink.muted)
             } else {

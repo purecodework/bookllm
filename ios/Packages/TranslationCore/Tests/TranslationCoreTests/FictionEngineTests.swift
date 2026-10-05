@@ -91,7 +91,7 @@ final class FictionEngineTests: XCTestCase, @unchecked Sendable {
 
         for chapter in plan.sections {
             let indices = plan.chunks.indices.filter { plan.sectionForChunk[$0] == chapter.index }
-            for (previous, next) in zip(Stage.allCases, Stage.allCases.dropFirst()) {
+            for (previous, next) in zip(Quality.publication.stages, Quality.publication.stages.dropFirst()) {
                 let persisted = try indices.map { try XCTUnwrap(events.firstIndex(of: "save:\($0)-\(previous.rawValue)")) }
                 let started = try indices.map { try XCTUnwrap(events.firstIndex(of: "start:barrier-\($0)-\(next.rawValue)")) }
                 XCTAssertLessThan(try XCTUnwrap(persisted.max()), try XCTUnwrap(started.min()))
@@ -126,7 +126,7 @@ final class FictionEngineTests: XCTestCase, @unchecked Sendable {
             XCTAssertLessThanOrEqual(request.context.unicodeScalars.count, 3_900)
             for neighbor in [index - 1, index + 1] where plan.chunks.indices.contains(neighbor) {
                 let sameChapter = plan.sectionForChunk[neighbor] == plan.sectionForChunk[index]
-                for stage in Stage.allCases {
+                for stage in Quality.publication.stages {
                     let precedingChapterFinal = !sameChapter && neighbor == index - 1 && stage == options.stages.last
                     let shouldContain = precedingChapterFinal || (sameChapter && stagePosition > 0 && stage == options.stages[stagePosition - 1])
                     XCTAssertEqual(request.context.contains(fictionTag(index: neighbor, stage: stage)), shouldContain,
@@ -177,7 +177,7 @@ final class FictionEngineTests: XCTestCase, @unchecked Sendable {
         let source = self.source(), plan = Chunker.plan(text: source, kind: .fiction)
         let trace = FictionTrace(), provider = FictionRecordingProvider(trace: trace)
         let checkpoints = plan.chunks.flatMap { chunk in
-            Stage.allCases.map { Checkpoint(index: chunk.index, stage: $0, text: fictionTag(index: chunk.index, stage: $0)) }
+            Quality.publication.stages.map { Checkpoint(index: chunk.index, stage: $0, text: fictionTag(index: chunk.index, stage: $0)) }
         }
         let result = try await FictionEngine().run(jobID: "cached", source: source, options: .init(quality: .publication), provider: provider, checkpoints: checkpoints) { await trace.save($0) }
         let requests = await provider.requests, emitted = await trace.checkpoints

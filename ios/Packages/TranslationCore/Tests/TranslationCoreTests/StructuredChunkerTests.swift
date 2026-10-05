@@ -38,7 +38,7 @@ final class StructuredChunkerTests: XCTestCase, @unchecked Sendable {
         let checkpoints = await collector.values, calls = await provider.calls
         XCTAssertEqual(result, plan.chunks.map(\.text).joined(separator: "\n\n"))
         XCTAssertEqual(checkpoints.map(\.index), [0, 0, 0, 0, 1, 1, 1, 1])
-        XCTAssertEqual(checkpoints.map(\.stage), Stage.allCases + Stage.allCases)
+        XCTAssertEqual(checkpoints.map(\.stage), Quality.publication.stages + Quality.publication.stages)
         XCTAssertEqual(calls, 8)
     }
 
@@ -66,7 +66,7 @@ final class StructuredChunkerTests: XCTestCase, @unchecked Sendable {
         let checkpoints = await collector.values, calls = await provider.calls
         XCTAssertEqual(result, plan.chunks.map(\.text).joined(separator: "\n\n"))
         XCTAssertEqual(checkpoints.map(\.index), [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2])
-        XCTAssertEqual(checkpoints.map(\.stage), Stage.allCases + Stage.allCases + Stage.allCases)
+        XCTAssertEqual(checkpoints.map(\.stage), Quality.publication.stages + Quality.publication.stages + Quality.publication.stages)
         XCTAssertEqual(calls, 12)
     }
 

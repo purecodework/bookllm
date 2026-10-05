@@ -32,7 +32,7 @@ final class TranslationLanguageTests: XCTestCase, @unchecked Sendable {
                 let options = TranslationOptions(targetLanguage: target.targetName, quality: .publication, documentKind: .general, sourceLanguage: source.rawValue)
                 _ = try await TranslationEngine().run(jobID: "\(source.rawValue)-\(target.rawValue)", source: "A complete passage with its original meaning.", options: options, provider: provider) { _ in }
                 let requests = await provider.requests
-                XCTAssertEqual(requests.map(\.stage), Stage.allCases)
+                XCTAssertEqual(requests.map(\.stage), Quality.publication.stages)
                 XCTAssertTrue(requests.allSatisfy { $0.options.sourceLanguage == source.rawValue && $0.options.targetLanguage == target.targetName })
             }
         }

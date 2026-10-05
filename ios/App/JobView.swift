@@ -66,7 +66,9 @@ struct JobView: View {
     private func heading(_ job: BookJob) -> some View {
         HStack(alignment: .center, spacing: 20) {
             BookCover(title: job.title, coverKey: job.coverKey)
-            VStack(alignment: .leading, spacing: 8) { Text(job.title).font(.system(size: 22, weight: .medium, design: .serif)).lineLimit(3); Text(metadata(job)).font(.system(size: 12)).foregroundStyle(Ink.muted) }
+            VStack(alignment: .leading, spacing: 8) { Text(job.title).font(.system(size: 22, weight: .medium, design: .serif)).lineLimit(3); Text(metadata(job)).font(.system(size: 12)).foregroundStyle(Ink.muted)
+                if job.status != .draft { HStack(spacing: 5) { Text(job.options.effectiveQuality.title).font(.system(size: 11)).foregroundStyle(Ink.muted); if [.deep, .publication, .definitive].contains(job.options.effectiveQuality) { QualityFlame(quality: job.options.effectiveQuality).frame(width: 15, height: 18) } } }
+            }
         }.foregroundStyle(Ink.text)
     }
     private func configuration(_ job: BookJob) -> some View {
@@ -87,11 +89,9 @@ struct JobView: View {
                 }
             }
             HStack { Text("翻译为").font(.system(size: 14)); Spacer(); Picker("目标语言", selection: binding(\.options.targetLanguage)) { ForEach(TranslationLanguage.allCases) { language in Text(language.title).tag(language.targetName) }; if !TranslationLanguage.allCases.contains(where: { $0.targetName == job.options.targetLanguage }) { Text(job.options.targetLanguage).tag(job.options.targetLanguage) } }.tint(Ink.text) }
-            VStack(alignment: .leading, spacing: 14) {
-                HStack { Text("翻译强度").font(.system(size: 15, weight: .semibold)); Spacer(); Text(job.options.quality.title).font(.system(size: 13, weight: .medium)) }
-                Text(job.options.stages.map(\.title).joined(separator: " · ")).font(.system(size: 12)).foregroundStyle(Ink.muted)
-                QualitySlider(selection: binding(\.options.quality))
-            }
+            QualitySlider(selection: Binding(get: { job.options.effectiveQuality }, set: { value in
+                studio.update(id) { $0.options.quality = value; $0.options.preferences.extraLanguageReview = false }
+            }))
             PaperCard {
                 VStack(alignment: .leading, spacing: 15) {
                     HStack { Text("风格").font(.system(size: 14)); Spacer(); Picker("翻译风格", selection: binding(\.options.style)) {
@@ -162,6 +162,7 @@ struct JobView: View {
             case .proofread: return "核对人名、别名、因果、遗漏与误译"
             case .linguist: return "审校人物口吻、指代、语气与多语对白"
             case .editor: return "参考相邻译稿，统一本章衔接与表达"
+            case .verify: return "对照原稿，终审本章事实、术语与完整性"
             }
         }
         switch stage {
@@ -169,6 +170,7 @@ struct JobView: View {
         case .proofread: return "核对遗漏、误译、数字与术语"
         case .linguist: return "审校外语、习语、语气与编者注"
         case .editor: return "统一风格、节奏与最终表达"
+        case .verify: return "对照原稿，终审事实、术语与完整性"
         }
     }
 }
@@ -186,7 +188,6 @@ struct PreferencesForm: View {
                 Picker("编者注", selection: $preferences.annotations) { ForEach(AnnotationPolicy.allCases) { Text($0.title).tag($0) } }
                 Toggle("少量注释", isOn: $preferences.sparseNotes).disabled(preferences.annotations == .none)
             } header: { Text("解释与注释") } footer: { Text("俚语、双关与文化背景仅在全书首次出现时解释，新增内容标为「编者注」。") }
-            Section { Toggle("精译加入语言专家", isOn: $preferences.extraLanguageReview) } header: { Text("语言审校") } footer: { Text("出版档已包含。开启会增加精译档用量。") }
         }.scrollContentBackground(.hidden).background(Ink.paper)
     }
 }

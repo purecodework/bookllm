@@ -105,3 +105,5 @@ python -m translation_service.manage --database ./data/bookllm.sqlite3 complete 
 `GET /v1/works/{UUID}` 只返回元数据；`POST /v1/works/{UUID}/purchase` 原子扣点并记作者收益，重放返回 `charged: 0`；`GET /v1/works/{UUID}/content` 仅作者或已购者可下载。全部 API 需要同一 Apple 会话鉴权。公开 `/w/{UUID}` 是仅包含元数据的 HTML 打开页，输出转义且带 CSP，不暴露正文或封面。记录与购买关系存在同一 SQLite 数据库，需一并备份。当前译作只能按 ID/链接访问，没有公开目录或搜索，价格不可变。作者收入为应用内点数，有退款债务时先偿债。
 
 `GET /v1/account` 额外返回 `tokensPerPoint`，客户端用于规则展示与近似预算。新服务端兼容未提供 sourceLanguage/reviewNotes 的旧请求；首次编者注身份保留在译文中，由原生引擎按全书第一次源词位置过滤。
+
+强度合同：`fast` 译者；`refined` 加校对；`deep` 加语言专家；`publication` 加主编（保留原四轮语义）；`definitive` 加 `verify` 终审。新增客户端档位需部署此版本云服务，服务端拒绝不属于所选档位的额外阶段。历史 `refined + extraLanguageReview` 请求仍保持三轮及原请求身份。终审只校正可由原稿证明的问题，不重新改写已选风格；实际 token 用量照常结算。
