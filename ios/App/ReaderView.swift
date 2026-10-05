@@ -63,7 +63,7 @@ struct ReaderView: View {
                 HStack(spacing: 6) {
                     Text(job.options.style.name)
                     Text("·")
-                    Text(job.options.quality.title)
+                    Text(job.options.effectiveQuality.title)
                     if job.status == .translating { ThinkingDots() }
                     else if job.status != .complete { Text("·"); Text(job.statusText) }
                 }.font(.system(size: 12)).foregroundStyle(Ink.muted)
