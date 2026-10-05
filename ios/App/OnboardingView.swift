@@ -21,7 +21,7 @@ struct OnboardingView: View {
                     intro("深校", "加入语言专家")
                     intro("精修", "并行审查，主编整合整章表达")
                 }
-                Text("文风、术语和首次编者注都可以调整。").font(.system(size: 13)).foregroundStyle(Ink.muted)
+                Text("术语默认边译边积累，也可先整理全文，再确认译法。").font(.system(size: 13)).foregroundStyle(Ink.muted)
             } else {
                 mode(false, title: "按量付费", detail: "购买点数，默认 DeepSeek；按实际用量结算。")
                 mode(true, title: "买断自带 API", detail: "一次解锁，用自己的接口与密钥；由服务商计费。")

@@ -21,7 +21,8 @@ struct BookJob: Codable, Identifiable, Sendable {
     var publicationPrice: Int?
     var created = Date()
     var options = TranslationOptions()
-    var glossaryMode = GlossaryMode.automatic
+    var glossaryMode = GlossaryMode.accumulated
+    var glossarySeed: [Term]?
     var terms: [Term] = []
     var checkpoints: [Checkpoint] = []
     var status = JobStatus.draft
@@ -40,13 +41,19 @@ struct BookJob: Codable, Identifiable, Sendable {
     var sourceLanguage: String? { TranslationLanguage.sourceTitle(options.sourceLanguage) }
     var progress: Double { Double(checkpoints.count) / Double(max(1, chunkCount * options.stages.count)) }
     var statusText: String {
-        switch status { case .draft: "待翻译"; case .extracting: "整理术语"; case .reviewing: "等待术语校对"; case .translating: "翻译中"; case .paused: "已暂停"; case .complete: "翻译完成"; case .failed: "需要重试"; case .awaitingCredits: "等待充值"; case .needsReview: "需要补全" }
+        switch status { case .draft: "待翻译"; case .extracting: "整理术语"; case .reviewing: "等待术语确认"; case .translating: "翻译中"; case .paused: "已暂停"; case .complete: "翻译完成"; case .failed: "需要重试"; case .awaitingCredits: "等待充值"; case .needsReview: "需要补全" }
     }
     var estimate: Int {
         let perChunk: Int = max(1, basePoints / max(1, chunkCount))
         let translation: Int = max(0, basePoints * options.stages.count - checkpoints.count * perChunk)
         let editorial: Int = options.usesCollaborativeEditing ? (editorialContextPoints ?? 0) : 0
-        let glossary: Int = glossaryMode == .custom || glossaryReady ? 0 : glossaryPoints
+        let glossary: Int
+        if glossaryMode == .accumulated {
+            let remaining = max(0, chunkCount - termBatches.count)
+            let proportion: Double = Double(remaining) / Double(max(1, chunkCount))
+            let estimatedTerms: Int = Int(ceil(Double(glossaryPoints) * proportion))
+            glossary = max(remaining, estimatedTerms)
+        } else { glossary = glossaryMode == .custom || glossaryReady ? 0 : glossaryPoints }
         return translation + editorial + glossary
     }
 
@@ -113,6 +120,9 @@ struct BookJob: Codable, Identifiable, Sendable {
             if FileManager.default.fileExists(atPath: storage.path) {
                 let snapshot = try JSONDecoder().decode(Snapshot.self, from: Data(contentsOf: storage))
                 jobs = snapshot.jobs; customStyles = snapshot.styles; libraryTerms = snapshot.terms; defaultPreferences = snapshot.preferences
+                for i in jobs.indices where jobs[i].status == .draft && jobs[i].checkpoints.isEmpty && jobs[i].termBatches.isEmpty && jobs[i].reviewDraft == nil && jobs[i].glossaryMode == .custom {
+                    jobs[i].glossaryMode = .accumulated
+                }
                 for i in jobs.indices where jobs[i].status == .draft && jobs[i].checkpoints.isEmpty && jobs[i].reviewDraft == nil && jobs[i].options.pipelineVersion == nil {
                     jobs[i].options.quality = jobs[i].options.effectiveQuality
                     jobs[i].options.pipelineVersion = 2; jobs[i].options.preferences.extraLanguageReview = false
@@ -169,26 +179,38 @@ struct BookJob: Codable, Identifiable, Sendable {
             let own = job.status == .draft ? ownAPI : job.usesOwnAPI
             let provider = try provider(account: account, purchases: purchases, own: own)
             if job.status == .draft { update(id) { $0.usesOwnAPI = own }; job.usesOwnAPI = own }
+            // Freeze personal terms only before the first request. Existing paid
+            // jobs keep their original glossary and request payloads on resume.
+            if job.glossarySeed == nil && job.status == .draft && job.termBatches.isEmpty && job.checkpoints.isEmpty {
+                guard libraryTerms.allSatisfy({ !$0.source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !$0.target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else { throw TranslationError.message("请补全我的术语库中的原词与译名，或删除空行。") }
+                update(id) { $0.glossarySeed = libraryTerms; $0.terms = Self.mergeTerms(libraryTerms + $0.terms) }
+                job = self.job(id) ?? job
+            }
+            if job.glossaryMode == .accumulated && !job.glossaryReady {
+                update(id) { $0.glossaryReady = true }
+            }
             if job.glossaryMode == .custom && !job.glossaryReady {
                 guard !libraryTerms.isEmpty, libraryTerms.allSatisfy({ !$0.target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else { throw TranslationError.message("请先在术语库中添加或导入术语。") }
                 update(id) { $0.terms = libraryTerms; $0.glossaryReady = true }
             }
-            if partial && !job.glossaryReady && job.glossaryMode != .custom {
-                // The budget choice explicitly uses existing terms, leaving funds for readable text.
-                update(id) { $0.partialApproved = true; $0.terms = libraryTerms; $0.glossaryReady = $0.glossaryMode != .review }
-                if job.glossaryMode == .review { update(id) { $0.status = .reviewing }; return }
-            }
+            // A partial budget never bypasses the selected full-text scan or
+            // confirmation gate. Users may choose accumulated mode beforehand.
+            if partial { update(id) { $0.partialApproved = true } }
             if approved {
                 guard job.terms.allSatisfy({ !$0.target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else { throw TranslationError.message("请补充空缺译名，或删除该术语后再确认。") }
                 update(id) { $0.glossaryReady = true }
             }
+            update(id) { $0.status = $0.glossaryReady ? .translating : .extracting; $0.error = nil }
             activeID = id; liveChunks = [:]
             task = Task { [weak self] in
                 guard let self else { return }
                 defer { self.task = nil; self.activeID = nil }
                 do {
+                    // Save the seed and mode before starting any billable request.
+                    try await self.save()
                     if let current = self.job(id), !current.glossaryReady {
                         self.update(id) { $0.status = .extracting; $0.error = nil }
+                        try await self.save()
                         try await GlossaryEngine().run(jobID: id, batches: current.sourceBatches, target: current.options.targetLanguage, provider: provider, completed: Set(current.termBatches.keys)) { [weak self] index, terms in
                             try await self?.recordTerms(id, index: index, terms: terms)
                         }
@@ -200,7 +222,17 @@ struct BookJob: Codable, Identifiable, Sendable {
                     guard var current = self.job(id) else { return }
                     current.options.glossary = current.terms
                     self.update(id) { $0.options.glossary = current.terms; $0.status = .translating; $0.error = nil }
-                    let result = try await TranslationEngine().run(jobID: id, source: current.source, options: current.options, provider: provider, checkpoints: current.checkpoints, onPartial: { [weak self] index, text in await self?.partial(id, index: index, text: text) }) { [weak self] checkpoint in
+                    try await self.save()
+                    let translationProvider: any TranslationProvider
+                    if current.glossaryMode == .accumulated {
+                        translationProvider = IncrementalGlossaryProvider(provider: provider, jobID: id,
+                            chunks: Chunker.plan(text: current.source, kind: current.options.documentKind).chunks,
+                            target: current.options.targetLanguage, seed: current.glossarySeed ?? current.terms,
+                            snapshots: current.termBatches) { [weak self] index, terms in
+                                try await self?.recordTerms(id, index: index, terms: terms)
+                            }
+                    } else { translationProvider = provider }
+                    let result = try await TranslationEngine().run(jobID: id, source: current.source, options: current.options, provider: translationProvider, checkpoints: current.checkpoints, onPartial: { [weak self] index, text in await self?.partial(id, index: index, text: text) }) { [weak self] checkpoint in
                         try await self?.record(id, checkpoint: checkpoint)
                     }
                     self.update(id) { $0.result = result; $0.status = .complete }
@@ -220,7 +252,9 @@ struct BookJob: Codable, Identifiable, Sendable {
                 retained.output = failure.output; retained.issues = failure.issues; retained.prepared = nil; job.reviewDraft = retained
             } else {
                 let index = failure.request.chunkIndex ?? Int(failure.request.requestID.split(separator: "-").dropLast().last ?? "0") ?? 0
-                job.reviewDraft = ReviewDraft(original: failure.request, output: failure.output, issues: failure.issues, index: index)
+                var request = failure.request
+                if job.glossaryMode == .accumulated, let terms = job.termBatches[index] { request.options.glossary = terms }
+                job.reviewDraft = ReviewDraft(original: request, output: failure.output, issues: failure.issues, index: index)
             }
             job.status = .needsReview; job.error = failure.localizedDescription
         }
@@ -278,10 +312,13 @@ struct BookJob: Codable, Identifiable, Sendable {
     private func recordTerms(_ id: String, index batch: Int, terms: [Term]) async throws {
         guard let index = jobs.firstIndex(where: { $0.id == id }) else { return }
         jobs[index].termBatches[batch] = terms
-        var known = Set<String>()
-        jobs[index].terms = jobs[index].termBatches.keys.sorted().flatMap { jobs[index].termBatches[$0] ?? [] }.filter { !$0.source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !$0.target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.source.count <= 200 && $0.target.count <= 400 && known.insert($0.source.lowercased()).inserted }
+        jobs[index].terms = Self.mergeTerms((jobs[index].glossarySeed ?? []) + jobs[index].termBatches.keys.sorted().flatMap { jobs[index].termBatches[$0] ?? [] })
         jobs[index].glossaryBatch = jobs[index].termBatches.count
         try await save()
+    }
+    private static func mergeTerms(_ candidates: [Term]) -> [Term] {
+        var known = Set<String>()
+        return candidates.filter { !$0.source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !$0.target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.source.count <= 200 && $0.target.count <= 400 && known.insert($0.source.lowercased()).inserted }
     }
     private func record(_ id: String, checkpoint: Checkpoint) async throws {
         guard let index = jobs.firstIndex(where: { $0.id == id }) else { return }

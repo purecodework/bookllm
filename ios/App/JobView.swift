@@ -1,7 +1,7 @@
 import SwiftUI
 import TranslationCore
 
-private enum JobSheet: String, Identifiable { case preferences, glossary, wallet, repair, unlock, ocr; var id: String { rawValue } }
+private enum JobSheet: String, Identifiable { case preferences, glossary, glossaryLibrary, wallet, repair, unlock, ocr; var id: String { rawValue } }
 struct JobView: View {
     let id: String
     @Environment(StudioStore.self) private var studio
@@ -34,6 +34,8 @@ struct JobView: View {
             switch destination {
             case .preferences: PreferencesSheet(preferences: binding(\.options.preferences))
             case .glossary: JobGlossaryView(id: id)
+            case .glossaryLibrary:
+                NavigationStack { GlossaryLibraryView().toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { sheet = nil } } } }
             case .wallet: WalletView(ownOverride: false)
             case .unlock: WalletView(ownOverride: true)
             case .repair: RepairDraftView(id: id)
@@ -55,10 +57,10 @@ struct JobView: View {
             }
         }
         .alert("点数可能不足", isPresented: $partialChoice) {
-            Button("用现有术语，先翻译部分") { studio.begin(id, account: account, purchases: purchases, partial: true) }
+            Button("先处理部分") { studio.begin(id, account: account, purchases: purchases, partial: true) }
             Button("充值") { sheet = .wallet }
             Button("取消", role: .cancel) { }
-        } message: { Text("可先翻译到剩余点数不足以完成下一段时暂停，再充值续译。为保留正文用量，先使用现有术语库；选择「我先校对」仍会等你确认术语。实际点数按模型用量结算。") }
+        } message: { Text("按所选术语模式处理，点数不足以完成下一段时暂停，充值后继续。全文术语整理也消耗点数，可先改选「自动保持一致」。") }
     }
     private func binding<T>(_ path: WritableKeyPath<BookJob, T>) -> Binding<T> {
         Binding(get: { studio.job(id)![keyPath: path] }, set: { value in studio.update(id) { $0[keyPath: path] = value } })
@@ -103,9 +105,17 @@ struct JobView: View {
             }
             VStack(alignment: .leading, spacing: 12) {
                 Text("术语库").font(.system(size: 15, weight: .semibold))
-                Picker("术语处理", selection: binding(\.glossaryMode)) { ForEach(GlossaryMode.allCases) { Text($0.title).tag($0) } }.pickerStyle(.segmented)
-                if job.glossaryMode == .review { Text("确认术语后开始翻译。").font(.system(size: 12)).foregroundStyle(Ink.muted) }
-                if job.glossaryMode == .custom && studio.libraryTerms.isEmpty { Text("请先在术语页添加词表。").font(.system(size: 12)).foregroundStyle(Ink.muted) }
+                HStack {
+                    Text("术语处理").font(.system(size: 14))
+                    Spacer()
+                    Picker("术语处理", selection: Binding(get: { job.glossaryMode == .custom ? .accumulated : job.glossaryMode }, set: { value in studio.update(id) { $0.glossaryMode = value } })) {
+                        ForEach(GlossaryMode.allCases) { Text($0.title).tag($0) }
+                    }.pickerStyle(.menu).tint(Ink.text)
+                }
+                Text(job.glossaryMode.detail).font(.system(size: 12)).foregroundStyle(Ink.muted)
+                Button { sheet = .glossaryLibrary } label: {
+                    HStack { Text("导入我的术语库"); Spacer(); if !studio.libraryTerms.isEmpty { Text("\(studio.libraryTerms.count) 个").foregroundStyle(Ink.muted) }; Image(systemName: "chevron.right") }.font(.system(size: 13)).foregroundStyle(Ink.text)
+                }
             }
         }.foregroundStyle(Ink.text)
     }

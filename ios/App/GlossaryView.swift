@@ -9,7 +9,7 @@ struct GlossaryLibraryView: View {
     var body: some View {
         @Bindable var studio = studio
         VStack(alignment: .leading, spacing: 18) {
-            VStack(alignment: .leading, spacing: 12) { Eyebrow(text: "WORDS THAT STAY THE SAME"); Text("一个名字，\n始终如一。").font(.system(size: 30, design: .serif)); Text("在翻译设置中选择「我的术语库」，即可将这里的词表用于全部审校阶段。") .font(.system(size: 12)).foregroundStyle(Ink.muted).lineSpacing(4) }.padding(.horizontal, 24).padding(.top, 20)
+            Text("三档均可使用。你的译法优先，翻译与审校共同遵守。").font(.system(size: 12)).foregroundStyle(Ink.muted).lineSpacing(4).padding(.horizontal, 24).padding(.top, 20)
             TermEditor(terms: Binding(get: { studio.libraryTerms }, set: { studio.libraryTerms = $0; studio.persist() }), editable: true)
             HStack(spacing: 20) {
                 Button { importing = true } label: { Label("导入 JSON", systemImage: "square.and.arrow.down") }
@@ -68,7 +68,7 @@ struct JobGlossaryView: View {
         NavigationStack {
             if let job = studio.job(id) {
                 VStack(spacing: 0) {
-                    Text(job.status == .reviewing ? "确认后再翻译。你修改的译名会在整个流程中优先使用。" : "本书所有阶段使用同一份术语表。") .font(.system(size: 12)).foregroundStyle(Ink.muted).padding(20)
+                    Text(job.status == .reviewing ? "确认后再翻译。你修改的译名会在整个流程中优先使用。" : "术语译法由翻译与审校共同遵守。") .font(.system(size: 12)).foregroundStyle(Ink.muted).padding(20)
                     TermEditor(terms: Binding(get: { studio.job(id)?.terms ?? [] }, set: { terms in studio.update(id) { $0.terms = terms } }), editable: job.status == .reviewing)
                     if job.status == .reviewing { Text("修改会自动保存；回到工作台点击「确认术语」继续。") .font(.system(size: 11)).foregroundStyle(Ink.muted).padding(15) }
                 }.background(Ink.paper).navigationTitle("本书术语").navigationBarTitleDisplayMode(.inline).toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { dismiss() } } }

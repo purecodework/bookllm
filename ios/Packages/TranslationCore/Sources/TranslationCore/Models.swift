@@ -53,9 +53,17 @@ public struct TranslationStyle: Codable, Hashable, Identifiable, Sendable {
     ]
 }
 public enum GlossaryMode: String, Codable, CaseIterable, Identifiable, Sendable {
-    case automatic, review, custom
+    case accumulated, automatic, review, custom
+    // Preserve the old custom mode for saved jobs, but no longer offer it as a mode.
+    public static var allCases: [GlossaryMode] { [.accumulated, .automatic, .review] }
     public var id: String { rawValue }
-    public var title: String { switch self { case .automatic: "系统自动"; case .review: "我先校对"; case .custom: "我的术语库" } }
+    public var title: String { switch self { case .accumulated: "自动保持一致"; case .automatic: "AI 全文术语库"; case .review: "AI 术语库＋人工确认"; case .custom: "我的术语库" } }
+    public var detail: String { switch self {
+        case .accumulated: "边译边积累术语，保持译法一致。"
+        case .automatic: "先扫描全文、确定译法，再开始翻译。"
+        case .review: "生成全文术语库，确认或修改后开始翻译。"
+        case .custom: "沿用已保存的个人译法。"
+    } }
 }
 public struct Term: Codable, Hashable, Identifiable, Sendable {
     public var source: String
