@@ -56,6 +56,7 @@ class Preferences(StrictModel):
 
 
 class Options(StrictModel):
+    pipelineVersion: int | None = Field(default=None, ge=2, le=2)
     targetLanguage: str = Field(min_length=1, max_length=80)
     sourceWasOCR: bool | None = None
     sourceLanguage: str | None = Field(default=None, min_length=2, max_length=32, pattern=r"^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$")
@@ -89,7 +90,31 @@ class Options(StrictModel):
             return [Stage.translate, Stage.proofread, Stage.linguist]
         if self.quality == Quality.publication:
             return [Stage.translate, Stage.proofread, Stage.linguist, Stage.editor]
-        return list(Stage)
+        return [Stage.translate, Stage.proofread, Stage.linguist, Stage.editor] if self.pipelineVersion == 2 else list(Stage)
+
+
+class ReviewFinding(StrictModel):
+    paragraphID: str = Field(pattern=r"^p[1-9][0-9]*$", max_length=16)
+    kind: str = Field(pattern=r"^(omission|mistranslation|fact|term|language|voice|annotation|structure)$")
+    severity: str = Field(pattern=r"^(critical|major|minor)$")
+    sourceQuote: str = Field(min_length=1, max_length=600)
+    explanation: str = Field(min_length=1, max_length=600)
+    suggestedTranslation: str = Field(max_length=1200)
+
+
+class ReviewReport(StrictModel):
+    findings: list[ReviewFinding] = Field(max_length=6)
+
+
+class ReviewerFeedback(StrictModel):
+    role: Stage
+    report: ReviewReport
+
+
+def source_units(source):
+    import re
+    parts = [p.strip() for p in re.split(r"\n[ \t]*\n+", source.replace("\r\n", "\n")) if p.strip()]
+    return [{"id": f"p{i + 1}", "text": text} for i, text in enumerate(parts)]
 
 
 class TranslationRequest(StrictModel):
@@ -98,6 +123,10 @@ class TranslationRequest(StrictModel):
     context: str = Field(default="", max_length=4000)
     draft: str = Field(default="", max_length=40000)
     reviewNotes: str | None = Field(default=None, max_length=2000)
+    reviewMode: bool | None = None
+    reviews: list[ReviewerFeedback] | None = Field(default=None, min_length=2, max_length=2)
+    chapterContext: str | None = Field(default=None, max_length=32000)
+    chunkIndex: int | None = Field(default=None, ge=0)
     stage: Stage
     options: Options
 
@@ -109,6 +138,21 @@ class TranslationRequest(StrictModel):
             raise ValueError("Review stages require a translated draft")
         if not self.source.strip():
             raise ValueError("Source text cannot be blank")
+        modern_editor = self.options.pipelineVersion == 2 and self.options.quality in (Quality.publication, Quality.definitive)
+        if self.reviewMode and not (modern_editor and self.stage in (Stage.proofread, Stage.linguist)):
+            raise ValueError("Report mode requires a modern collaborative review stage")
+        if self.reviews is not None:
+            if not modern_editor or self.stage != Stage.editor or {r.role for r in self.reviews} != {Stage.proofread, Stage.linguist}:
+                raise ValueError("Chief editor requires exactly one report from each reviewer")
+            units = {u["id"]: u["text"] for u in source_units(self.source)}
+            for feedback in self.reviews:
+                for finding in feedback.report.findings:
+                    if finding.paragraphID not in units or finding.sourceQuote not in units[finding.paragraphID]:
+                        raise ValueError("Review finding must quote its actual source paragraph")
+        if modern_editor and self.stage == Stage.editor and self.reviews is None:
+            raise ValueError("Collaborative chief editor requires reviewer feedback")
+        if self.chapterContext is not None and not modern_editor:
+            raise ValueError("Chapter editorial context requires the collaborative pipeline")
         return self
 
 

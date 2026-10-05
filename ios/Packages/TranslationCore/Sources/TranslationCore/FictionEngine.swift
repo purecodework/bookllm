@@ -61,6 +61,7 @@ public struct FictionEngine: Sendable {
         checkpoints: [Checkpoint] = [],
         onUpdate: @escaping @Sendable (Checkpoint) async throws -> Void
     ) async throws -> String {
+        if options.usesCollaborativeEditing { return try await CollaborativeEngine().run(jobID: jobID, source: source, options: options, provider: provider, checkpoints: checkpoints, onUpdate: onUpdate) }
         try Task.checkCancellation()
         let plan = Chunker.plan(text: source, kind: .fiction)
         let notes = EditorNotes.Scope(source: source, chunks: plan.chunks)
@@ -105,7 +106,7 @@ public struct FictionEngine: Sendable {
                                     stage: stage,
                                     options: chunkOptions
                                 )
-                                let text = try await TranslationEngine.retry(throughput: throughput) { try await provider.complete(request) }
+                                let text = try await PipelineExecution.complete(request, provider: provider, throughput: throughput)
                                 guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw TranslationError.message("模型返回了空译文，请重试。") }
                                 return Checkpoint(index: chunk.index, stage: stage, text: notes.filter(text, index: chunk.index))
                             }

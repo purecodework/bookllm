@@ -34,7 +34,7 @@ final class StructuredChunkerTests: XCTestCase, @unchecked Sendable {
         assertLossless(plan, source: source, budget: DocumentKind.fiction.defaultBudget)
 
         let provider = FakeProvider(), collector = Collector()
-        let result = try await TranslationEngine().run(jobID: "spelled-chapters", source: source, options: .init(quality: .publication), provider: provider) { await collector.add($0) }
+        let result = try await TranslationEngine().run(jobID: "spelled-chapters", source: source, options: .init(quality: .publication, pipelineVersion: nil), provider: provider) { await collector.add($0) }
         let checkpoints = await collector.values, calls = await provider.calls
         XCTAssertEqual(result, plan.chunks.map(\.text).joined(separator: "\n\n"))
         XCTAssertEqual(checkpoints.map(\.index), [0, 0, 0, 0, 1, 1, 1, 1])
@@ -62,7 +62,7 @@ final class StructuredChunkerTests: XCTestCase, @unchecked Sendable {
         assertLossless(plan, source: source, budget: DocumentKind.fiction.defaultBudget)
 
         let provider = FakeProvider(), collector = Collector()
-        let result = try await TranslationEngine().run(jobID: "larger-word-chapters", source: source, options: .init(quality: .publication), provider: provider) { await collector.add($0) }
+        let result = try await TranslationEngine().run(jobID: "larger-word-chapters", source: source, options: .init(quality: .publication, pipelineVersion: nil), provider: provider) { await collector.add($0) }
         let checkpoints = await collector.values, calls = await provider.calls
         XCTAssertEqual(result, plan.chunks.map(\.text).joined(separator: "\n\n"))
         XCTAssertEqual(checkpoints.map(\.index), [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2])

@@ -21,7 +21,8 @@ struct BookJob: Codable, Identifiable, Sendable {
     var publicationPrice: Int?
     var created = Date()
     var options = TranslationOptions()
-    var glossaryMode = GlossaryMode.automatic
+    var glossaryMode = GlossaryMode.accumulated
+    var glossarySeed: [Term]?
     var terms: [Term] = []
     var checkpoints: [Checkpoint] = []
     var status = JobStatus.draft
@@ -36,13 +37,14 @@ struct BookJob: Codable, Identifiable, Sendable {
     var chunkCount = 0
     var basePoints = 0
     var glossaryPoints = 0
+    var editorialContextPoints: Int?
     var sourceLanguage: String? { TranslationLanguage.sourceTitle(options.sourceLanguage) }
     var progress: Double { Double(checkpoints.count) / Double(max(1, chunkCount * options.stages.count)) }
     var statusText: String {
         switch status { case .draft: "待翻译"; case .extracting: "整理术语"; case .reviewing: "等待术语校对"; case .translating: "翻译中"; case .paused: "已暂停"; case .complete: "翻译完成"; case .failed: "需要重试"; case .awaitingCredits: "等待充值"; case .needsReview: "需要补全" }
     }
     var estimate: Int {
-        max(0, basePoints * options.stages.count - checkpoints.count * max(1, basePoints / max(1, chunkCount))) + (glossaryMode == .custom || glossaryReady ? 0 : glossaryPoints)
+        max(0, basePoints * options.stages.count - checkpoints.count * max(1, basePoints / max(1, chunkCount))) + (options.usesCollaborativeEditing ? (editorialContextPoints ?? 0) : 0) + (glossaryMode == .custom || glossaryReady ? 0 : glossaryPoints)
     }
 
     func estimatedPoints(tokensPerPoint: Int) -> Int { max(1, Int(ceil(Double(estimate) * 1000 / Double(max(1, tokensPerPoint))))) }
@@ -62,6 +64,11 @@ struct BookJob: Codable, Identifiable, Sendable {
             estimated += max(1, Int(ceil(units)))
         }
         basePoints = estimated
+        editorialContextPoints = plan.sections.reduce(0) { sum, section in
+            let count = plan.sectionForChunk.filter { $0 == section.index }.count
+            let scalars = min(32_000, section.text.unicodeScalars.count * 2 + 3_000)
+            return sum + count * 3 * max(1, Int(ceil(Double(scalars) * 2 / 1500)))
+        }
         chapters = plan.sections.map { section in ReadingChapter(id: section.index, title: section.title, chunks: plan.sectionForChunk.enumerated().filter { $0.element == section.index }.map(\.offset)) }
     }
     var sourceBatches: [String] {
@@ -103,6 +110,11 @@ struct BookJob: Codable, Identifiable, Sendable {
             if FileManager.default.fileExists(atPath: storage.path) {
                 let snapshot = try JSONDecoder().decode(Snapshot.self, from: Data(contentsOf: storage))
                 jobs = snapshot.jobs; customStyles = snapshot.styles; libraryTerms = snapshot.terms; defaultPreferences = snapshot.preferences
+                for i in jobs.indices where jobs[i].status == .draft && jobs[i].checkpoints.isEmpty && jobs[i].reviewDraft == nil && jobs[i].options.pipelineVersion == nil {
+                    jobs[i].options.quality = jobs[i].options.effectiveQuality
+                    jobs[i].options.pipelineVersion = 2; jobs[i].options.preferences.extraLanguageReview = false
+                    jobs[i].replan()
+                }
                 for i in jobs.indices where jobs[i].status == .translating || jobs[i].status == .extracting { jobs[i].status = .paused }
             }
         } catch { message = "本地记录读取失败，请保留文件后重试：\(error.localizedDescription)" }
@@ -154,6 +166,13 @@ struct BookJob: Codable, Identifiable, Sendable {
             let own = job.status == .draft ? ownAPI : job.usesOwnAPI
             let provider = try provider(account: account, purchases: purchases, own: own)
             if job.status == .draft { update(id) { $0.usesOwnAPI = own }; job.usesOwnAPI = own }
+            if job.glossarySeed == nil {
+                update(id) { $0.glossarySeed = libraryTerms; $0.terms = Self.mergeTerms(libraryTerms + $0.terms) }
+                job = self.job(id) ?? job
+            }
+            if job.glossaryMode == .accumulated && !job.glossaryReady {
+                update(id) { $0.glossaryReady = true }
+            }
             if job.glossaryMode == .custom && !job.glossaryReady {
                 guard !libraryTerms.isEmpty, libraryTerms.allSatisfy({ !$0.target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else { throw TranslationError.message("请先在术语库中添加或导入术语。") }
                 update(id) { $0.terms = libraryTerms; $0.glossaryReady = true }
@@ -185,7 +204,16 @@ struct BookJob: Codable, Identifiable, Sendable {
                     guard var current = self.job(id) else { return }
                     current.options.glossary = current.terms
                     self.update(id) { $0.options.glossary = current.terms; $0.status = .translating; $0.error = nil }
-                    let result = try await TranslationEngine().run(jobID: id, source: current.source, options: current.options, provider: provider, checkpoints: current.checkpoints, onPartial: { [weak self] index, text in await self?.partial(id, index: index, text: text) }) { [weak self] checkpoint in
+                    let translationProvider: any TranslationProvider
+                    if current.glossaryMode == .accumulated {
+                        translationProvider = IncrementalGlossaryProvider(provider: provider, jobID: id,
+                            chunks: Chunker.plan(text: current.source, kind: current.options.documentKind).chunks,
+                            target: current.options.targetLanguage, seed: current.glossarySeed ?? current.terms,
+                            snapshots: current.termBatches) { [weak self] index, terms in
+                                try await self?.recordTerms(id, index: index, terms: terms)
+                            }
+                    } else { translationProvider = provider }
+                    let result = try await TranslationEngine().run(jobID: id, source: current.source, options: current.options, provider: translationProvider, checkpoints: current.checkpoints, onPartial: { [weak self] index, text in await self?.partial(id, index: index, text: text) }) { [weak self] checkpoint in
                         try await self?.record(id, checkpoint: checkpoint)
                     }
                     self.update(id) { $0.result = result; $0.status = .complete }
@@ -204,7 +232,7 @@ struct BookJob: Codable, Identifiable, Sendable {
             if var retained = job.reviewDraft {
                 retained.output = failure.output; retained.issues = failure.issues; retained.prepared = nil; job.reviewDraft = retained
             } else {
-                let index = Int(failure.request.requestID.split(separator: "-").dropLast().last ?? "0") ?? 0
+                let index = failure.request.chunkIndex ?? Int(failure.request.requestID.split(separator: "-").dropLast().last ?? "0") ?? 0
                 job.reviewDraft = ReviewDraft(original: failure.request, output: failure.output, issues: failure.issues, index: index)
             }
             job.status = .needsReview; job.error = failure.localizedDescription
@@ -219,7 +247,7 @@ struct BookJob: Codable, Identifiable, Sendable {
                 review.attempt += 1
                 var request = review.original
                 request.requestID += "-review-\(review.attempt)"
-                request.draft = review.output
+                if request.reviewMode != true { request.draft = review.output }
                 request.reviewNotes = String(review.issues.joined(separator: "\n").prefix(1900))
                 review.prepared = request
             }
@@ -235,7 +263,7 @@ struct BookJob: Codable, Identifiable, Sendable {
                     let output = try await provider.complete(request)
                     try Task.checkCancellation()
                     let plan = Chunker.plan(text: job.source, kind: job.options.documentKind)
-                    let text = EditorNotes.filter(output, source: job.source, chunks: plan.chunks, index: retained.index)
+                    let text = request.reviewMode == true ? output : EditorNotes.filter(output, source: job.source, chunks: plan.chunks, index: retained.index)
                     try await self.record(id, checkpoint: .init(index: retained.index, stage: retained.original.stage, text: text))
                     self.update(id) { $0.reviewDraft = nil; $0.status = .paused; $0.error = nil }
                     try await self.save(); succeeded = true
@@ -263,10 +291,13 @@ struct BookJob: Codable, Identifiable, Sendable {
     private func recordTerms(_ id: String, index batch: Int, terms: [Term]) async throws {
         guard let index = jobs.firstIndex(where: { $0.id == id }) else { return }
         jobs[index].termBatches[batch] = terms
-        var known = Set<String>()
-        jobs[index].terms = jobs[index].termBatches.keys.sorted().flatMap { jobs[index].termBatches[$0] ?? [] }.filter { !$0.source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !$0.target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.source.count <= 200 && $0.target.count <= 400 && known.insert($0.source.lowercased()).inserted }
+        jobs[index].terms = Self.mergeTerms((jobs[index].glossarySeed ?? []) + jobs[index].termBatches.keys.sorted().flatMap { jobs[index].termBatches[$0] ?? [] })
         jobs[index].glossaryBatch = jobs[index].termBatches.count
         try await save()
+    }
+    private static func mergeTerms(_ candidates: [Term]) -> [Term] {
+        var known = Set<String>()
+        return candidates.filter { !$0.source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !$0.target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.source.count <= 200 && $0.target.count <= 400 && known.insert($0.source.lowercased()).inserted }
     }
     private func record(_ id: String, checkpoint: Checkpoint) async throws {
         guard let index = jobs.firstIndex(where: { $0.id == id }) else { return }

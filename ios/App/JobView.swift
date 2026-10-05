@@ -1,7 +1,7 @@
 import SwiftUI
 import TranslationCore
 
-private enum JobSheet: String, Identifiable { case preferences, glossary, wallet, repair, unlock, ocr; var id: String { rawValue } }
+private enum JobSheet: String, Identifiable { case preferences, glossary, glossaryLibrary, wallet, repair, unlock, ocr; var id: String { rawValue } }
 struct JobView: View {
     let id: String
     @Environment(StudioStore.self) private var studio
@@ -34,6 +34,8 @@ struct JobView: View {
             switch destination {
             case .preferences: PreferencesSheet(preferences: binding(\.options.preferences))
             case .glossary: JobGlossaryView(id: id)
+            case .glossaryLibrary:
+                NavigationStack { GlossaryLibraryView().toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { sheet = nil } } } }
             case .wallet: WalletView(ownOverride: false)
             case .unlock: WalletView(ownOverride: true)
             case .repair: RepairDraftView(id: id)
@@ -90,7 +92,7 @@ struct JobView: View {
             }
             HStack { Text("翻译为").font(.system(size: 14)); Spacer(); Picker("目标语言", selection: binding(\.options.targetLanguage)) { ForEach(TranslationLanguage.allCases) { language in Text(language.title).tag(language.targetName) }; if !TranslationLanguage.allCases.contains(where: { $0.targetName == job.options.targetLanguage }) { Text(job.options.targetLanguage).tag(job.options.targetLanguage) } }.tint(Ink.text) }
             TranslationStrengthPicker(selection: Binding(get: { job.options.effectiveQuality }, set: { value in
-                studio.update(id) { $0.options.quality = value; $0.options.preferences.extraLanguageReview = false }
+                studio.update(id) { $0.options.quality = value; $0.options.pipelineVersion = 2; $0.options.preferences.extraLanguageReview = false }
             }))
             PaperCard {
                 VStack(alignment: .leading, spacing: 15) {
@@ -103,9 +105,17 @@ struct JobView: View {
             }
             VStack(alignment: .leading, spacing: 12) {
                 Text("术语库").font(.system(size: 15, weight: .semibold))
-                Picker("术语处理", selection: binding(\.glossaryMode)) { ForEach(GlossaryMode.allCases) { Text($0.title).tag($0) } }.pickerStyle(.segmented)
-                if job.glossaryMode == .review { Text("确认术语后开始翻译。").font(.system(size: 12)).foregroundStyle(Ink.muted) }
-                if job.glossaryMode == .custom && studio.libraryTerms.isEmpty { Text("请先在术语页添加词表。").font(.system(size: 12)).foregroundStyle(Ink.muted) }
+                HStack {
+                    Text("术语处理").font(.system(size: 14))
+                    Spacer()
+                    Picker("术语处理", selection: Binding(get: { job.glossaryMode == .custom ? .accumulated : job.glossaryMode }, set: { value in studio.update(id) { $0.glossaryMode = value } })) {
+                        ForEach(GlossaryMode.allCases) { Text($0.title).tag($0) }
+                    }.pickerStyle(.menu).tint(Ink.text)
+                }
+                Text(job.glossaryMode.detail).font(.system(size: 12)).foregroundStyle(Ink.muted)
+                Button { sheet = .glossaryLibrary } label: {
+                    HStack { Text("导入我的术语库"); Spacer(); if !studio.libraryTerms.isEmpty { Text("\(studio.libraryTerms.count) 个").foregroundStyle(Ink.muted) }; Image(systemName: "chevron.right") }.font(.system(size: 13)).foregroundStyle(Ink.text)
+                }
             }
         }.foregroundStyle(Ink.text)
     }
@@ -122,6 +132,7 @@ struct JobView: View {
             VStack(alignment: .leading, spacing: 22) {
                 HStack { Text("翻译进度").font(.system(size: 15, weight: .semibold)); Spacer(); if job.status == .translating || job.status == .extracting { ThinkingDots() } }
                 if job.status == .extracting { Label("整理术语", systemImage: "text.magnifyingglass").font(.system(size: 13)).foregroundStyle(Ink.orange) }
+                if job.options.usesCollaborativeEditing { Text("校对与语言专家并行审查，主编集中整合").font(.system(size: 11)).foregroundStyle(Ink.muted) }
                 ForEach(job.options.stages, id: \.rawValue) { stage in
                     let count = job.checkpoints.filter { $0.stage == stage }.count
                     HStack(spacing: 13) {
@@ -138,6 +149,7 @@ struct JobView: View {
     private func action(_ job: BookJob) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             if job.status == .draft { HStack { Text(studio.ownAPI ? "自带 API · 服务商计费" : "约 \(job.estimatedPoints(tokensPerPoint: account.tokensPerPoint)) 点"); Spacer(); Text(studio.ownAPI ? studio.model : "DeepSeek").foregroundStyle(Ink.text).lineLimit(1) }.font(.system(size: 12)).foregroundStyle(Ink.muted) }
+            if job.status == .draft && job.options.pipelineVersion == 2 { Text("必要时定向补全，按实际用量结算").font(.system(size: 11)).foregroundStyle(Ink.muted) }
             if job.status == .awaitingCredits { Button("充值") { sheet = .wallet }.font(.system(size: 14)) }
             if job.status == .draft && studio.ownAPI && !studio.canUseOwnAPI(account: account, purchases: purchases) {
                 PrimaryButton(title: "买断解锁", icon: "key.horizontal") { sheet = .unlock }
@@ -161,7 +173,7 @@ struct JobView: View {
             case .translate: return "保留叙述视角、场景与人物对白"
             case .proofread: return "核对人名、别名、因果、遗漏与误译"
             case .linguist: return "审校人物口吻、指代、语气与多语对白"
-            case .editor: return "参考相邻译稿，统一本章衔接与表达"
+            case .editor: return "整合审查意见，统筹本章文风与衔接"
             case .verify: return "对照原稿，终审本章事实、术语与完整性"
             }
         }
@@ -169,7 +181,7 @@ struct JobView: View {
         case .translate: return "忠实传达原作，保留段落与声音"
         case .proofread: return "核对遗漏、误译、数字与术语"
         case .linguist: return "审校外语、习语、语气与编者注"
-        case .editor: return "统一风格、节奏与最终表达"
+        case .editor: return "整合审查意见，协调文风与表达"
         case .verify: return "对照原稿，终审事实、术语与完整性"
         }
     }

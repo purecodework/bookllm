@@ -19,8 +19,7 @@ struct OnboardingView: View {
                     intro("速读", "一边翻译，一边阅读")
                     intro("精译", "译者与校对，逐章阅读")
                     intro("深校", "加入语言专家")
-                    intro("精修", "主编统一文风与衔接")
-                    intro("定稿", "最后核验，逐章阅读")
+                    intro("精修", "并行审查，主编整合整章表达")
                 }
                 Text("文风、术语和首次编者注都可以调整。").font(.system(size: 13)).foregroundStyle(Ink.muted)
             } else {

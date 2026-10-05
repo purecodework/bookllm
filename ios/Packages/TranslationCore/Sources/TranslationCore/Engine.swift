@@ -12,6 +12,9 @@ public actor Throughput {
 public struct TranslationEngine: Sendable {
     public init() {}
     public func run(jobID: String, source: String, options: TranslationOptions, provider: any TranslationProvider, checkpoints: [Checkpoint] = [], onPartial: @escaping @Sendable (Int, String) async -> Void = { _, _ in }, onUpdate: @escaping @Sendable (Checkpoint) async throws -> Void) async throws -> String {
+        if options.usesCollaborativeEditing {
+            return try await CollaborativeEngine().run(jobID: jobID, source: source, options: options, provider: provider, checkpoints: checkpoints, onUpdate: onUpdate)
+        }
         if options.documentKind == .fiction && options.quality != .fast {
             return try await FictionEngine().run(jobID: jobID, source: source, options: options, provider: provider, checkpoints: checkpoints, onUpdate: onUpdate)
         }
@@ -34,11 +37,10 @@ public struct TranslationEngine: Sendable {
                             var chunkOptions = options
                             chunkOptions.glossary = options.glossary.filter { chunk.text.localizedCaseInsensitiveContains($0.source) }
                             let request = TranslationRequest(requestID: "\(jobID)-\(chunk.index)-\(stage.rawValue)", source: chunk.text, context: options.documentKind == .fiction ? FictionContext.make(source: source, plan: plan, index: chunk.index) : chunk.context, draft: draft, stage: stage, options: chunkOptions)
-                            draft = try await Self.retry(throughput: throughput) {
-                                if options.quality == .fast {
-                                    return try await provider.stream(request) { text in await onPartial(chunk.index, notes.filter(text, index: chunk.index)) }
-                                }
-                                return try await provider.complete(request)
+                            if options.quality == .fast {
+                                draft = try await PipelineExecution.stream(request, provider: provider, throughput: throughput) { text in await onPartial(chunk.index, notes.filter(text, index: chunk.index)) }
+                            } else {
+                                draft = try await PipelineExecution.complete(request, provider: provider, throughput: throughput)
                             }
                             guard !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw TranslationError.message("模型返回了空译文，请重试。") }
                             draft = notes.filter(draft, index: chunk.index)

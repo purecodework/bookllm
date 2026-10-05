@@ -107,3 +107,5 @@ python -m translation_service.manage --database ./data/bookllm.sqlite3 complete 
 `GET /v1/account` 额外返回 `tokensPerPoint`，客户端用于规则展示与近似预算。新服务端兼容未提供 sourceLanguage/reviewNotes 的旧请求；首次编者注身份保留在译文中，由原生引擎按全书第一次源词位置过滤。
 
 强度合同：`fast` 译者；`refined` 加校对；`deep` 加语言专家；`publication` 加主编（保留原四轮语义）；`definitive` 加 `verify` 终审。新增客户端档位需部署此版本云服务，服务端拒绝不属于所选档位的额外阶段。历史 `refined + extraLanguageReview` 请求仍保持三轮及原请求身份。终审只校正可由原稿证明的问题，不重新改写已选风格；实际 token 用量照常结算。
+
+新客户端以 `options.pipelineVersion = 2` 选择四档流程。最高档 `publication` 的 `proofread` / `linguist` 请求设置 `reviewMode = true`，返回有原文段落锚点的 JSON 问题清单；`editor` 必须带两份不同角色的 `reviews`，可带最多 32,000 字符的 `chapterContext`。意见按 `source_units` 的 `p1`、`p2` 等定位并引用原文，客户端检查模型返回格式，服务器检查交给主编的锚点。额外补全使用独立稳定请求 ID，按实际 token 用量结算。缺少版本的旧任务保留串行阶段；旧 `definitive` 可续跑原终审，新版本不允许该阶段。可选空字段从账本哈希剔除，防止旧请求回放因协议扩展失效。

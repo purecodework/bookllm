@@ -4,7 +4,7 @@ import XCTest
 private actor LanguageProvider: TranslationProvider {
     var requests: [TranslationRequest] = []
     func complete(_ request: TranslationRequest) async throws -> String {
-        requests.append(request); return request.source
+        requests.append(request); return request.reviewMode == true ? "{\"findings\":[]}" : request.source
     }
     func extractTerms(source: String, target: String, requestID: String) async throws -> [Term] { [] }
 }
@@ -32,7 +32,7 @@ final class TranslationLanguageTests: XCTestCase, @unchecked Sendable {
                 let options = TranslationOptions(targetLanguage: target.targetName, quality: .publication, documentKind: .general, sourceLanguage: source.rawValue)
                 _ = try await TranslationEngine().run(jobID: "\(source.rawValue)-\(target.rawValue)", source: "A complete passage with its original meaning.", options: options, provider: provider) { _ in }
                 let requests = await provider.requests
-                XCTAssertEqual(requests.map(\.stage), Quality.publication.stages)
+                XCTAssertEqual(Set(requests.map(\.stage)), Set(Quality.publication.stages))
                 XCTAssertTrue(requests.allSatisfy { $0.options.sourceLanguage == source.rawValue && $0.options.targetLanguage == target.targetName })
             }
         }

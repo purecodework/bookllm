@@ -102,10 +102,15 @@ public enum CoverageValidator {
         if !issues.isEmpty { throw CoverageFailure(request: request, output: output, issues: issues.map(\.message)) }
     }
 
-    /// Intermediate passes may repair omissions using the already selected next
-    /// pass. Final passes must pass checks before a final checkpoint is saved.
+    /// Modern jobs check every translated pass and validate reviewer anchors.
+    /// Historical jobs retain their original final-pass-only contract.
     public static func validateCompletion(request: TranslationRequest, output: String) throws {
-        guard request.stage == request.options.stages.last else { return }
+        if request.reviewMode == true {
+            do { _ = try ReviewReport.decode(output, source: request.source) }
+            catch { throw CoverageFailure(request: request, output: output, issues: ["审查意见未能可靠对应原文，需要重新检查。"]) }
+            return
+        }
+        guard request.options.pipelineVersion == 2 || request.stage == request.options.stages.last else { return }
         try requireComplete(request: request, output: output)
     }
 

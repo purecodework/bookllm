@@ -41,7 +41,7 @@ import TranslationCore
             HStack {
                 Text("翻译强度").font(.system(size: 13, weight: .semibold))
                 Spacer()
-                Text("\(selection.stages.count) 轮").font(.system(size: 11)).foregroundStyle(Ink.muted)
+                Text(selection == .publication ? "协作" : "\(selection.stages.count) 步").font(.system(size: 11)).foregroundStyle(Ink.muted)
             }.padding(.bottom, 13)
             rail
             HStack(spacing: 0) {
@@ -57,7 +57,7 @@ import TranslationCore
             }.padding(.horizontal, -10).padding(.top, -10)
             Divider().overlay(Ink.text.opacity(0.04)).padding(.vertical, 11)
             Text(selection.detail).font(.system(size: 12)).fixedSize(horizontal: false, vertical: true)
-            Text(selection.stages.map(\.title).joined(separator: " · "))
+            Text(selection == .publication ? "译者 → 校对＋语言专家 → 主编" : selection.stages.map(\.title).joined(separator: " · "))
                 .font(.system(size: 10)).foregroundStyle(Ink.muted)
                 .fixedSize(horizontal: false, vertical: true).padding(.top, 6)
         }.padding(18).frame(width: 286)
@@ -120,7 +120,7 @@ struct QualityFlame: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
     private var blue: Bool { quality == .deep }
-    private var strong: Bool { quality == .definitive }
+    private var strong: Bool { quality == .publication || quality == .definitive }
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion || scenePhase != .active)) { timeline in
             let time = reduceMotion || scenePhase != .active ? 0 : timeline.date.timeIntervalSinceReferenceDate
@@ -155,4 +155,4 @@ struct QualityFlame: View {
         p.closeSubpath(); return p
     }
 }
-#Preview { TranslationStrengthPicker(selection: .constant(.definitive)).padding(28).background(Ink.paper) }
+#Preview { TranslationStrengthPicker(selection: .constant(.publication)).padding(28).background(Ink.paper) }

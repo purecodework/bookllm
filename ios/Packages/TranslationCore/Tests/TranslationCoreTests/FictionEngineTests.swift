@@ -77,7 +77,7 @@ final class FictionEngineTests: XCTestCase, @unchecked Sendable {
         XCTAssertEqual(plan.sectionForChunk.filter { $0 == 1 }.count, 2)
         let trace = FictionTrace()
         let provider = FictionRecordingProvider(trace: trace, delays: ["barrier-0-translate": .milliseconds(70), "barrier-1-translate": .milliseconds(5)])
-        let result = try await FictionEngine().run(jobID: "barrier", source: source, options: .init(quality: .publication), provider: provider) {
+        let result = try await FictionEngine().run(jobID: "barrier", source: source, options: .init(quality: .publication, pipelineVersion: nil), provider: provider) {
             await trace.save($0)
         }
         let events = await trace.events, checkpoints = await trace.checkpoints
@@ -112,7 +112,7 @@ final class FictionEngineTests: XCTestCase, @unchecked Sendable {
             "snapshot-1-proofread": .milliseconds(60),
             "snapshot-2-proofread": .milliseconds(5)
         ])
-        let options = TranslationOptions(quality: .publication)
+        let options = TranslationOptions(quality: .publication, pipelineVersion: nil)
         _ = try await FictionEngine().run(jobID: "snapshot", source: source, options: options, provider: provider) { await trace.save($0) }
         let requests = await provider.requests, events = await trace.events
         XCTAssertLessThan(try XCTUnwrap(events.firstIndex(of: "save:2-proofread")), try XCTUnwrap(events.firstIndex(of: "start:snapshot-3-proofread")))
@@ -145,7 +145,7 @@ final class FictionEngineTests: XCTestCase, @unchecked Sendable {
 
     func testPartialResumeReusesLastCheckpointAndIdenticalPendingRequests() async throws {
         let source = self.source(), plan = Chunker.plan(text: source, kind: .fiction)
-        let options = TranslationOptions(quality: .publication)
+        let options = TranslationOptions(quality: .publication, pipelineVersion: nil)
         let originalTrace = FictionTrace(), originalProvider = FictionRecordingProvider(trace: originalTrace)
         let originalResult = try await FictionEngine().run(jobID: "resume", source: source, options: options, provider: originalProvider) { await originalTrace.save($0) }
         let originalRequests = await originalProvider.requests, saved = await originalTrace.checkpoints
@@ -179,7 +179,7 @@ final class FictionEngineTests: XCTestCase, @unchecked Sendable {
         let checkpoints = plan.chunks.flatMap { chunk in
             Quality.publication.stages.map { Checkpoint(index: chunk.index, stage: $0, text: fictionTag(index: chunk.index, stage: $0)) }
         }
-        let result = try await FictionEngine().run(jobID: "cached", source: source, options: .init(quality: .publication), provider: provider, checkpoints: checkpoints) { await trace.save($0) }
+        let result = try await FictionEngine().run(jobID: "cached", source: source, options: .init(quality: .publication, pipelineVersion: nil), provider: provider, checkpoints: checkpoints) { await trace.save($0) }
         let requests = await provider.requests, emitted = await trace.checkpoints
         XCTAssertTrue(requests.isEmpty)
         XCTAssertTrue(emitted.isEmpty)
@@ -239,7 +239,7 @@ final class FictionEngineTests: XCTestCase, @unchecked Sendable {
         for includeLinguist in [false, true] {
             var preferences = TranslationPreferences()
             preferences.extraLanguageReview = includeLinguist
-            let options = TranslationOptions(quality: .refined, preferences: preferences)
+            let options = TranslationOptions(quality: .refined, preferences: preferences, pipelineVersion: nil)
             let trace = FictionTrace(), provider = FictionRecordingProvider(trace: trace)
             let result = try await FictionEngine().run(jobID: "passes", source: source, options: options, provider: provider) { await trace.save($0) }
             let requests = await provider.requests
@@ -252,7 +252,7 @@ final class FictionEngineTests: XCTestCase, @unchecked Sendable {
         let source = self.source(firstChapterChunks: 2), plan = Chunker.plan(text: source, kind: .fiction)
         let boundary = try XCTUnwrap(plan.sectionForChunk.firstIndex(of: 1))
         var reviewedPreferences = TranslationPreferences(); reviewedPreferences.extraLanguageReview = true
-        let configurations: [TranslationOptions] = [.init(quality: .refined), .init(quality: .refined, preferences: reviewedPreferences), .init(quality: .publication)]
+        let configurations: [TranslationOptions] = [.init(quality: .refined, pipelineVersion: nil), .init(quality: .refined, preferences: reviewedPreferences, pipelineVersion: nil), .init(quality: .publication, pipelineVersion: nil)]
         for options in configurations {
             let trace = FictionTrace(), provider = FictionRecordingProvider(trace: trace)
             _ = try await FictionEngine().run(jobID: "finalvoice", source: source, options: options, provider: provider) { await trace.save($0) }
@@ -279,7 +279,7 @@ final class FictionEngineTests: XCTestCase, @unchecked Sendable {
 
     func testBoundaryResumeUsesIdenticalFinalVoiceAndRequestIdentity() async throws {
         let source = self.source(), plan = Chunker.plan(text: source, kind: .fiction)
-        let boundary = try XCTUnwrap(plan.sectionForChunk.firstIndex(of: 1)), options = TranslationOptions(quality: .publication)
+        let boundary = try XCTUnwrap(plan.sectionForChunk.firstIndex(of: 1)), options = TranslationOptions(quality: .publication, pipelineVersion: nil)
         let originalTrace = FictionTrace(), originalProvider = FictionRecordingProvider(trace: originalTrace)
         let originalResult = try await FictionEngine().run(jobID: "boundaryresume", source: source, options: options, provider: originalProvider) { await originalTrace.save($0) }
         let originalRequests = await originalProvider.requests, saved = await originalTrace.checkpoints
@@ -302,7 +302,7 @@ final class FictionEngineTests: XCTestCase, @unchecked Sendable {
 
     func testFutureIncompleteChapterCacheNeverProvidesPreviousChapterBackground() async throws {
         let source = self.source(firstChapterChunks: 2, secondChapterChunks: 1) + "Chapter III: Tomorrow\n\n" + String(repeating: "丙", count: 1_000)
-        let plan = Chunker.plan(text: source, kind: .fiction), options = TranslationOptions(quality: .publication)
+        let plan = Chunker.plan(text: source, kind: .fiction), options = TranslationOptions(quality: .publication, pipelineVersion: nil)
         XCTAssertEqual(plan.sections.count, 3)
         let secondBoundary = try XCTUnwrap(plan.sectionForChunk.firstIndex(of: 1)), thirdBoundary = try XCTUnwrap(plan.sectionForChunk.firstIndex(of: 2))
         // A later chapter's final checkpoint alone does not mean the chapter is
@@ -334,7 +334,7 @@ final class FictionEngineTests: XCTestCase, @unchecked Sendable {
         XCTAssertLessThanOrEqual(context.unicodeScalars.count, 3_900)
         XCTAssertFalse(FictionContext.make(source: source, plan: plan, index: 0, previousChapterFinal: sample).contains("FINAL-VOICE-END"))
         let trace = FictionTrace(), provider = FictionRecordingProvider(trace: trace)
-        _ = try await FictionEngine().run(jobID: "fastboundary", source: source, options: .init(quality: .fast), provider: provider) { await trace.save($0) }
+        _ = try await FictionEngine().run(jobID: "fastboundary", source: source, options: .init(quality: .fast, pipelineVersion: nil), provider: provider) { await trace.save($0) }
         let requests = await provider.requests
         XCTAssertEqual(requests.count, plan.chunks.count)
         for request in requests {
@@ -345,7 +345,7 @@ final class FictionEngineTests: XCTestCase, @unchecked Sendable {
 
     func testFastFictionUsesCompleteAndEmptySourceDoesNoWork() async throws {
         let trace = FictionTrace(), provider = FictionRecordingProvider(trace: trace)
-        let result = try await FictionEngine().run(jobID: "fast", source: "A short novel opening.", options: .init(quality: .fast), provider: provider) { await trace.save($0) }
+        let result = try await FictionEngine().run(jobID: "fast", source: "A short novel opening.", options: .init(quality: .fast, pipelineVersion: nil), provider: provider) { await trace.save($0) }
         XCTAssertEqual(result, fictionTag(index: 0, stage: .translate))
         let streamed = await provider.streamCalls
         XCTAssertEqual(streamed, 0)
@@ -361,7 +361,7 @@ final class FictionEngineTests: XCTestCase, @unchecked Sendable {
         let source = self.source(), trace = FictionTrace()
         let provider = FictionRecordingProvider(trace: trace, defaultDelay: .seconds(10))
         let task = Task {
-            try await FictionEngine().run(jobID: "cancel", source: source, options: .init(quality: .publication), provider: provider) { await trace.save($0) }
+            try await FictionEngine().run(jobID: "cancel", source: source, options: .init(quality: .publication, pipelineVersion: nil), provider: provider) { await trace.save($0) }
         }
         await provider.waitUntilStarted()
         task.cancel()
@@ -378,7 +378,7 @@ final class FictionEngineTests: XCTestCase, @unchecked Sendable {
     func testProviderFailurePropagatesAndCancelsSiblings() async throws {
         let trace = FictionTrace(), provider = FictionRecordingProvider(trace: trace, defaultDelay: .seconds(10), failingID: "failure-0-translate")
         do {
-            _ = try await FictionEngine().run(jobID: "failure", source: source(), options: .init(quality: .publication), provider: provider) { await trace.save($0) }
+            _ = try await FictionEngine().run(jobID: "failure", source: source(), options: .init(quality: .publication, pipelineVersion: nil), provider: provider) { await trace.save($0) }
             XCTFail("Expected provider failure")
         } catch TranslationError.message(let message) { XCTAssertEqual(message, "Provider failed") }
         catch { XCTFail("Unexpected error: \(error)") }
@@ -393,7 +393,7 @@ final class FictionEngineTests: XCTestCase, @unchecked Sendable {
         let trace = FictionTrace()
         let provider = FictionRecordingProvider(trace: trace, delays: ["storage-1-translate": .milliseconds(3)], defaultDelay: .seconds(10))
         do {
-            _ = try await FictionEngine().run(jobID: "storage", source: source(), options: .init(quality: .publication), provider: provider) { _ in
+            _ = try await FictionEngine().run(jobID: "storage", source: source(), options: .init(quality: .publication, pipelineVersion: nil), provider: provider) { _ in
                 throw TranslationError.message("Disk full")
             }
             XCTFail("Expected checkpoint failure")

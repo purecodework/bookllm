@@ -104,7 +104,7 @@ final class CoverageValidatorTests: XCTestCase, @unchecked Sendable {
 
     func testIntermediatePassMayRepairAndFinalFailureCarriesExactRequestAndPaidOutput() throws {
         let source = "```swift\nlet value = 1\n```"
-        let options = TranslationOptions(quality: .refined, documentKind: .technical)
+        let options = TranslationOptions(quality: .refined, documentKind: .technical, pipelineVersion: nil)
         let initial = TranslationRequest(requestID: "book-0-translate", source: source, context: "voice", draft: "", stage: .translate, options: options)
         XCTAssertNoThrow(try CoverageValidator.validateCompletion(request: initial, output: "片段"))
         let final = TranslationRequest(requestID: "book-0-proofread", source: source, context: "voice", draft: "片段", stage: .proofread, options: options)
@@ -133,7 +133,7 @@ final class CoverageValidatorTests: XCTestCase, @unchecked Sendable {
         defer { URLProtocol.unregisterClass(CoverageMockURLProtocol.self) }
         let url = URL(string: "https://coverage.invalid/v1")!
         let providers = [APIProvider(connection: .ownKey(baseURL: url, key: "unit-test-key", model: "unit-test-model")), APIProvider(connection: .cloud(baseURL: url, token: "unit-test-session"))]
-        let options = TranslationOptions(quality: .refined, documentKind: .technical)
+        let options = TranslationOptions(quality: .refined, documentKind: .technical, pipelineVersion: nil)
         for provider in providers {
             let first = TranslationRequest(requestID: "book-0-translate", source: "```swift\nlet value = 1\n```", context: "", draft: "", stage: .translate, options: options)
             let intermediate = try await provider.complete(first)

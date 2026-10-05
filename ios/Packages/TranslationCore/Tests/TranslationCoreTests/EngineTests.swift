@@ -45,7 +45,7 @@ final class EngineTests: XCTestCase, @unchecked Sendable {
         let source = "A" + String(repeating: "x", count: 18000)
         let chunks = Chunker.split(source)
         let provider = FakeProvider(), collector = Collector()
-        let options = TranslationOptions(quality: .publication)
+        let options = TranslationOptions(quality: .publication, pipelineVersion: nil)
         let result = try await TranslationEngine().run(jobID: "one", source: source, options: options, provider: provider) { await collector.add($0) }
         XCTAssertEqual(result, chunks.map(\.text).joined(separator: "\n\n"))
         let calls = await provider.calls, peak = await provider.peak
@@ -84,7 +84,7 @@ final class EngineTests: XCTestCase, @unchecked Sendable {
         XCTAssertTrue(request.prompt.contains("at most 3"))
         XCTAssertTrue(request.prompt.contains("⟦编者注:"))
         XCTAssertTrue(request.prompt.contains("remove uncertain claims"))
-        XCTAssertEqual(TranslationOptions(quality: .publication).stages.last, .editor)
+        XCTAssertEqual(TranslationOptions(quality: .publication, pipelineVersion: nil).stages.last, .editor)
     }
     func testOnlyRelevantGlossaryTravelsWithChunk() async throws {
         let provider = FakeProvider()
