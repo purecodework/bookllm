@@ -43,7 +43,11 @@ struct BookJob: Codable, Identifiable, Sendable {
         switch status { case .draft: "待翻译"; case .extracting: "整理术语"; case .reviewing: "等待术语校对"; case .translating: "翻译中"; case .paused: "已暂停"; case .complete: "翻译完成"; case .failed: "需要重试"; case .awaitingCredits: "等待充值"; case .needsReview: "需要补全" }
     }
     var estimate: Int {
-        max(0, basePoints * options.stages.count - checkpoints.count * max(1, basePoints / max(1, chunkCount))) + (options.usesCollaborativeEditing ? (editorialContextPoints ?? 0) : 0) + (glossaryMode == .custom || glossaryReady ? 0 : glossaryPoints)
+        let perChunk: Int = max(1, basePoints / max(1, chunkCount))
+        let translation: Int = max(0, basePoints * options.stages.count - checkpoints.count * perChunk)
+        let editorial: Int = options.usesCollaborativeEditing ? (editorialContextPoints ?? 0) : 0
+        let glossary: Int = glossaryMode == .custom || glossaryReady ? 0 : glossaryPoints
+        return translation + editorial + glossary
     }
 
     func estimatedPoints(tokensPerPoint: Int) -> Int { max(1, Int(ceil(Double(estimate) * 1000 / Double(max(1, tokensPerPoint))))) }
