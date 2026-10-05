@@ -89,7 +89,7 @@ struct JobView: View {
                 }
             }
             HStack { Text("翻译为").font(.system(size: 14)); Spacer(); Picker("目标语言", selection: binding(\.options.targetLanguage)) { ForEach(TranslationLanguage.allCases) { language in Text(language.title).tag(language.targetName) }; if !TranslationLanguage.allCases.contains(where: { $0.targetName == job.options.targetLanguage }) { Text(job.options.targetLanguage).tag(job.options.targetLanguage) } }.tint(Ink.text) }
-            QualitySlider(selection: Binding(get: { job.options.effectiveQuality }, set: { value in
+            TranslationStrengthPicker(selection: Binding(get: { job.options.effectiveQuality }, set: { value in
                 studio.update(id) { $0.options.quality = value; $0.options.preferences.extraLanguageReview = false }
             }))
             PaperCard {

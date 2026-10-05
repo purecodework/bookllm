@@ -2,81 +2,112 @@ import SwiftUI
 import UIKit
 import TranslationCore
 
-@MainActor struct QualitySlider: View {
+@MainActor struct TranslationStrengthPicker: View {
     @Binding var selection: Quality
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isPresented = false
     @State private var dragProgress: Double?
-    private let thumb: CGFloat = 42
-    private let inset: CGFloat = 7
-    private var levels: [Quality] { Quality.allCases }
+    private let levels = Quality.allCases
     private var index: Int { levels.firstIndex(of: selection) ?? 0 }
     private var progress: Double { dragProgress ?? Double(index) / Double(levels.count - 1) }
-    private var tint: Color { selection == .deep ? Color(red: 0.22, green: 0.47, blue: 0.89) : index >= 3 ? Ink.orange : Ink.text }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("翻译强度").font(.system(size: 12)).foregroundStyle(Ink.muted)
-                    HStack(spacing: 8) {
-                        Text(selection.title).font(.system(size: 25, weight: .medium, design: .serif))
-                        if index >= 2 { QualityFlame(quality: selection).frame(width: 27, height: 32).transition(.opacity.combined(with: .scale(scale: 0.85))) }
-                    }
+        HStack {
+            Text("翻译强度").font(.system(size: 14))
+            Spacer()
+            Button { isPresented.toggle() } label: {
+                HStack(spacing: 7) {
+                    if index >= 2 { QualityFlame(quality: selection).frame(width: 14, height: 18) }
+                    Text(selection.title).font(.system(size: 13, weight: .medium))
+                    Image(systemName: "chevron.down").font(.system(size: 9, weight: .semibold)).foregroundStyle(Ink.muted)
                 }
+                .padding(.horizontal, 12).frame(height: 36)
+                .background(.white.opacity(0.7), in: RoundedRectangle(cornerRadius: 9))
+                .overlay { RoundedRectangle(cornerRadius: 9).stroke(Ink.text.opacity(0.09), lineWidth: 1) }
+                .frame(minHeight: 44).contentShape(Rectangle())
+            }.buttonStyle(.plain)
+                .accessibilityLabel("翻译强度，\(selection.title)")
+                .accessibilityHint("打开强度选择器")
+                .popover(isPresented: $isPresented, arrowEdge: .top) {
+                    optionsPanel
+                        .presentationCompactAdaptation(.popover)
+                        .presentationBackground(.white)
+                }
+        }.foregroundStyle(Ink.text)
+    }
+
+    private var optionsPanel: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Text("翻译强度").font(.system(size: 13, weight: .semibold))
                 Spacer()
-                Text("\(selection.stages.count) 轮").font(.system(size: 12, design: .monospaced)).foregroundStyle(Ink.muted)
-            }
-            Text(selection.stages.map(\.title).joined(separator: " · ")).font(.system(size: 11)).foregroundStyle(Ink.muted).lineLimit(1).minimumScaleFactor(0.85)
+                Text("\(selection.stages.count) 轮").font(.system(size: 11)).foregroundStyle(Ink.muted)
+            }.padding(.bottom, 13)
             rail
             HStack(spacing: 0) {
                 ForEach(levels) { level in
                     Button { snap(level) } label: {
                         Text(level.title).font(.system(size: 11, weight: level == selection ? .semibold : .regular))
-                            .foregroundStyle(level == selection ? tint : Ink.muted).frame(maxWidth: .infinity).frame(height: 44)
-                            .contentShape(Rectangle())
-                    }.buttonStyle(.plain).accessibilityLabel("\(level.title)，\(level.stages.count) 轮处理").accessibilityAddTraits(level == selection ? .isSelected : [])
+                            .foregroundStyle(level == selection ? Ink.text : Ink.muted)
+                            .frame(maxWidth: .infinity).frame(height: 44).contentShape(Rectangle())
+                    }.buttonStyle(.plain)
+                        .accessibilityLabel("\(level.title)，\(level.stages.count) 轮处理")
+                        .accessibilityAddTraits(level == selection ? .isSelected : [])
                 }
-            }.padding(.top, -8)
-            HStack(spacing: 8) {
-                Text(selection.detail).font(.system(size: 12)).foregroundStyle(Ink.muted)
-                Spacer(minLength: 0)
-                if selection != .fast { Text("逐章可读").font(.system(size: 10)).foregroundStyle(Ink.muted) }
-            }
-        }.animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: selection)
+            }.padding(.horizontal, -10).padding(.top, -10)
+            Divider().overlay(Ink.text.opacity(0.04)).padding(.vertical, 11)
+            Text(selection.detail).font(.system(size: 12)).fixedSize(horizontal: false, vertical: true)
+            Text(selection.stages.map(\.title).joined(separator: " · "))
+                .font(.system(size: 10)).foregroundStyle(Ink.muted)
+                .fixedSize(horizontal: false, vertical: true).padding(.top, 6)
+        }.padding(18).frame(width: 286)
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.16), value: selection)
+            .onDisappear { dragProgress = nil }
     }
+
     private var rail: some View {
         GeometryReader { geometry in
-            let travel = max(1, geometry.size.width - thumb - inset * 2)
+            let travel = max(1, geometry.size.width - 20)
             let offset = travel * CGFloat(progress)
             ZStack(alignment: .leading) {
-                Capsule().fill(LinearGradient(colors: [Ink.text, tint.opacity(index >= 2 ? 0.8 : 1)], startPoint: .leading, endPoint: .trailing))
-                Capsule().stroke(.black.opacity(0.08), lineWidth: 1)
-                Capsule().fill(.white).frame(width: thumb + offset, height: thumb).padding(.leading, inset)
-                ForEach(levels.indices, id: \.self) { dot in
-                    Circle().fill(dot < index ? Ink.text.opacity(0.22) : .white.opacity(0.34)).frame(width: 5, height: 5)
-                        .position(x: inset + thumb / 2 + travel * CGFloat(dot) / CGFloat(levels.count - 1), y: 28)
+                Capsule().fill(Ink.text.opacity(0.10)).frame(height: 3).padding(.horizontal, 10)
+                Capsule().fill(Ink.text).frame(width: offset, height: 3).padding(.leading, 10)
+                ForEach(levels.indices, id: \.self) { tick in
+                    Circle().fill(tick <= index ? Ink.text : Color(red: 0.76, green: 0.76, blue: 0.75))
+                        .frame(width: 5, height: 5)
+                        .position(x: 10 + travel * CGFloat(tick) / CGFloat(levels.count - 1), y: 22)
                 }
-                ZStack {
-                    Circle().fill(Ink.text)
-                    if index >= 2 { QualityFlame(quality: selection).frame(width: 23, height: 27) }
-                    else { Image(systemName: selection == .fast ? "bolt.fill" : "sparkle").font(.system(size: 16, weight: .medium)).foregroundStyle(.white.opacity(0.9)) }
-                }.frame(width: thumb, height: thumb).overlay { Circle().stroke(.white, lineWidth: 2.5) }
-                    .shadow(color: tint.opacity(index >= 2 ? 0.22 : 0.08), radius: 7, x: 0, y: 1).padding(.leading, inset + offset)
-            }.contentShape(Rectangle())
+                Circle().fill(.white).frame(width: 16, height: 16)
+                    .overlay { Circle().stroke(Ink.text, lineWidth: 2) }
+                    .shadow(color: .black.opacity(0.12), radius: 2, y: 1)
+                    .padding(.leading, 2 + offset)
+            }.frame(height: 44).contentShape(Rectangle())
                 .gesture(DragGesture(minimumDistance: 0).onChanged { value in
-                    let ratio = min(1, max(0, Double((value.location.x - inset - thumb / 2) / travel)))
-                    dragProgress = ratio; choose(Int((ratio * Double(levels.count - 1)).rounded()))
-                }.onEnded { _ in withAnimation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.82)) { dragProgress = nil } })
-        }.frame(height: 56)
-            .animation(reduceMotion || dragProgress != nil ? nil : .spring(response: 0.3, dampingFraction: 0.82), value: selection)
+                    let ratio = min(1, max(0, Double((value.location.x - 10) / travel)))
+                    dragProgress = ratio
+                    choose(Int((ratio * Double(levels.count - 1)).rounded()))
+                }.onEnded { _ in
+                    withAnimation(reduceMotion ? nil : .spring(response: 0.25, dampingFraction: 0.86)) { dragProgress = nil }
+                })
+        }.frame(height: 44)
+            .animation(reduceMotion || dragProgress != nil ? nil : .spring(response: 0.25, dampingFraction: 0.86), value: selection)
             .accessibilityElement(children: .ignore).accessibilityLabel("翻译强度")
             .accessibilityValue("\(selection.title)，\(selection.stages.map(\.title).joined(separator: "、"))")
             .accessibilityHint("强度越高，审校轮次、耗时与用量越多。")
             .accessibilityAdjustableAction { direction in
-                switch direction { case .increment: snap(levels[min(levels.count - 1, index + 1)]); case .decrement: snap(levels[max(0, index - 1)]); @unknown default: break }
+                switch direction {
+                case .increment: snap(levels[min(levels.count - 1, index + 1)])
+                case .decrement: snap(levels[max(0, index - 1)])
+                @unknown default: break
+                }
             }
     }
-    private func snap(_ level: Quality) { withAnimation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.82)) { dragProgress = nil; choose(levels.firstIndex(of: level) ?? 0) } }
+
+    private func snap(_ level: Quality) {
+        withAnimation(reduceMotion ? nil : .spring(response: 0.25, dampingFraction: 0.86)) {
+            dragProgress = nil; choose(levels.firstIndex(of: level) ?? 0)
+        }
+    }
     private func choose(_ value: Int) {
         guard levels.indices.contains(value), levels[value] != selection else { return }
         selection = levels[value]; UISelectionFeedbackGenerator().selectionChanged()
@@ -124,4 +155,4 @@ struct QualityFlame: View {
         p.closeSubpath(); return p
     }
 }
-#Preview { QualitySlider(selection: .constant(.definitive)).padding(28).background(Ink.paper) }
+#Preview { TranslationStrengthPicker(selection: .constant(.definitive)).padding(28).background(Ink.paper) }
