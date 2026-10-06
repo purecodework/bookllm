@@ -95,7 +95,6 @@ struct BookJob: Codable, Identifiable, Sendable {
 @MainActor @Observable final class StudioStore {
     var jobs: [BookJob] = []
     var customStyles: [TranslationStyle] = []
-    var libraryTerms: [Term] = []
     var defaultPreferences = TranslationPreferences()
     var activeID: String?
     var message: String?
@@ -106,7 +105,7 @@ struct BookJob: Codable, Identifiable, Sendable {
     var task: Task<Void, Never>?
     var liveChunks: [Int: String] = [:]
     private let storage = URL.applicationSupportDirectory.appendingPathComponent("BookLLM/studio.json")
-    private struct Snapshot: Codable, Sendable { var jobs: [BookJob]; var styles: [TranslationStyle]; var terms: [Term]; var preferences: TranslationPreferences }
+    private struct Snapshot: Codable, Sendable { var jobs: [BookJob]; var styles: [TranslationStyle]; var preferences: TranslationPreferences }
     private actor Disk {
         private var written = 0
         func save(_ snapshot: Snapshot, url: URL, revision: Int) throws {
@@ -123,9 +122,13 @@ struct BookJob: Codable, Identifiable, Sendable {
         do {
             if FileManager.default.fileExists(atPath: storage.path) {
                 let snapshot = try JSONDecoder().decode(Snapshot.self, from: Data(contentsOf: storage))
-                jobs = snapshot.jobs; customStyles = snapshot.styles; libraryTerms = snapshot.terms; defaultPreferences = snapshot.preferences
-                for i in jobs.indices where jobs[i].status == .draft && jobs[i].checkpoints.isEmpty && jobs[i].termBatches.isEmpty && jobs[i].reviewDraft == nil && jobs[i].glossaryMode == .custom {
-                    jobs[i].glossaryMode = .accumulated
+                jobs = snapshot.jobs; customStyles = snapshot.styles; defaultPreferences = snapshot.preferences
+                // Unstarted drafts use document-local AI terms. Already dispatched
+                // jobs retain their frozen glossary and paid request payloads.
+                for i in jobs.indices where jobs[i].status == .draft && jobs[i].checkpoints.isEmpty && jobs[i].termBatches.isEmpty && jobs[i].reviewDraft == nil && (jobs[i].glossaryQueries ?? [:]).isEmpty && (jobs[i].termDiscoveries ?? [:]).isEmpty {
+                    if jobs[i].glossaryMode == .custom { jobs[i].glossaryMode = .accumulated }
+                    jobs[i].glossarySeed = nil; jobs[i].terms = []; jobs[i].options.glossary = []
+                    jobs[i].glossaryReady = false
                 }
                 for i in jobs.indices where jobs[i].status == .draft && jobs[i].checkpoints.isEmpty && jobs[i].reviewDraft == nil && jobs[i].options.pipelineVersion == nil {
                     jobs[i].options.quality = jobs[i].options.effectiveQuality
@@ -136,7 +139,7 @@ struct BookJob: Codable, Identifiable, Sendable {
             }
         } catch { message = "本地记录读取失败，请保留文件后重试：\(error.localizedDescription)" }
     }
-    private func snapshot() -> Snapshot { Snapshot(jobs: jobs, styles: customStyles, terms: libraryTerms, preferences: defaultPreferences) }
+    private func snapshot() -> Snapshot { Snapshot(jobs: jobs, styles: customStyles, preferences: defaultPreferences) }
     func save() async throws { revision += 1; try await disk.save(snapshot(), url: storage, revision: revision) }
     func persist() {
         revision += 1; let version = revision; let value = snapshot()
@@ -183,25 +186,26 @@ struct BookJob: Codable, Identifiable, Sendable {
             let own = job.status == .draft ? ownAPI : job.usesOwnAPI
             let provider = try provider(account: account, purchases: purchases, own: own)
             if job.status == .draft { update(id) { $0.usesOwnAPI = own }; job.usesOwnAPI = own }
-            // Freeze personal terms only before the first request. Existing paid
-            // jobs keep their original glossary and request payloads on resume.
+            // Freeze an empty document-local seed before the first paid request.
+            // Previously started jobs keep their original seed on resume.
             if job.glossarySeed == nil && job.status == .draft && job.termBatches.isEmpty && job.checkpoints.isEmpty {
-                guard libraryTerms.allSatisfy(GlossaryMemory.isValid) else { throw TranslationError.message("请补全我的术语库中的原词与译名，或删除空行。") }
-                update(id) { $0.glossaryStrategyVersion = 2; $0.glossarySeed = libraryTerms; $0.terms = Self.mergeTerms(libraryTerms + $0.terms) }
+                update(id) { $0.glossaryStrategyVersion = 2; $0.glossarySeed = [] }
                 job = self.job(id) ?? job
             }
             if job.glossaryMode == .accumulated && !job.glossaryReady {
                 update(id) { $0.glossaryReady = true }
             }
             if job.glossaryMode == .custom && !job.glossaryReady {
-                guard !libraryTerms.isEmpty, libraryTerms.allSatisfy({ !$0.target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else { throw TranslationError.message("请先在术语库中添加或导入术语。") }
-                update(id) { $0.terms = libraryTerms; $0.glossaryReady = true }
+                // Legacy jobs may resume only with their own retained terms.
+                let retained = job.glossarySeed ?? job.terms
+                guard retained.allSatisfy(GlossaryMemory.isValid) else { throw TranslationError.message("已保存的术语格式无效。") }
+                update(id) { $0.terms = retained; $0.glossaryReady = true }
             }
             // A partial budget never bypasses the selected full-text scan or
             // confirmation gate. Users may choose accumulated mode beforehand.
             if partial { update(id) { $0.partialApproved = true } }
             if approved {
-                guard job.terms.allSatisfy({ !$0.target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else { throw TranslationError.message("请补充空缺译名，或删除该术语后再确认。") }
+                guard job.terms.allSatisfy(GlossaryMemory.isValid) else { throw TranslationError.message("请补充空缺译名，或删除该术语后再确认。") }
                 update(id) { $0.glossaryReady = true }
             }
             update(id) { $0.status = $0.glossaryReady ? .translating : .extracting; $0.error = nil }

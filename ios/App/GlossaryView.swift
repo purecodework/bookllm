@@ -1,36 +1,6 @@
 import SwiftUI
-import UniformTypeIdentifiers
 import TranslationCore
 
-struct GlossaryLibraryView: View {
-    @Environment(StudioStore.self) private var studio
-    @State private var importing = false
-    @State private var shareURL: URL?
-    var body: some View {
-        @Bindable var studio = studio
-        VStack(alignment: .leading, spacing: 18) {
-            Text("三档均可使用。你的译法优先，翻译与审校共同遵守。").font(.system(size: 12)).foregroundStyle(Ink.muted).lineSpacing(4).padding(.horizontal, 24).padding(.top, 20)
-            TermEditor(terms: Binding(get: { studio.libraryTerms }, set: { studio.libraryTerms = $0; studio.persist() }), editable: true)
-            HStack(spacing: 20) {
-                Button { importing = true } label: { Label("导入 JSON", systemImage: "square.and.arrow.down") }
-                Button {
-                    do { let data = try JSONEncoder().encode(studio.libraryTerms); shareURL = try DocumentIO.export(title: "glossary", text: String(decoding: data, as: UTF8.self), ext: "json") } catch { studio.message = error.localizedDescription }
-                } label: { Label("导出", systemImage: "square.and.arrow.up") }
-                if let shareURL { ShareLink(item: shareURL) { Image(systemName: "arrow.up.right") } }
-            }.font(.system(size: 13)).padding(24)
-        }.background(Ink.paper).navigationTitle("我的术语库").navigationBarTitleDisplayMode(.inline)
-        .fileImporter(isPresented: $importing, allowedContentTypes: [.json]) { result in
-            do {
-                let url = try result.get(); let access = url.startAccessingSecurityScopedResource(); defer { if access { url.stopAccessingSecurityScopedResource() } }
-                let data = try Data(contentsOf: url); guard data.count < 2_000_000 else { throw TranslationError.message("术语文件过大。") }
-                let terms = try JSONDecoder().decode([Term].self, from: data)
-                guard terms.count <= 10000, terms.allSatisfy(GlossaryMemory.isValid) else { throw TranslationError.message("术语格式无效；每项需包含 source 和 target。") }
-                var seen = Set(studio.libraryTerms.map { $0.source.lowercased() })
-                for term in terms where seen.insert(term.source.lowercased()).inserted { studio.libraryTerms.append(term) }; studio.persist()
-            } catch { studio.message = error.localizedDescription }
-        }
-    }
-}
 struct TermEditor: View {
     @Binding var terms: [Term]
     var editable: Bool
@@ -138,10 +108,10 @@ struct JobGlossaryView: View {
         NavigationStack {
             if let job = studio.job(id) {
                 VStack(spacing: 0) {
-                    Text(job.status == .reviewing ? "确认后再翻译。你修改的译名会在整个流程中优先使用。" : "术语译法由翻译与审校共同遵守。") .font(.system(size: 12)).foregroundStyle(Ink.muted).padding(20)
+                    Text(job.status == .reviewing ? "AI 已整理本文术语。修改、校对后确认，译者与审校共同遵守。" : "AI 为本文整理的术语，供翻译与审校共同使用。") .font(.system(size: 12)).foregroundStyle(Ink.muted).padding(20)
                     TermEditor(terms: Binding(get: { studio.job(id)?.terms ?? [] }, set: { terms in studio.update(id) { $0.terms = terms } }), editable: job.status == .reviewing)
                     if job.status == .reviewing { Text("修改会自动保存；回到工作台点击「确认术语」继续。") .font(.system(size: 11)).foregroundStyle(Ink.muted).padding(15) }
-                }.background(Ink.paper).navigationTitle("本书术语").navigationBarTitleDisplayMode(.inline).toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { dismiss() } } }
+                }.background(Ink.paper).navigationTitle("本文术语").navigationBarTitleDisplayMode(.inline).toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { dismiss() } } }
             }
         }
     }

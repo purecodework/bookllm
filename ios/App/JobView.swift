@@ -1,7 +1,7 @@
 import SwiftUI
 import TranslationCore
 
-private enum JobSheet: String, Identifiable { case preferences, glossary, glossaryLibrary, wallet, repair, unlock, ocr; var id: String { rawValue } }
+private enum JobSheet: String, Identifiable { case preferences, glossary, wallet, repair, unlock, ocr; var id: String { rawValue } }
 struct JobView: View {
     let id: String
     @Environment(StudioStore.self) private var studio
@@ -25,7 +25,7 @@ struct JobView: View {
                             NavigationLink { ReaderView(id: id) } label: { HStack { Text(job.status == .complete ? "打开译本" : job.options.quality == .fast ? "边译边读" : "阅读已完成章节"); Spacer(); Image(systemName: "book") }.font(.system(size: 16, weight: .semibold)).padding(20).foregroundStyle(.white).background(Ink.text, in: RoundedRectangle(cornerRadius: 18)) }
                         }
                         if job.status != .complete { action(job) }
-                        if !job.terms.isEmpty && job.status != .reviewing { Button { sheet = .glossary } label: { Label("查看本书术语 · \(job.terms.count) 个", systemImage: "text.book.closed").font(.system(size: 13)) }.padding(.top, 3) }
+                        if !job.terms.isEmpty && job.status != .reviewing { Button { sheet = .glossary } label: { Label("查看本文术语 · \(job.terms.count) 个", systemImage: "text.book.closed").font(.system(size: 13)) }.padding(.top, 3) }
                     }.padding(24)
                 }.background(Ink.paper)
             } else { ContentUnavailableView("作品不存在", systemImage: "book.closed") }
@@ -34,8 +34,6 @@ struct JobView: View {
             switch destination {
             case .preferences: PreferencesSheet(preferences: binding(\.options.preferences))
             case .glossary: JobGlossaryView(id: id)
-            case .glossaryLibrary:
-                NavigationStack { GlossaryLibraryView().toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { sheet = nil } } } }
             case .wallet: WalletView(ownOverride: false)
             case .unlock: WalletView(ownOverride: true)
             case .repair: RepairDraftView(id: id)
@@ -113,9 +111,6 @@ struct JobView: View {
                     }.pickerStyle(.menu).tint(Ink.text)
                 }
                 Text(job.glossaryMode.detail).font(.system(size: 12)).foregroundStyle(Ink.muted)
-                Button { sheet = .glossaryLibrary } label: {
-                    HStack { Text("导入我的术语库"); Spacer(); if !studio.libraryTerms.isEmpty { Text("\(studio.libraryTerms.count) 个").foregroundStyle(Ink.muted) }; Image(systemName: "chevron.right") }.font(.system(size: 13)).foregroundStyle(Ink.text)
-                }
             }
         }.foregroundStyle(Ink.text)
     }

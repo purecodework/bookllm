@@ -81,7 +81,7 @@ private actor IncrementalGlossaryLedger {
                 let observed = extracted.filter { chunk.text.localizedCaseInsensitiveContains($0.source) }
                 let merged = Self.merge(existing + observed)
                 let snapshot = merged.filter { chunk.text.localizedCaseInsensitiveContains($0.source) }
-                guard snapshot.count <= 1000 else { throw TranslationError.message("本段匹配术语超过 1000 个，请减少个人词表后重新导入文稿。") }
+                guard snapshot.count <= 1000 else { throw TranslationError.message("本段匹配术语超过 1000 个，请检查本文术语后重新导入文稿。") }
                 try await self.onSnapshot(chunk.index, snapshot)
                 try Task.checkCancellation()
                 self.terms = merged; self.snapshots[chunk.index] = snapshot

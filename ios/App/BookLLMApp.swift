@@ -28,7 +28,6 @@ struct AppShell: View {
         TabView {
             NavigationStack { LibraryView() }.tabItem { Label("书房", systemImage: "books.vertical") }
             NavigationStack { StylesView() }.tabItem { Label("风格", systemImage: "paintbrush.pointed") }
-            NavigationStack { GlossaryLibraryView() }.tabItem { Label("术语", systemImage: "text.book.closed") }
             NavigationStack { SettingsView() }.tabItem { Label("我的", systemImage: "person.crop.circle") }
         }
         .alert("译间", isPresented: Binding(get: { studio.message != nil }, set: { if !$0 { studio.message = nil } })) { Button("知道了") { studio.message = nil } } message: { Text(studio.message ?? "") }

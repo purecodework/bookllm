@@ -163,7 +163,7 @@ private actor EfficientGlossaryMemory {
         for chunk in members where snapshots[chunk.index] == nil {
             try Task.checkCancellation()
             let snapshot = GlossaryMemory.relevant(terms, to: chunk.text)
-            guard snapshot.count <= 1000 else { throw TranslationError.message("本段匹配术语超过服务限制，请减少个人词表后重新导入。") }
+            guard snapshot.count <= 1000 else { throw TranslationError.message("本段匹配术语超过服务限制，请检查本文术语后重新导入。") }
             try await onSnapshot(chunk.index, snapshot); snapshots[chunk.index] = snapshot
         }
     }
