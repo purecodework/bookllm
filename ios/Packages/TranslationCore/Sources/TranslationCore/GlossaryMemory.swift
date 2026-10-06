@@ -110,7 +110,7 @@ public enum GlossaryMemory {
                 term.entityID = linked ? stableID(canonical) : nil
             } else { term.entityID = nil }
             if term.entityID == nil { term.entityID = stableID(term.source + (term.ambiguous == true ? "␟" + (term.evidence ?? "") : "")) }
-            result.append(term)
+            if isValid(term) { result.append(term) }
         }
         return merge(result)
     }
