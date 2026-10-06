@@ -1,0 +1,33 @@
+# Xcode / Swift build output
+.build/
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+.DS_Store
+.swiftpm/
+*.xcresult
+*.ipa
+*.dSYM/
+
+# Local configuration and signing material
+Config/Local.xcconfig
+*.p8
+*.p12
+*.mobileprovision
+.env
+.env.*
+!.env.example
+server/data/
+server/node_modules/
+preview/node_modules/
+preview/dist/
+
+# Local simulator export / document fixtures
+*.log
+tmp/
+.cache/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/

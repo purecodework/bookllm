@@ -1,0 +1,66 @@
+name: iOS
+
+on:
+  push:
+    branches: ['main', 'master']
+    paths: ['ios/**', '.github/workflows/ios.yml']
+  pull_request:
+    paths: ['ios/**', '.github/workflows/ios.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode 16
+        run: |
+          XCODE_APP=$(python3 -c 'import pathlib,re; apps=list(pathlib.Path("/Applications").glob("Xcode_16*.app")); print(max(apps,key=lambda p:tuple(map(int,re.findall(r"\d+",p.name))),default=""))')
+          if [ -z "$XCODE_APP" ]; then echo 'Xcode 16 is required'; exit 1; fi
+          sudo xcode-select -s "$XCODE_APP/Contents/Developer"
+          xcodebuild -version
+      - name: Translation engine tests
+        working-directory: ios/Packages/TranslationCore
+        run: swift test
+      - name: Resolve app packages
+        working-directory: ios
+        run: xcodebuild -resolvePackageDependencies -project BookLLM.xcodeproj -scheme BookLLM
+      - name: Build iOS Simulator app
+        working-directory: ios
+        run: >-
+          xcodebuild -project BookLLM.xcodeproj -scheme BookLLM
+          -configuration Debug -sdk iphonesimulator
+          -destination 'generic/platform=iOS Simulator'
+          -derivedDataPath build
+          CODE_SIGNING_ALLOWED=NO build
+      - name: Upload simulator app
+        uses: actions/upload-artifact@v4
+        with:
+          name: BookLLM-iOS-Simulator
+          path: ios/build/Build/Products/Debug-iphonesimulator/BookLLM.app
+          if-no-files-found: error
+
+  server-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: ios/server/requirements*.txt
+      - name: Install cloud service dependencies
+        working-directory: ios/server
+        run: python -m pip install -r requirements-dev.txt
+      - name: Cloud billing and work purchase tests
+        working-directory: ios/server
+        run: python -m pytest -q
