@@ -23,6 +23,10 @@ struct BookJob: Codable, Identifiable, Sendable {
     var options = TranslationOptions()
     var glossaryMode = GlossaryMode.accumulated
     var glossarySeed: [Term]?
+    var glossaryStrategyVersion: Int?
+    var glossaryQueries: [Int: GlossaryQuery]?
+    var glossaryRejected: [Int: [String]]?
+    var termDiscoveries: [Int: [Term]]?
     var terms: [Term] = []
     var checkpoints: [Checkpoint] = []
     var status = JobStatus.draft
@@ -150,7 +154,7 @@ struct BookJob: Codable, Identifiable, Sendable {
         if let data = imported.coverData { job.coverKey = try CoverStorage.save(data) }
         job.options.sourceLanguage = SourceLanguageDetection.code(for: imported.text)
         job.options.documentKind = DocumentClassifier.detect(text: imported.text, title: imported.title, format: imported.format)
-        job.replan()
+        job.replan(); job.glossaryStrategyVersion = 2
         job.glossaryPoints = job.sourceBatches.reduce(0) { $0 + max(1, Int(ceil(Double($1.unicodeScalars.count) / 1000))) }
         jobs.insert(job, at: 0); persist(); return job.id
     }
@@ -182,8 +186,8 @@ struct BookJob: Codable, Identifiable, Sendable {
             // Freeze personal terms only before the first request. Existing paid
             // jobs keep their original glossary and request payloads on resume.
             if job.glossarySeed == nil && job.status == .draft && job.termBatches.isEmpty && job.checkpoints.isEmpty {
-                guard libraryTerms.allSatisfy({ !$0.source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !$0.target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else { throw TranslationError.message("请补全我的术语库中的原词与译名，或删除空行。") }
-                update(id) { $0.glossarySeed = libraryTerms; $0.terms = Self.mergeTerms(libraryTerms + $0.terms) }
+                guard libraryTerms.allSatisfy(GlossaryMemory.isValid) else { throw TranslationError.message("请补全我的术语库中的原词与译名，或删除空行。") }
+                update(id) { $0.glossaryStrategyVersion = 2; $0.glossarySeed = libraryTerms; $0.terms = Self.mergeTerms(libraryTerms + $0.terms) }
                 job = self.job(id) ?? job
             }
             if job.glossaryMode == .accumulated && !job.glossaryReady {
@@ -211,7 +215,7 @@ struct BookJob: Codable, Identifiable, Sendable {
                     if let current = self.job(id), !current.glossaryReady {
                         self.update(id) { $0.status = .extracting; $0.error = nil }
                         try await self.save()
-                        try await GlossaryEngine().run(jobID: id, batches: current.sourceBatches, target: current.options.targetLanguage, provider: provider, completed: Set(current.termBatches.keys)) { [weak self] index, terms in
+                        try await GlossaryEngine().run(jobID: id, batches: current.sourceBatches, target: current.options.targetLanguage, provider: provider, completed: Set(current.termBatches.keys), categorized: current.glossaryStrategyVersion == 2) { [weak self] index, terms in
                             try await self?.recordTerms(id, index: index, terms: terms)
                         }
                         if current.glossaryMode == .review {
@@ -224,7 +228,17 @@ struct BookJob: Codable, Identifiable, Sendable {
                     self.update(id) { $0.options.glossary = current.terms; $0.status = .translating; $0.error = nil }
                     try await self.save()
                     let translationProvider: any TranslationProvider
-                    if current.glossaryMode == .accumulated {
+                    if current.glossaryMode == .accumulated && current.glossaryStrategyVersion == 2 {
+                        let plan = Chunker.plan(text: current.source, kind: current.options.documentKind)
+                        translationProvider = EfficientGlossaryProvider(provider: provider, jobID: id, chunks: plan.chunks,
+                            sections: plan.sectionForChunk, kind: current.options.documentKind, target: current.options.targetLanguage,
+                            seed: current.glossarySeed ?? current.terms, snapshots: current.termBatches,
+                            discoveries: current.termDiscoveries ?? [:], queries: current.glossaryQueries ?? [:], rejected: current.glossaryRejected ?? [:],
+                            onQuery: { [weak self] group, query in try await self?.recordGlossaryQuery(id, group: group, query: query) },
+                            onRejected: { [weak self] group, names in try await self?.recordGlossaryRejected(id, group: group, names: names) },
+                            onSnapshot: { [weak self] index, terms in try await self?.recordTerms(id, index: index, terms: terms) },
+                            onDiscovery: { [weak self] index, terms in try await self?.recordDiscoveries(id, index: index, terms: terms) })
+                    } else if current.glossaryMode == .accumulated {
                         translationProvider = IncrementalGlossaryProvider(provider: provider, jobID: id,
                             chunks: Chunker.plan(text: current.source, kind: current.options.documentKind).chunks,
                             target: current.options.targetLanguage, seed: current.glossarySeed ?? current.terms,
@@ -253,7 +267,10 @@ struct BookJob: Codable, Identifiable, Sendable {
             } else {
                 let index = failure.request.chunkIndex ?? Int(failure.request.requestID.split(separator: "-").dropLast().last ?? "0") ?? 0
                 var request = failure.request
-                if job.glossaryMode == .accumulated, let terms = job.termBatches[index] { request.options.glossary = terms }
+                if job.glossaryMode == .accumulated, let terms = job.termBatches[index] {
+                    let extra = request.stage == .translate ? [] : job.termDiscoveries?[index] ?? []
+                    request.options.glossary = Array(GlossaryMemory.merge(terms + extra).prefix(1000))
+                }
                 job.reviewDraft = ReviewDraft(original: request, output: failure.output, issues: failure.issues, index: index)
             }
             job.status = .needsReview; job.error = failure.localizedDescription
@@ -268,6 +285,7 @@ struct BookJob: Codable, Identifiable, Sendable {
                 review.attempt += 1
                 var request = review.original
                 request.requestID += "-review-\(review.attempt)"
+                request.glossaryCapture = nil // Manual repair returns text, with the retained glossary.
                 if request.reviewMode != true { request.draft = review.output }
                 request.reviewNotes = String(review.issues.joined(separator: "\n").prefix(1900))
                 review.prepared = request
@@ -312,13 +330,33 @@ struct BookJob: Codable, Identifiable, Sendable {
     private func recordTerms(_ id: String, index batch: Int, terms: [Term]) async throws {
         guard let index = jobs.firstIndex(where: { $0.id == id }) else { return }
         jobs[index].termBatches[batch] = terms
-        jobs[index].terms = Self.mergeTerms((jobs[index].glossarySeed ?? []) + jobs[index].termBatches.keys.sorted().flatMap { jobs[index].termBatches[$0] ?? [] })
+        let seed = jobs[index].glossarySeed ?? []
+        let prepared = jobs[index].termBatches.keys.sorted().flatMap { jobs[index].termBatches[$0] ?? [] }
+        let discovered = (jobs[index].termDiscoveries ?? [:]).keys.sorted().flatMap { jobs[index].termDiscoveries?[$0] ?? [] }
+        jobs[index].terms = Self.mergeTerms(seed + prepared + discovered)
         jobs[index].glossaryBatch = jobs[index].termBatches.count
         try await save()
     }
-    private static func mergeTerms(_ candidates: [Term]) -> [Term] {
-        var known = Set<String>()
-        return candidates.filter { !$0.source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !$0.target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.source.count <= 200 && $0.target.count <= 400 && known.insert($0.source.lowercased()).inserted }
+    private static func mergeTerms(_ candidates: [Term]) -> [Term] { GlossaryMemory.merge(candidates) }
+    private func recordGlossaryQuery(_ id: String, group: Int, query: GlossaryQuery) async throws {
+        guard let index = jobs.firstIndex(where: { $0.id == id }) else { return }
+        if jobs[index].glossaryQueries == nil { jobs[index].glossaryQueries = [:] }
+        jobs[index].glossaryQueries?[group] = query; try await save()
+    }
+    private func recordGlossaryRejected(_ id: String, group: Int, names: [String]) async throws {
+        guard let index = jobs.firstIndex(where: { $0.id == id }) else { return }
+        if jobs[index].glossaryRejected == nil { jobs[index].glossaryRejected = [:] }
+        jobs[index].glossaryRejected?[group] = names; try await save()
+    }
+    private func recordDiscoveries(_ id: String, index chunk: Int, terms: [Term]) async throws {
+        guard let index = jobs.firstIndex(where: { $0.id == id }) else { return }
+        if jobs[index].termDiscoveries == nil { jobs[index].termDiscoveries = [:] }
+        jobs[index].termDiscoveries?[chunk] = terms
+        let seed = jobs[index].glossarySeed ?? []
+        let prepared = jobs[index].termBatches.keys.sorted().flatMap { jobs[index].termBatches[$0] ?? [] }
+        let discovered = (jobs[index].termDiscoveries ?? [:]).keys.sorted().flatMap { jobs[index].termDiscoveries?[$0] ?? [] }
+        jobs[index].terms = GlossaryMemory.merge(seed + prepared + discovered)
+        try await save()
     }
     private func record(_ id: String, checkpoint: Checkpoint) async throws {
         guard let index = jobs.firstIndex(where: { $0.id == id }) else { return }

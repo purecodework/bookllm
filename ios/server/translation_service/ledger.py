@@ -28,7 +28,7 @@ class ServiceError(Exception):
 def content_hash(operation: str, payload: dict) -> str:
     # Optional fields added after launch must not invalidate a cached older request.
     payload = dict(payload)
-    for field in ("reviewNotes", "reviewMode", "reviews", "chapterContext", "chunkIndex"):
+    for field in ("reviewNotes", "reviewMode", "reviews", "chapterContext", "chunkIndex", "glossaryCapture", "mode", "candidates", "known"):
         if payload.get(field) is None:
             payload.pop(field, None)
     if isinstance(payload.get("options"), dict):
@@ -39,7 +39,11 @@ def content_hash(operation: str, payload: dict) -> str:
             options.pop("sourceWasOCR", None)
         if options.get("pipelineVersion") is None:
             options.pop("pipelineVersion", None)
+        if "glossary" in options:
+            options["glossary"] = [{key: value for key, value in term.items() if value is not None} for term in options["glossary"]]
         payload["options"] = options
+    if isinstance(payload.get("known"), list):
+        payload["known"] = [{key: value for key, value in term.items() if value is not None} for term in payload["known"]]
     canonical = json.dumps({"operation": operation, "payload": payload}, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode()).hexdigest()
 

@@ -67,9 +67,9 @@ class DeepSeek:
             if not isinstance(data, list) or len(data) > 60:
                 raise ValueError("Too many terms")
             terms = TypeAdapter(list[Term]).validate_python(data)
-            if len({term.source.casefold() for term in terms}) != len(terms):
+            if len({(term.source.casefold(), term.evidence if term.ambiguous else None) for term in terms}) != len(terms):
                 raise ValueError("Duplicate glossary term")
-            return UsageTerms([term.model_dump() for term in terms], raw.usage)
+            return UsageTerms([term.model_dump(mode="json", exclude_none=True) for term in terms], raw.usage)
         except (ValueError, TypeError, ValidationError):
             raise DefiniteProviderFailure(502, "术语提取格式无效，本次点数已退回。请重试。") from None
 

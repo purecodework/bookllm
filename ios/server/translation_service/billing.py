@@ -55,13 +55,19 @@ class TokenBudget:
     tokens_per_point: int
 
     @classmethod
-    def for_request(cls, settings, messages, source, operation):
+    def for_request(cls, settings, messages, source, operation, *, entity_query=False, capture=False):
         # UTF-8 bytes / 3 is deliberately cautious for ordinary DeepSeek prose, but is
         # not a tokenizer. Provider-reported usage is always settled, even when higher.
         input_tokens = 12 + sum(12 + math.ceil(len(message["content"].encode("utf-8")) / 3) for message in messages)
         source_estimate = math.ceil(len(source.encode("utf-8")) / 3)
         minimum = settings.minimum_output_tokens if operation == "glossary" else max(settings.minimum_output_tokens, source_estimate)
         desired = max(minimum, min(2048, source_estimate * 2)) if operation == "glossary" else max(minimum, source_estimate * 2)
+        # Compact entity queries need bounded metadata output; initial translation
+        # trailers reserve headroom but still settle solely on reported token usage.
+        if operation == "glossary" and entity_query:
+            desired = min(3072, max(1536, desired))
+        if operation != "glossary" and capture:
+            desired += 768
         return cls(input_tokens, min(settings.max_output_tokens, minimum), min(settings.max_output_tokens, desired), settings.tokens_per_point)
 
     def fit(self, available_points):

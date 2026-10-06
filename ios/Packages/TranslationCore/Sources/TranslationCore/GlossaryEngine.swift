@@ -11,6 +11,7 @@ public struct GlossaryEngine: Sendable {
         target: String,
         provider: any TranslationProvider,
         completed: Set<Int> = [],
+        categorized: Bool = false,
         onBatch: @escaping @Sendable (Int, [Term]) async throws -> Void
     ) async throws {
         try Task.checkCancellation()
@@ -27,7 +28,14 @@ public struct GlossaryEngine: Sendable {
                     let source = batches[index]
                     group.addTask {
                         let terms = try await TranslationEngine.retry(throughput: throughput) {
-                            try await provider.extractTerms(source: source, target: target, requestID: "\(jobID)-terms-\(index)")
+                            if categorized {
+                                let query = GlossaryQuery(requestID: "\(jobID)-g2-full-\(index)", source: source, target: target)
+                                let terms = try await provider.resolveTerms(query)
+                                return GlossaryMemory.normalize(terms, source: source, known: [], chunk: index).map { term in
+                                    var located = term; located.firstChunk = nil; return located
+                                }
+                            }
+                            return try await provider.extractTerms(source: source, target: target, requestID: "\(jobID)-terms-\(index)")
                         }
                         return (index, terms)
                     }

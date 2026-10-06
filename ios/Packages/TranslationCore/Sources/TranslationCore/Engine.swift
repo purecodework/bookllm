@@ -35,7 +35,7 @@ public struct TranslationEngine: Sendable {
                             try Task.checkCancellation()
                             if let cached = checkpoints.last(where: { $0.index == chunk.index && $0.stage == stage }) { draft = cached.text; continue }
                             var chunkOptions = options
-                            chunkOptions.glossary = options.glossary.filter { chunk.text.localizedCaseInsensitiveContains($0.source) }
+                            chunkOptions.glossary = GlossaryMemory.relevant(options.glossary, to: chunk.text)
                             let request = TranslationRequest(requestID: "\(jobID)-\(chunk.index)-\(stage.rawValue)", source: chunk.text, context: options.documentKind == .fiction ? FictionContext.make(source: source, plan: plan, index: chunk.index) : chunk.context, draft: draft, stage: stage, options: chunkOptions)
                             if options.quality == .fast {
                                 draft = try await PipelineExecution.stream(request, provider: provider, throughput: throughput) { text in await onPartial(chunk.index, notes.filter(text, index: chunk.index)) }

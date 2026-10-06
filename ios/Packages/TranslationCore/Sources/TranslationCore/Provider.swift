@@ -16,7 +16,7 @@ public struct APIProvider: TranslationProvider {
             let data = try await post(url: url.appendingPathComponent("translate"), key: token, body: JSONEncoder().encode(request))
             text = try JSONDecoder().decode(TextResponse.self, from: data).text
         }
-        try CoverageValidator.validateCompletion(request: request, output: text)
+        try CoverageValidator.validateCompletion(request: request, output: request.glossaryCapture == true ? GlossaryCapture.text(text) : text)
         return text
     }
     public func stream(_ request: TranslationRequest, onPartial: @escaping @Sendable (String) async -> Void) async throws -> String {
@@ -71,7 +71,7 @@ public struct APIProvider: TranslationProvider {
             }
         }
         guard stopped, !result.isEmpty else { throw TranslationError.transient("流式连接提前结束，请继续翻译。") }
-        try CoverageValidator.validateCompletion(request: request, output: result)
+        try CoverageValidator.validateCompletion(request: request, output: request.glossaryCapture == true ? GlossaryCapture.text(result) : result)
         return result
         #endif
     }
@@ -87,8 +87,21 @@ public struct APIProvider: TranslationProvider {
             return try JSONDecoder().decode([Term].self, from: await post(url: url.appendingPathComponent("glossary"), key: token, body: body))
         }
     }
-    private func chat(url: URL, key: String, model: String, system: String, input: String) async throws -> String {
-        let body = try JSONSerialization.data(withJSONObject: ["model": model, "messages": [["role": "system", "content": system], ["role": "user", "content": input]], "temperature": 0.3, "max_tokens": 8192, "stream": false])
+    public func resolveTerms(_ query: GlossaryQuery) async throws -> [Term] {
+        switch connection {
+        case .ownKey(let url, let key, let model):
+            let data = try JSONEncoder().encode(query)
+            let raw = try await chat(url: url, key: key, model: model, system: query.instruction,
+                input: String(decoding: data, as: UTF8.self), maxTokens: query.candidates == nil ? 3072 : 1536)
+            let cleaned = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            return try JSONDecoder().decode([Term].self, from: Data(cleaned.utf8))
+        case .cloud(let url, let token):
+            let data = try await post(url: url.appendingPathComponent("glossary"), key: token, body: JSONEncoder().encode(query))
+            return try JSONDecoder().decode([Term].self, from: data)
+        }
+    }
+    private func chat(url: URL, key: String, model: String, system: String, input: String, maxTokens: Int = 8192) async throws -> String {
+        let body = try JSONSerialization.data(withJSONObject: ["model": model, "messages": [["role": "system", "content": system], ["role": "user", "content": input]], "temperature": 0.3, "max_tokens": maxTokens, "stream": false])
         let data = try await post(url: url.appendingPathComponent("chat/completions"), key: key, body: body)
         let decoded = try JSONDecoder().decode(ChatResponse.self, from: data)
         guard let first = decoded.choices.first, first.finish_reason == "stop", let text = first.message.content else { throw TranslationError.message("模型输出未完整结束。请降低分块大小或更换模型后重试。") }

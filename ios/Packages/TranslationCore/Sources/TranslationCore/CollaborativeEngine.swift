@@ -167,7 +167,7 @@ public struct CollaborativeEngine: Sendable {
 
         func request(_ chunk: TextChunk, _ stage: Stage, drafts: [Int: String], reviews: [Int: [ReviewerFeedback]], chapterContext: String?) -> TranslationRequest {
             var chunkOptions = options
-            chunkOptions.glossary = options.glossary.filter { chunk.text.localizedCaseInsensitiveContains($0.source) }
+            chunkOptions.glossary = GlossaryMemory.relevant(options.glossary, to: chunk.text)
             return TranslationRequest(requestID: "\(jobID)-p2-\(chunk.index)-\(stage.rawValue)", source: chunk.text, context: chunk.context, draft: drafts[chunk.index] ?? "", stage: stage, options: chunkOptions, reviewMode: stage == .proofread || stage == .linguist ? true : nil, reviews: reviews[chunk.index], chapterContext: chapterContext, chunkIndex: chunk.index)
         }
         func execute(_ jobs: [(TextChunk, Stage)], drafts: [Int: String], reviews: [Int: [ReviewerFeedback]], chapterContext: String?) async throws -> [Checkpoint] {

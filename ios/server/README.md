@@ -34,7 +34,7 @@ uvicorn main:app --host 127.0.0.1 --port 8080 --workers 2
 | `POST /v1/purchases` | `{signedTransaction}`；验证后原子兑换并返回账户 |
 | `POST /v1/translate` | 原生 `TranslationRequest` 驼峰字段；返回 `{text}` |
 | `POST /v1/translate/stream` | 同样请求，仅 fast / translate；真实 DeepSeek SSE 返回增量 |
-| `POST /v1/glossary` | `{requestID, source, target}`；返回 `[{source,target}]` |
+| `POST /v1/glossary` | 兼容 `{requestID, source, target}`；新增 `mode: entities-v1`、可选 candidates/known，返回可带分类与实体信息的 Term 数组 |
 | `GET /v1/requests/{requestID}` | 账户自己的请求状态；完成状态含 `result` |
 | `POST /v1/app-store/notifications` | Apple V2 `{signedPayload}`；验证外层和内层签名后处理退款、撤销与退款撤回 |
 | `GET /health` | 不含秘密的运行状态 |
@@ -109,3 +109,11 @@ python -m translation_service.manage --database ./data/bookllm.sqlite3 complete 
 强度合同：`fast` 译者；`refined` 加校对；`deep` 加语言专家；`publication` 加主编（保留原四轮语义）；`definitive` 加 `verify` 终审。新增客户端档位需部署此版本云服务，服务端拒绝不属于所选档位的额外阶段。历史 `refined + extraLanguageReview` 请求仍保持三轮及原请求身份。终审只校正可由原稿证明的问题，不重新改写已选风格；实际 token 用量照常结算。
 
 新客户端以 `options.pipelineVersion = 2` 选择四档流程。最高档 `publication` 的 `proofread` / `linguist` 请求设置 `reviewMode = true`，返回有原文段落锚点的 JSON 问题清单；`editor` 必须带两份不同角色的 `reviews`，可带最多 32,000 字符的 `chapterContext`。意见按 `source_units` 的 `p1`、`p2` 等定位并引用原文，客户端检查模型返回格式，服务器检查交给主编的锚点。额外补全使用独立稳定请求 ID，按实际 token 用量结算。缺少版本的旧任务保留串行阶段；旧 `definitive` 可续跑原终审，新版本不允许该阶段。可选空字段从账本哈希剔除，防止旧请求回放因协议扩展失效。
+
+## 增量实体术语（新任务）
+
+`/v1/glossary` 的 `mode: "entities-v1"` 启用分类与证据合同：candidates 至多 24 个且必须出现在 source 短语境中，known 至多 16 个。旧模式继续返回 source/target。Term 可携带 category（person/place/organization/title/specialist/name）、entityID、aliases（至多 8 个）、evidence、ambiguous、firstChunk；歧义条目必须带证据，匹配时只应用在对应语境。实体链接表示身份关联，不把昵称统一替换为全名。新字段为空时从历史账本指纹中排除，旧付费请求可继续回放。
+
+新初译请求可带 `glossaryCapture: true`，仅允许 pipelineVersion 2 / translate，原文含私有标记时禁用。模型在完整译文后附加 `<bookllm-glossary-v1>[最多12条Term]</bookllm-glossary-v1>`，使用原 SSE 通道，客户端按增量边界隐藏尾部并单独保存补充信息；缓存保留完整响应以确保断点恢复。该响应省去重复的 sourceUnits，但审查报告仍保留原文段落锚点。私有 JSON 不作为编者注、正文或导出内容。语法不正确的补充表可丢弃，不额外触发一次模型请求；正文覆盖检查照常执行。元数据也计入真实 usage，预算提供有界输出空间，实际结算仍为供应商返回的 token 用量。
+
+本次按要求不运行原生构建或 Swift 测试；158 项 Python 服务端检查通过。

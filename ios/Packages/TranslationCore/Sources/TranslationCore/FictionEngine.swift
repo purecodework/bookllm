@@ -97,7 +97,7 @@ public struct FictionEngine: Sendable {
                             let chunk = pending[next]
                             group.addTask {
                                 var chunkOptions = options
-                                chunkOptions.glossary = options.glossary.filter { chunk.text.localizedCaseInsensitiveContains($0.source) }
+                                chunkOptions.glossary = GlossaryMemory.relevant(options.glossary, to: chunk.text)
                                 let request = TranslationRequest(
                                     requestID: "\(jobID)-\(chunk.index)-\(stage.rawValue)",
                                     source: chunk.text,

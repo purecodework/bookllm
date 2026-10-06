@@ -122,7 +122,7 @@ def create_app(settings: Settings, *, identity_verifier=None, purchase_verifier=
         return {"received": True}
 
     async def perform(owner, request_id, operation, payload, source, messages):
-        budget = TokenBudget.for_request(settings, messages, source, operation)
+        budget = TokenBudget.for_request(settings, messages, source, operation, entity_query=payload.get("mode") == "entities-v1", capture=payload.get("glossaryCapture") is True)
         reservation = await run_in_threadpool(ledger.reserve_tokens, owner, request_id, operation, content_hash(operation, payload), budget)
         if reservation.cached is not None:
             return reservation.cached
@@ -179,7 +179,7 @@ def create_app(settings: Settings, *, identity_verifier=None, purchase_verifier=
             raise ServiceError(503, "服务正在重启，请稍后重试。", 5)
         request_id = body.requestID
         messages = translation_messages(body)
-        budget = TokenBudget.for_request(settings, messages, body.source, "translate")
+        budget = TokenBudget.for_request(settings, messages, body.source, "translate", capture=body.glossaryCapture is True)
         reservation = await run_in_threadpool(ledger.reserve_tokens, owner, request_id, "translate", content_hash("translate", body.model_dump(mode="json")), budget)
         if reservation.cached is not None:
             cached = reservation.cached
