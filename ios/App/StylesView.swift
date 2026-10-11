@@ -43,7 +43,7 @@ struct CreateStyleView: View {
                 Section("风格名称") { TextField("例如：科幻译法", text: $name); TextField("简短描述", text: $subtitle) }
                 Section { TextEditor(text: $instruction).frame(minHeight: 180) } header: { Text("风格要求") } footer: { Text("描述语气、措辞和保留的元素。\(instruction.count) / 1500 字符。") }
             }.scrollContentBackground(.hidden).background(Ink.paper).navigationTitle("自定义风格").navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } }; ToolbarItem(placement: .confirmationAction) { Button("保存") { studio.customStyles.append(.init(name: name, subtitle: subtitle.isEmpty ? "我的翻译标准" : subtitle, instruction: instruction)); studio.persist(); dismiss() }.disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || instruction.isEmpty || instruction.count > 1500 || name.count > 128 || subtitle.count > 256) } }
+                .toolbar { PaperToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } }; PaperToolbarItem(placement: .confirmationAction) { Button("保存") { studio.customStyles.append(.init(name: name, subtitle: subtitle.isEmpty ? "我的翻译标准" : subtitle, instruction: instruction)); studio.persist(); dismiss() }.disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || instruction.isEmpty || instruction.count > 1500 || name.count > 128 || subtitle.count > 256) } }
         }
     }
 }

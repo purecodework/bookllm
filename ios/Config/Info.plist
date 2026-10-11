@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>zh-Hans</string>
+    <key>CFBundleLocalizations</key>
+    <array><string>zh-Hans</string></array>
     <key>CFBundleDisplayName</key>
     <string>译间</string>
     <key>CFBundleExecutable</key>
@@ -20,8 +24,6 @@
     <string>$(CURRENT_PROJECT_VERSION)</string>
     <key>CloudBaseURL</key>
     <string>$(CLOUD_BASE_URL)</string>
-    <key>NSCameraUsageDescription</key>
-    <string>扫描纸质书页和文档，文字在本机识别。</string>
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>LSSupportsOpeningDocumentsInPlace</key>
@@ -62,7 +64,6 @@
             <string>Alternate</string>
             <key>LSItemContentTypes</key>
             <array>
-                <string>public.image</string>
                 <string>public.plain-text</string>
                 <string>net.daringfireball.markdown</string>
                 <string>com.adobe.pdf</string>
@@ -73,6 +74,19 @@
     </array>
     <key>UTImportedTypeDeclarations</key>
     <array>
+        <dict>
+            <key>UTTypeIdentifier</key>
+            <string>org.openxmlformats.wordprocessingml.document</string>
+            <key>UTTypeDescription</key>
+            <string>Word document</string>
+            <key>UTTypeConformsTo</key>
+            <array><string>public.data</string></array>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+                <key>public.filename-extension</key><array><string>docx</string></array>
+                <key>public.mime-type</key><string>application/vnd.openxmlformats-officedocument.wordprocessingml.document</string>
+            </dict>
+        </dict>
         <dict>
             <key>UTTypeIdentifier</key>
             <string>org.idpf.epub-container</string>

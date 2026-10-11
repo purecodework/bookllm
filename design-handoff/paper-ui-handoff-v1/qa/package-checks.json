@@ -1,0 +1,11 @@
+{
+  "version": "ui-handoff-v1",
+  "fontsDistributed": [],
+  "brokenLocalLinks": [],
+  "jsonFilesParsed": true,
+  "removedManualGateAbsent": true,
+  "referenceChecksPassed": 38,
+  "productionRepoInspected": false,
+  "hasNativeAppScreenshots": false,
+  "assetCount": 31
+}

@@ -1,0 +1,11 @@
+{
+  "method": "sRGB relative luminance of declared solid colors; paper texture and native rendering need separate visual QA",
+  "ratios": {
+    "ink": 12.17,
+    "textSecondary": 5.03,
+    "accent": 6.14,
+    "attention": 4.98,
+    "error": 5.38,
+    "onAccent": 6.75
+  }
+}

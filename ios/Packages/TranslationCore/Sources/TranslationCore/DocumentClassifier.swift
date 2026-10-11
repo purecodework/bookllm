@@ -13,8 +13,11 @@ public enum DocumentClassifier {
         if evidence.isScript(title: title) { return .script }
         if evidence.isAcademic(title: title) { return .academic }
         if evidence.isPoetry(title: title) { return .poetry }
-        if evidence.isTechnical || technicalTitle(title) { return .technical }
+        // A table or code excerpt describes local structure, not necessarily the
+        // genre of the surrounding book. Explicit technical titles still win.
+        if technicalTitle(title) { return .technical }
         if evidence.chapterCount > 0 || matches(title, #"(?:\bnovels?\b|\bnovellas?\b|小说)"#) { return .fiction }
+        if evidence.isTechnical { return .technical }
 
         let format = String(format.prefix(512)).lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         if format == "epub" || format == ".epub" || format == "application/epub+zip" ||

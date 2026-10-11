@@ -63,7 +63,7 @@ public struct FictionEngine: Sendable {
     ) async throws -> String {
         if options.usesCollaborativeEditing { return try await CollaborativeEngine().run(jobID: jobID, source: source, options: options, provider: provider, checkpoints: checkpoints, onUpdate: onUpdate) }
         try Task.checkCancellation()
-        let plan = Chunker.plan(text: source, kind: .fiction)
+        let plan = Chunker.plan(text: source, kind: .fiction, preparationVersion: options.preparationVersion)
         let notes = EditorNotes.Scope(source: source, chunks: plan.chunks)
         let throughput = Throughput(maximum: options.quality.maxConcurrency)
         var cached: [PassKey: String] = [:]

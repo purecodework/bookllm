@@ -11,14 +11,20 @@ public actor Throughput {
 }
 public struct TranslationEngine: Sendable {
     public init() {}
-    public func run(jobID: String, source: String, options: TranslationOptions, provider: any TranslationProvider, checkpoints: [Checkpoint] = [], onPartial: @escaping @Sendable (Int, String) async -> Void = { _, _ in }, onUpdate: @escaping @Sendable (Checkpoint) async throws -> Void) async throws -> String {
+    public func run(jobID: String, source: String, options: TranslationOptions, provider: any TranslationProvider, checkpoints: [Checkpoint] = [], onPartial: @escaping @Sendable (Int, String) async -> Void = { _, _ in }, onEvent: @escaping ProcessingObserver = { _ in }, onUpdate: @escaping @Sendable (Checkpoint) async throws -> Void) async throws -> String {
+        let provider = ObservedProvider(provider: provider, onEvent: onEvent)
+        let checkpointObserver: @Sendable (Checkpoint) async throws -> Void = { point in
+            try await onUpdate(point)
+            let prefix = options.usesCollaborativeEditing ? jobID + "-p2" : jobID
+            await onEvent(.init(requestID: "\(prefix)-\(point.index)-\(point.stage.rawValue)", chunkIndex: point.index, stage: point.stage, state: .finished))
+        }
         if options.usesCollaborativeEditing {
-            return try await CollaborativeEngine().run(jobID: jobID, source: source, options: options, provider: provider, checkpoints: checkpoints, onUpdate: onUpdate)
+            return try await CollaborativeEngine().run(jobID: jobID, source: source, options: options, provider: provider, checkpoints: checkpoints, onUpdate: checkpointObserver)
         }
         if options.documentKind == .fiction && options.quality != .fast {
-            return try await FictionEngine().run(jobID: jobID, source: source, options: options, provider: provider, checkpoints: checkpoints, onUpdate: onUpdate)
+            return try await FictionEngine().run(jobID: jobID, source: source, options: options, provider: provider, checkpoints: checkpoints, onUpdate: checkpointObserver)
         }
-        let plan = Chunker.plan(text: source, kind: options.documentKind)
+        let plan = Chunker.plan(text: source, kind: options.documentKind, preparationVersion: options.preparationVersion)
         let chunks = plan.chunks
         let notes = EditorNotes.Scope(source: source, chunks: chunks)
         let throughput = Throughput(maximum: options.quality.maxConcurrency)
@@ -44,7 +50,7 @@ public struct TranslationEngine: Sendable {
                             }
                             guard !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw TranslationError.message("模型返回了空译文，请重试。") }
                             draft = notes.filter(draft, index: chunk.index)
-                            try await onUpdate(Checkpoint(index: chunk.index, stage: stage, text: draft))
+                            try await checkpointObserver(Checkpoint(index: chunk.index, stage: stage, text: draft))
                         }
                         return (chunk.index, draft)
                     }

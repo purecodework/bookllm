@@ -1,0 +1,348 @@
+Building for debugging...
+[2 / 6] TranslationCore
+[3 / 7] TranslationCore
+[9 / 11] TranslationCore
+[12 / 15] TranslationCoreTests-product
+[14 / 15] TranslationCoreTests-product
+[15 / 17] TranslationCoreTests-product
+[19 / 19] TranslationCoreTests-product
+Build complete! (6.06秒)
+Test Suite 'All tests' started at 2026-10-09 14:47:52.228.
+Test Suite 'TranslationCoreTests.xctest' started at 2026-10-09 14:47:52.230.
+Test Suite 'CoverageValidatorTests' started at 2026-10-09 14:47:52.230.
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testDiagnosticsAreDeterministicForStableRepairPayloads]' started.
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testDiagnosticsAreDeterministicForStableRepairPayloads]' passed (0.004 seconds).
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testEmptyOutputAndExtremeSummaryAreDetectedWithoutLanguageRatioRules]' started.
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testEmptyOutputAndExtremeSummaryAreDetectedWithoutLanguageRatioRules]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testEscapedPipesStayWithinCells]' started.
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testEscapedPipesStayWithinCells]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testHeadingsAreCheckedWhenMarkdownLayoutMustBePreserved]' started.
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testHeadingsAreCheckedWhenMarkdownLayoutMustBePreserved]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testIntermediatePassMayRepairAndFinalFailureCarriesExactRequestAndPaidOutput]' started.
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testIntermediatePassMayRepairAndFinalFailureCarriesExactRequestAndPaidOutput]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testLongFencesShortInnerFenceAndPartialChunkDoNotProduceFalseCodeMatches]' started.
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testLongFencesShortInnerFenceAndPartialChunkDoNotProduceFalseCodeMatches]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testMissingAndAlteredCompleteCodeBlocksAreDetected]' started.
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testMissingAndAlteredCompleteCodeBlocksAreDetected]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testMissingTableRowsAndColumnsAreDetected]' started.
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testMissingTableRowsAndColumnsAreDetected]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testParagraphLossDependsOnPreserveLayoutNotReadingReflow]' started.
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testParagraphLossDependsOnPreserveLayoutNotReadingReflow]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testPoetryChecksVerseAndStanzaCoverageEvenInReadingLayout]' started.
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testPoetryChecksVerseAndStanzaCoverageEvenInReadingLayout]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testPoetryCompressionAndEditorNotesCannotMaskMissingVerse]' started.
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testPoetryCompressionAndEditorNotesCannotMaskMissingVerse]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testProductionProviderChecksBothCloudAndOwnKeyFinalOutputsOnly]' started.
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testProductionProviderChecksBothCloudAndOwnKeyFinalOutputsOnly]' passed (0.015 seconds).
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testProductionProviderStreamValidatesFinalAfterStop]' started.
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testProductionProviderStreamValidatesFinalAfterStop]' passed (0.005 seconds).
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testScriptDetectsLostTurnsAndAcceptsTranslatedSpeakerLabels]' started.
+Test Case '-[TranslationCoreTests.CoverageValidatorTests testScriptDetectsLostTurnsAndAcceptsTranslatedSpeakerLabels]' passed (0.001 seconds).
+Test Suite 'CoverageValidatorTests' passed at 2026-10-09 14:47:52.261.
+	 Executed 14 tests, with 0 failures (0 unexpected) in 0.030 (0.031) seconds
+Test Suite 'DocumentClassifierTests' started at 2026-10-09 14:47:52.261.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testAcademicAbstractAndKeywordsDoNotRequireReferencesInSample]' started.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testAcademicAbstractAndKeywordsDoNotRequireReferencesInSample]' passed (0.005 seconds).
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testAcademicReferencesAndDOIProvideAlternativeEvidence]' started.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testAcademicReferencesAndDOIProvideAlternativeEvidence]' passed (0.002 seconds).
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testAcademicRequiresCombinedEvidence]' started.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testAcademicRequiresCombinedEvidence]' passed (0.002 seconds).
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testAcademicStructureOverridesCodeInAPaper]' started.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testAcademicStructureOverridesCodeInAPaper]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testAcademicTitleStillRequiresASourceMarker]' started.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testAcademicTitleStillRequiresASourceMarker]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testAllEnglishChapterNamesOneThroughNinetyNineAgreeWithChunker]' started.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testAllEnglishChapterNamesOneThroughNinetyNineAgreeWithChunker]' passed (0.076 seconds).
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testEnglishAndChineseChaptersIdentifyFiction]' started.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testEnglishAndChineseChaptersIdentifyFiction]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testEnglishAndChinesePlaysNeedScenesAndSpeakerTurns]' started.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testEnglishAndChinesePlaysNeedScenesAndSpeakerTurns]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testEnglishChapterNamesBeyondTenIdentifyFictionAndSections]' started.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testEnglishChapterNamesBeyondTenIdentifyFictionAndSections]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testEnglishChapterNamesInsideCodeOrBodyProseDoNotBecomeSections]' started.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testEnglishChapterNamesInsideCodeOrBodyProseDoNotBecomeSections]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testEPUBIsAFallbackAndStrongerGenresOverrideIt]' started.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testEPUBIsAFallbackAndStrongerGenresOverrideIt]' passed (0.002 seconds).
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testFencedGenreMarkersAreIgnoredIncludingShorterInnerFence]' started.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testFencedGenreMarkersAreIgnoredIncludingShorterInnerFence]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testMarkdownTableProvidesTechnicalStructure]' started.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testMarkdownTableProvidesTechnicalStructure]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testOnlyFirstTwentyThousandCharactersAffectDetection]' started.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testOnlyFirstTwentyThousandCharactersAffectDetection]' passed (0.037 seconds).
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testOrdinaryShortProseAndListsAreNotPoetry]' started.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testOrdinaryShortProseAndListsAreNotPoetry]' passed (0.003 seconds).
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testPoetryTitleRequiresVerseStructure]' started.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testPoetryTitleRequiresVerseStructure]' passed (0.002 seconds).
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testRepeatedDialogueCanIdentifyScriptWithoutSceneHeading]' started.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testRepeatedDialogueCanIdentifyScriptWithoutSceneHeading]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testScreenplaySlugLinesAndStandaloneSpeakers]' started.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testScreenplaySlugLinesAndStandaloneSpeakers]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testTechnicalTitlesAndSnippetsIdentifyTechnicalDocuments]' started.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testTechnicalTitlesAndSnippetsIdentifyTechnicalDocuments]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testUntitledPoetryRequiresSustainedVerseAndStanzas]' started.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testUntitledPoetryRequiresSustainedVerseAndStanzas]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testWhitespaceAndUnknownFormatsStayGeneral]' started.
+Test Case '-[TranslationCoreTests.DocumentClassifierTests testWhitespaceAndUnknownFormatsStayGeneral]' passed (0.001 seconds).
+Test Suite 'DocumentClassifierTests' passed at 2026-10-09 14:47:52.404.
+	 Executed 21 tests, with 0 failures (0 unexpected) in 0.140 (0.142) seconds
+Test Suite 'DocumentOCRTests' started at 2026-10-09 14:47:52.404.
+Test Case '-[TranslationCoreTests.DocumentOCRTests testCancelledReadDoesNotContinueRecognition]' started.
+Test Case '-[TranslationCoreTests.DocumentOCRTests testCancelledReadDoesNotContinueRecognition]' passed (0.066 seconds).
+Test Case '-[TranslationCoreTests.DocumentOCRTests testMixedPDFUsesTextLayerAndOCRPerPageAndResumesCachedPages]' started.
+Test Case '-[TranslationCoreTests.DocumentOCRTests testMixedPDFUsesTextLayerAndOCRPerPageAndResumesCachedPages]' passed (0.516 seconds).
+Test Case '-[TranslationCoreTests.DocumentOCRTests testRealVisionReadsImageAndRetainsNumbers]' started.
+Test Case '-[TranslationCoreTests.DocumentOCRTests testRealVisionReadsImageAndRetainsNumbers]' passed (0.251 seconds).
+Test Suite 'DocumentOCRTests' passed at 2026-10-09 14:47:53.236.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.832 (0.833) seconds
+Test Suite 'EditorNotesTests' started at 2026-10-09 14:47:53.236.
+Test Case '-[TranslationCoreTests.EditorNotesTests testNotesRemainKeyedForReviewAndResume]' started.
+Test Case '-[TranslationCoreTests.EditorNotesTests testNotesRemainKeyedForReviewAndResume]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.EditorNotesTests testUnknownSourceKeyIsRemovedAndCodeStaysVerbatim]' started.
+Test Case '-[TranslationCoreTests.EditorNotesTests testUnknownSourceKeyIsRemovedAndCodeStaysVerbatim]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.EditorNotesTests testWholeBookFirstOccurrenceIgnoresCompletionOrderAndCase]' started.
+Test Case '-[TranslationCoreTests.EditorNotesTests testWholeBookFirstOccurrenceIgnoresCompletionOrderAndCase]' passed (0.000 seconds).
+Test Suite 'EditorNotesTests' passed at 2026-10-09 14:47:53.239.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'EfficientGlossaryTests' started at 2026-10-09 14:47:53.239.
+Test Case '-[TranslationCoreTests.EfficientGlossaryTests testAdjacentChunksShareCompactQueryAndKnownNamesDoNotRequestAI]' started.
+Test Case '-[TranslationCoreTests.EfficientGlossaryTests testAdjacentChunksShareCompactQueryAndKnownNamesDoNotRequestAI]' passed (0.079 seconds).
+Test Case '-[TranslationCoreTests.EfficientGlossaryTests testEntitiesAliasesAndAmbiguityUseEvidenceAndWordBoundaries]' started.
+Test Case '-[TranslationCoreTests.EfficientGlossaryTests testEntitiesAliasesAndAmbiguityUseEvidenceAndWordBoundaries]' passed (0.009 seconds).
+Test Case '-[TranslationCoreTests.EfficientGlossaryTests testKnownOnlyBatchSkipsExtractionAndChapterBoundarySeparatesBatches]' started.
+Test Case '-[TranslationCoreTests.EfficientGlossaryTests testKnownOnlyBatchSkipsExtractionAndChapterBoundarySeparatesBatches]' passed (0.005 seconds).
+Test Case '-[TranslationCoreTests.EfficientGlossaryTests testLiteralMetadataMarkersAreNeverStrippedFromSourceTranslation]' started.
+Test Case '-[TranslationCoreTests.EfficientGlossaryTests testLiteralMetadataMarkersAreNeverStrippedFromSourceTranslation]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.EfficientGlossaryTests testOptionalMalformedTrailerDoesNotDestroyTranslationOrTriggerAnotherCall]' started.
+Test Case '-[TranslationCoreTests.EfficientGlossaryTests testOptionalMalformedTrailerDoesNotDestroyTranslationOrTriggerAnotherCall]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.EfficientGlossaryTests testPrivateStreamMetadataIsHiddenAndDiscoverySharedWithReviewersOnly]' started.
+Test Case '-[TranslationCoreTests.EfficientGlossaryTests testPrivateStreamMetadataIsHiddenAndDiscoverySharedWithReviewersOnly]' passed (0.007 seconds).
+Test Case '-[TranslationCoreTests.EfficientGlossaryTests testSavedCompactQueryAndSnapshotRemainIdenticalAfterResume]' started.
+Test Case '-[TranslationCoreTests.EfficientGlossaryTests testSavedCompactQueryAndSnapshotRemainIdenticalAfterResume]' passed (0.002 seconds).
+Test Suite 'EfficientGlossaryTests' passed at 2026-10-09 14:47:53.344.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.105 (0.106) seconds
+Test Suite 'EngineTests' started at 2026-10-09 14:47:53.344.
+Test Case '-[TranslationCoreTests.EngineTests testAdaptiveWindow]' started.
+Test Case '-[TranslationCoreTests.EngineTests testAdaptiveWindow]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.EngineTests testCancellationStopsPipeline]' started.
+Test Case '-[TranslationCoreTests.EngineTests testCancellationStopsPipeline]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.EngineTests testFastStreamsBeforeFinalCheckpoint]' started.
+Test Case '-[TranslationCoreTests.EngineTests testFastStreamsBeforeFinalCheckpoint]' passed (0.007 seconds).
+Test Case '-[TranslationCoreTests.EngineTests testLongUnbrokenInput]' started.
+Test Case '-[TranslationCoreTests.EngineTests testLongUnbrokenInput]' passed (0.007 seconds).
+Test Case '-[TranslationCoreTests.EngineTests testLosslessUnicodeAndBudget]' started.
+Test Case '-[TranslationCoreTests.EngineTests testLosslessUnicodeAndBudget]' passed (0.008 seconds).
+Test Case '-[TranslationCoreTests.EngineTests testOnlyRelevantGlossaryTravelsWithChunk]' started.
+Test Case '-[TranslationCoreTests.EngineTests testOnlyRelevantGlossaryTravelsWithChunk]' passed (0.032 seconds).
+Test Case '-[TranslationCoreTests.EngineTests testParallelOrderingAndStageCheckpointResume]' started.
+Test Case '-[TranslationCoreTests.EngineTests testParallelOrderingAndStageCheckpointResume]' passed (0.167 seconds).
+Test Case '-[TranslationCoreTests.EngineTests testPendingResumeWaitsBeyondTransientRetryBudget]' started.
+Test Case '-[TranslationCoreTests.EngineTests testPendingResumeWaitsBeyondTransientRetryBudget]' passed (2.604 seconds).
+Test Case '-[TranslationCoreTests.EngineTests testPointEstimateIncludesEveryPass]' started.
+Test Case '-[TranslationCoreTests.EngineTests testPointEstimateIncludesEveryPass]' passed (0.006 seconds).
+Test Case '-[TranslationCoreTests.EngineTests testPreferencesReachLanguageExpertAndPrompt]' started.
+Test Case '-[TranslationCoreTests.EngineTests testPreferencesReachLanguageExpertAndPrompt]' passed (0.002 seconds).
+Test Case '-[TranslationCoreTests.EngineTests testRefinedNeverPublishesIntermediateDraftPartials]' started.
+Test Case '-[TranslationCoreTests.EngineTests testRefinedNeverPublishesIntermediateDraftPartials]' passed (0.005 seconds).
+Test Suite 'EngineTests' passed at 2026-10-09 14:47:56.183.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 2.837 (2.839) seconds
+Test Suite 'FictionEngineTests' started at 2026-10-09 14:47:56.184.
+Test Case '-[TranslationCoreTests.FictionEngineTests testAllChunksFinishAndPersistBeforeNextStageAndChapter]' started.
+Test Case '-[TranslationCoreTests.FictionEngineTests testAllChunksFinishAndPersistBeforeNextStageAndChapter]' passed (0.116 seconds).
+Test Case '-[TranslationCoreTests.FictionEngineTests testBoundaryResumeUsesIdenticalFinalVoiceAndRequestIdentity]' started.
+Test Case '-[TranslationCoreTests.FictionEngineTests testBoundaryResumeUsesIdenticalFinalVoiceAndRequestIdentity]' passed (0.067 seconds).
+Test Case '-[TranslationCoreTests.FictionEngineTests testCancellationStopsInFlightWorkAndLaterChapters]' started.
+Test Case '-[TranslationCoreTests.FictionEngineTests testCancellationStopsInFlightWorkAndLaterChapters]' passed (0.005 seconds).
+Test Case '-[TranslationCoreTests.FictionEngineTests testCheckpointFailureStopsTheChapterBeforeFurtherStages]' started.
+Test Case '-[TranslationCoreTests.FictionEngineTests testCheckpointFailureStopsTheChapterBeforeFurtherStages]' passed (0.010 seconds).
+Test Case '-[TranslationCoreTests.FictionEngineTests testContextCapsLongUnicodeTitlesAndUnknownIndexIsEmpty]' started.
+Test Case '-[TranslationCoreTests.FictionEngineTests testContextCapsLongUnicodeTitlesAndUnknownIndexIsEmpty]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.FictionEngineTests testContextUsesScalarBoundsAndSourceOnlyBackgroundAcrossChapters]' started.
+Test Case '-[TranslationCoreTests.FictionEngineTests testContextUsesScalarBoundsAndSourceOnlyBackgroundAcrossChapters]' passed (0.011 seconds).
+Test Case '-[TranslationCoreTests.FictionEngineTests testEveryStageUsesImmutableCompletePreviousStageNeighborDrafts]' started.
+Test Case '-[TranslationCoreTests.FictionEngineTests testEveryStageUsesImmutableCompletePreviousStageNeighborDrafts]' passed (0.620 seconds).
+Test Case '-[TranslationCoreTests.FictionEngineTests testFastFictionUsesCompleteAndEmptySourceDoesNoWork]' started.
+Test Case '-[TranslationCoreTests.FictionEngineTests testFastFictionUsesCompleteAndEmptySourceDoesNoWork]' passed (0.004 seconds).
+Test Case '-[TranslationCoreTests.FictionEngineTests testFullResumeDoesNotRequestOrRepublishCachedResults]' started.
+Test Case '-[TranslationCoreTests.FictionEngineTests testFullResumeDoesNotRequestOrRepublishCachedResults]' passed (0.005 seconds).
+Test Case '-[TranslationCoreTests.FictionEngineTests testFutureIncompleteChapterCacheNeverProvidesPreviousChapterBackground]' started.
+Test Case '-[TranslationCoreTests.FictionEngineTests testFutureIncompleteChapterCacheNeverProvidesPreviousChapterBackground]' passed (0.048 seconds).
+Test Case '-[TranslationCoreTests.FictionEngineTests testNewChapterUsesCompletedFinalTranslationForEachEditorialQuality]' started.
+Test Case '-[TranslationCoreTests.FictionEngineTests testNewChapterUsesCompletedFinalTranslationForEachEditorialQuality]' passed (0.092 seconds).
+Test Case '-[TranslationCoreTests.FictionEngineTests testOptionalPreviousFinalIsScalarBoundedAndFastChapterContextIsUnchanged]' started.
+Test Case '-[TranslationCoreTests.FictionEngineTests testOptionalPreviousFinalIsScalarBoundedAndFastChapterContextIsUnchanged]' passed (0.013 seconds).
+Test Case '-[TranslationCoreTests.FictionEngineTests testPartialResumeReusesLastCheckpointAndIdenticalPendingRequests]' started.
+Test Case '-[TranslationCoreTests.FictionEngineTests testPartialResumeReusesLastCheckpointAndIdenticalPendingRequests]' passed (0.074 seconds).
+Test Case '-[TranslationCoreTests.FictionEngineTests testProviderFailurePropagatesAndCancelsSiblings]' started.
+Test Case '-[TranslationCoreTests.FictionEngineTests testProviderFailurePropagatesAndCancelsSiblings]' passed (0.003 seconds).
+Test Case '-[TranslationCoreTests.FictionEngineTests testRefinedRespectsOptionalLanguageReviewWithoutAddingEditorPass]' started.
+Test Case '-[TranslationCoreTests.FictionEngineTests testRefinedRespectsOptionalLanguageReviewWithoutAddingEditorPass]' passed (0.022 seconds).
+Test Suite 'FictionEngineTests' passed at 2026-10-09 14:47:57.277.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 1.091 (1.093) seconds
+Test Suite 'GlossaryEngineTests' started at 2026-10-09 14:47:57.277.
+Test Case '-[TranslationCoreTests.GlossaryEngineTests testAdaptiveWindowGrowsButRemainsBounded]' started.
+Test Case '-[TranslationCoreTests.GlossaryEngineTests testAdaptiveWindowGrowsButRemainsBounded]' passed (0.238 seconds).
+Test Case '-[TranslationCoreTests.GlossaryEngineTests testAlreadyCompletedOrEmptyRunDoesNotCallProvider]' started.
+Test Case '-[TranslationCoreTests.GlossaryEngineTests testAlreadyCompletedOrEmptyRunDoesNotCallProvider]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.GlossaryEngineTests testCancellationStopsInFlightExtraction]' started.
+Test Case '-[TranslationCoreTests.GlossaryEngineTests testCancellationStopsInFlightExtraction]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.GlossaryEngineTests testCheckpointFailurePropagatesAndCancelsOtherWork]' started.
+Test Case '-[TranslationCoreTests.GlossaryEngineTests testCheckpointFailurePropagatesAndCancelsOtherWork]' passed (0.019 seconds).
+Test Case '-[TranslationCoreTests.GlossaryEngineTests testParallelCompletionKeepsOriginalBatchIndicesAndRequestIDs]' started.
+Test Case '-[TranslationCoreTests.GlossaryEngineTests testParallelCompletionKeepsOriginalBatchIndicesAndRequestIDs]' passed (0.103 seconds).
+Test Case '-[TranslationCoreTests.GlossaryEngineTests testProviderFailurePropagatesAndCancelsOtherWork]' started.
+Test Case '-[TranslationCoreTests.GlossaryEngineTests testProviderFailurePropagatesAndCancelsOtherWork]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.GlossaryEngineTests testRateLimitRetriesSameBatchAndEmitsOneCheckpoint]' started.
+Test Case '-[TranslationCoreTests.GlossaryEngineTests testRateLimitRetriesSameBatchAndEmitsOneCheckpoint]' passed (1.075 seconds).
+Test Case '-[TranslationCoreTests.GlossaryEngineTests testResumeSkipsNoncontiguousCompletedBatches]' started.
+Test Case '-[TranslationCoreTests.GlossaryEngineTests testResumeSkipsNoncontiguousCompletedBatches]' passed (0.036 seconds).
+Test Suite 'GlossaryEngineTests' passed at 2026-10-09 14:47:58.749.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 1.471 (1.473) seconds
+Test Suite 'IncrementalGlossaryTests' started at 2026-10-09 14:47:58.749.
+Test Case '-[TranslationCoreTests.IncrementalGlossaryTests testConcurrentReviewersSharePreparationAndPersonalTranslationWins]' started.
+Test Case '-[TranslationCoreTests.IncrementalGlossaryTests testConcurrentReviewersSharePreparationAndPersonalTranslationWins]' passed (0.014 seconds).
+Test Case '-[TranslationCoreTests.IncrementalGlossaryTests testFailedPredecessorBlocksLaterTranslationAndAllowsRetry]' started.
+Test Case '-[TranslationCoreTests.IncrementalGlossaryTests testFailedPredecessorBlocksLaterTranslationAndAllowsRetry]' passed (0.026 seconds).
+Test Case '-[TranslationCoreTests.IncrementalGlossaryTests testOnlyThreeModesAreOfferedAndLegacyModeStillDecodes]' started.
+Test Case '-[TranslationCoreTests.IncrementalGlossaryTests testOnlyThreeModesAreOfferedAndLegacyModeStillDecodes]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.IncrementalGlossaryTests testOutOfOrderWorkersUseFirstSourceTranslationAndPersistBeforeDispatch]' started.
+Test Case '-[TranslationCoreTests.IncrementalGlossaryTests testOutOfOrderWorkersUseFirstSourceTranslationAndPersistBeforeDispatch]' passed (0.024 seconds).
+Test Case '-[TranslationCoreTests.IncrementalGlossaryTests testResumeAndStreamReuseExactSnapshotWithoutExtraction]' started.
+Test Case '-[TranslationCoreTests.IncrementalGlossaryTests testResumeAndStreamReuseExactSnapshotWithoutExtraction]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.IncrementalGlossaryTests testSuggestionsAbsentFromSourceCannotSeedFutureChunks]' started.
+Test Case '-[TranslationCoreTests.IncrementalGlossaryTests testSuggestionsAbsentFromSourceCannotSeedFutureChunks]' passed (0.023 seconds).
+Test Suite 'IncrementalGlossaryTests' passed at 2026-10-09 14:47:58.837.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.087 (0.088) seconds
+Test Suite 'OCRLayoutTests' started at 2026-10-09 14:47:58.837.
+Test Case '-[TranslationCoreTests.OCRLayoutTests testColumnsReadDownLeftThenDownRightWithFullWidthHeading]' started.
+Test Case '-[TranslationCoreTests.OCRLayoutTests testColumnsReadDownLeftThenDownRightWithFullWidthHeading]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.OCRLayoutTests testInvalidGeometryAndBlankObservationsCannotCorruptOrdering]' started.
+Test Case '-[TranslationCoreTests.OCRLayoutTests testInvalidGeometryAndBlankObservationsCannotCorruptOrdering]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.OCRLayoutTests testPageOrderIgnoresCompletionOrderAndDoesNotRepeatPageText]' started.
+Test Case '-[TranslationCoreTests.OCRLayoutTests testPageOrderIgnoresCompletionOrderAndDoesNotRepeatPageText]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.OCRLayoutTests testPoetryLineBoundariesAndParagraphGapsArePreserved]' started.
+Test Case '-[TranslationCoreTests.OCRLayoutTests testPoetryLineBoundariesAndParagraphGapsArePreserved]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.OCRLayoutTests testSmallAlignedCellsStayOnSameRowAndRequireReview]' started.
+Test Case '-[TranslationCoreTests.OCRLayoutTests testSmallAlignedCellsStayOnSameRowAndRequireReview]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.OCRLayoutTests testTextLayerOnlyAcceptedWhenSubstantialAndNotBrokenGlyphs]' started.
+Test Case '-[TranslationCoreTests.OCRLayoutTests testTextLayerOnlyAcceptedWhenSubstantialAndNotBrokenGlyphs]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.OCRLayoutTests testThreeColumnTableIsFlaggedWithoutInventingCells]' started.
+Test Case '-[TranslationCoreTests.OCRLayoutTests testThreeColumnTableIsFlaggedWithoutInventingCells]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.OCRLayoutTests testUncertaintyIsCarriedToReviewAndPipelineAvoidsSpeculativeRepairs]' started.
+Test Case '-[TranslationCoreTests.OCRLayoutTests testUncertaintyIsCarriedToReviewAndPipelineAvoidsSpeculativeRepairs]' passed (0.001 seconds).
+Test Suite 'OCRLayoutTests' passed at 2026-10-09 14:47:58.842.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Suite 'PaperIntegrationTests' started at 2026-10-09 14:47:58.842.
+Test Case '-[TranslationCoreTests.PaperIntegrationTests testCoverageFailureCannotEmitCompletedContent]' started.
+Test Case '-[TranslationCoreTests.PaperIntegrationTests testCoverageFailureCannotEmitCompletedContent]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.PaperIntegrationTests testEditedNameAppliesOnlyToNewSnapshotsAndResumeKeepsPaidPayload]' started.
+Test Case '-[TranslationCoreTests.PaperIntegrationTests testEditedNameAppliesOnlyToNewSnapshotsAndResumeKeepsPaidPayload]' passed (0.005 seconds).
+Test Case '-[TranslationCoreTests.PaperIntegrationTests testFullySavedResumeDoesNotEmitNewProcessingOrCallProvider]' started.
+Test Case '-[TranslationCoreTests.PaperIntegrationTests testFullySavedResumeDoesNotEmitNewProcessingOrCallProvider]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.PaperIntegrationTests testOverrideRetainsNicknameAndEvidenceWithoutLinkingWording]' started.
+Test Case '-[TranslationCoreTests.PaperIntegrationTests testOverrideRetainsNicknameAndEvidenceWithoutLinkingWording]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.PaperIntegrationTests testParallelReviewEventsAreActualRequestsAndCheckpointsEndThem]' started.
+Test Case '-[TranslationCoreTests.PaperIntegrationTests testParallelReviewEventsAreActualRequestsAndCheckpointsEndThem]' passed (0.001 seconds).
+Test Suite 'PaperIntegrationTests' passed at 2026-10-09 14:47:58.849.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.007 (0.007) seconds
+Test Suite 'StrengthTests' started at 2026-10-09 14:47:58.849.
+Test Case '-[TranslationCoreTests.StrengthTests testChapterBarrierAndCompleteInitialChapterContext]' started.
+Test Case '-[TranslationCoreTests.StrengthTests testChapterBarrierAndCompleteInitialChapterContext]' passed (0.010 seconds).
+Test Case '-[TranslationCoreTests.StrengthTests testCoverageGateRepairsInitialMissingCodeBeforeReviewersSeeIt]' started.
+Test Case '-[TranslationCoreTests.StrengthTests testCoverageGateRepairsInitialMissingCodeBeforeReviewersSeeIt]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.StrengthTests testFailedRepairStopsAfterOneExtraCallAndRetainsPaidOutput]' started.
+Test Case '-[TranslationCoreTests.StrengthTests testFailedRepairStopsAfterOneExtraCallAndRetainsPaidOutput]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.StrengthTests testFourLevelsExecuteAndOnlyFastStreams]' started.
+Test Case '-[TranslationCoreTests.StrengthTests testFourLevelsExecuteAndOnlyFastStreams]' passed (0.002 seconds).
+Test Case '-[TranslationCoreTests.StrengthTests testFourSelectableLevelsAndNoNewFinalVerifier]' started.
+Test Case '-[TranslationCoreTests.StrengthTests testFourSelectableLevelsAndNoNewFinalVerifier]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.StrengthTests testHistoricalFivePassOptionsDecodeWithoutMigratingPaidCheckpoints]' started.
+Test Case '-[TranslationCoreTests.StrengthTests testHistoricalFivePassOptionsDecodeWithoutMigratingPaidCheckpoints]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.StrengthTests testLegacyExtraLanguageReviewMapsToDeep]' started.
+Test Case '-[TranslationCoreTests.StrengthTests testLegacyExtraLanguageReviewMapsToDeep]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.StrengthTests testLongChapterContextCoversAllChunksWithinBound]' started.
+Test Case '-[TranslationCoreTests.StrengthTests testLongChapterContextCoversAllChunksWithinBound]' passed (0.029 seconds).
+Test Case '-[TranslationCoreTests.StrengthTests testPartialResumeReusesReviewerCheckpointAndSameChiefPayload]' started.
+Test Case '-[TranslationCoreTests.StrengthTests testPartialResumeReusesReviewerCheckpointAndSameChiefPayload]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.StrengthTests testReviewersRunConcurrentlyOnSameDraftAndChiefReceivesBothReports]' started.
+Test Case '-[TranslationCoreTests.StrengthTests testReviewersRunConcurrentlyOnSameDraftAndChiefReceivesBothReports]' passed (0.004 seconds).
+Test Case '-[TranslationCoreTests.StrengthTests testReviewReportRejectsFabricatedAnchorsAndUnstructuredOutput]' started.
+Test Case '-[TranslationCoreTests.StrengthTests testReviewReportRejectsFabricatedAnchorsAndUnstructuredOutput]' passed (0.000 seconds).
+Test Suite 'StrengthTests' passed at 2026-10-09 14:47:58.899.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.049 (0.049) seconds
+Test Suite 'StructuredChunkerTests' started at 2026-10-09 14:47:58.899.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testAcademicKeepsFittingCodeAndTablesWhole]' started.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testAcademicKeepsFittingCodeAndTablesWhole]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testAcademicRecognizesPlainPDFHeadingsAndProtectsCitationEntries]' started.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testAcademicRecognizesPlainPDFHeadingsAndProtectsCitationEntries]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testCodeFenceStaysWholeWhenPrecedingHeadingWouldOverflow]' started.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testCodeFenceStaysWholeWhenPrecedingHeadingWouldOverflow]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testDocumentKindsUseDifferentConservativeBudgets]' started.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testDocumentKindsUseDifferentConservativeBudgets]' passed (0.017 seconds).
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testEarlyPunctuationCannotLeaveAnOverBudgetUnicodeChunk]' started.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testEarlyPunctuationCannotLeaveAnOverBudgetUnicodeChunk]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testEveryDocumentKindIsOrderedBoundedAndLossless]' started.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testEveryDocumentKindIsOrderedBoundedAndLossless]' passed (0.007 seconds).
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testFictionRecognizesChineseEnglishAndMarkdownChapters]' started.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testFictionRecognizesChineseEnglishAndMarkdownChapters]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testGeneralDocumentsUseHeadingsWithoutTreatingChapterProseAsHeading]' started.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testGeneralDocumentsUseHeadingsWithoutTreatingChapterProseAsHeading]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testHeadingsInsideFencesNeverCreateSections]' started.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testHeadingsInsideFencesNeverCreateSections]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testIndentedCodeHeadingsDoNotCreateSections]' started.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testIndentedCodeHeadingsDoNotCreateSections]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testLargerEnglishWordNumbersRemainSeparatePublicationChapters]' started.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testLargerEnglishWordNumbersRemainSeparatePublicationChapters]' passed (0.039 seconds).
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testMarkdownTableStaysWholeWhenItFitsBudget]' started.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testMarkdownTableStaysWholeWhenItFitsBudget]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testOversizedCodeAndTableFallbackAddsNoSyntheticWrappers]' started.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testOversizedCodeAndTableFallbackAddsNoSyntheticWrappers]' passed (0.002 seconds).
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testOversizedStanzaKeepsEachFittingVerseLineWhole]' started.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testOversizedStanzaKeepsEachFittingVerseLineWhole]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testPoetryKeepsFittingStanzasAndPoemSectionsTogether]' started.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testPoetryKeepsFittingStanzasAndPoemSectionsTogether]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testScriptRecognizesActsScenesAndKeepsSpeakerTurnsTogether]' started.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testScriptRecognizesActsScenesAndKeepsSpeakerTurnsTogether]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testSharedChapterPredicatePreservesExistingMarkersWithoutCapturingNumberProse]' started.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testSharedChapterPredicatePreservesExistingMarkersWithoutCapturingNumberProse]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testSpelledChapterNumbersMatchClassifierAndDoNotCaptureProse]' started.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testSpelledChapterNumbersMatchClassifierAndDoNotCaptureProse]' passed (0.003 seconds).
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testSpelledEnglishChaptersDrivePublicationPipelineAsTwoChapters]' started.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testSpelledEnglishChaptersDrivePublicationPipelineAsTwoChapters]' passed (0.026 seconds).
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testUnicodeNewlinesWhitespaceAndSectionOrderingAreLossless]' started.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testUnicodeNewlinesWhitespaceAndSectionOrderingAreLossless]' passed (0.001 seconds).
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testWithoutHeadingsHasOneSectionAndWhitespaceIsRetained]' started.
+Test Case '-[TranslationCoreTests.StructuredChunkerTests testWithoutHeadingsHasOneSectionAndWhitespaceIsRetained]' passed (0.000 seconds).
+Test Suite 'StructuredChunkerTests' passed at 2026-10-09 14:47:59.002.
+	 Executed 21 tests, with 0 failures (0 unexpected) in 0.102 (0.103) seconds
+Test Suite 'StyleContinuityTests' started at 2026-10-09 14:47:59.002.
+Test Case '-[TranslationCoreTests.StyleContinuityTests testEditorialRolesCorrectFactsAndLanguageWithinUserStyle]' started.
+Test Case '-[TranslationCoreTests.StyleContinuityTests testEditorialRolesCorrectFactsAndLanguageWithinUserStyle]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.StyleContinuityTests testEveryPresetAndCustomStyleReachEveryPipelinePromptAndCloudPayload]' started.
+Test Case '-[TranslationCoreTests.StyleContinuityTests testEveryPresetAndCustomStyleReachEveryPipelinePromptAndCloudPayload]' passed (0.009 seconds).
+Test Case '-[TranslationCoreTests.StyleContinuityTests testOldRequestsWithoutReviewNotesStillDecode]' started.
+Test Case '-[TranslationCoreTests.StyleContinuityTests testOldRequestsWithoutReviewNotesStillDecode]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.StyleContinuityTests testRepairDiagnosticsAreDataAndCannotReplaceStyle]' started.
+Test Case '-[TranslationCoreTests.StyleContinuityTests testRepairDiagnosticsAreDataAndCannotReplaceStyle]' passed (0.000 seconds).
+Test Suite 'StyleContinuityTests' passed at 2026-10-09 14:47:59.012.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.010 (0.010) seconds
+Test Suite 'TranslationLanguageTests' started at 2026-10-09 14:47:59.012.
+Test Case '-[TranslationCoreTests.TranslationLanguageTests testAllLanguagePairsKeepAutomaticSourceAndTargetAcrossPipeline]' started.
+Test Case '-[TranslationCoreTests.TranslationLanguageTests testAllLanguagePairsKeepAutomaticSourceAndTargetAcrossPipeline]' passed (0.020 seconds).
+Test Case '-[TranslationCoreTests.TranslationLanguageTests testAutomaticRecognitionForEightLanguages]' started.
+Test Case '-[TranslationCoreTests.TranslationLanguageTests testAutomaticRecognitionForEightLanguages]' passed (0.018 seconds).
+Test Case '-[TranslationCoreTests.TranslationLanguageTests testEightLanguageTargetContractAndChineseDefault]' started.
+Test Case '-[TranslationCoreTests.TranslationLanguageTests testEightLanguageTargetContractAndChineseDefault]' passed (0.000 seconds).
+Test Case '-[TranslationCoreTests.TranslationLanguageTests testLanguageRecognitionSamplesBeyondEnglishFrontMatter]' started.
+Test Case '-[TranslationCoreTests.TranslationLanguageTests testLanguageRecognitionSamplesBeyondEnglishFrontMatter]' passed (0.006 seconds).
+Test Case '-[TranslationCoreTests.TranslationLanguageTests testOlderSavedOptionsNeedNoSourceLanguageField]' started.
+Test Case '-[TranslationCoreTests.TranslationLanguageTests testOlderSavedOptionsNeedNoSourceLanguageField]' passed (0.000 seconds).
+Test Suite 'TranslationLanguageTests' passed at 2026-10-09 14:47:59.057.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.045 (0.045) seconds
+Test Suite 'TranslationCoreTests.xctest' passed at 2026-10-09 14:47:59.057.
+	 Executed 142 tests, with 0 failures (0 unexpected) in 6.811 (6.827) seconds
+Test Suite 'All tests' passed at 2026-10-09 14:47:59.057.
+	 Executed 142 tests, with 0 failures (0 unexpected) in 6.811 (6.829) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

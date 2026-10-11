@@ -47,8 +47,10 @@ final class StrengthTests: XCTestCase, @unchecked Sendable {
         let encoder = JSONEncoder()
         var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoder.encode(TranslationOptions(quality: .definitive))) as? [String: Any])
         object.removeValue(forKey: "pipelineVersion")
+        object.removeValue(forKey: "preparationVersion")
         let old = try JSONDecoder().decode(TranslationOptions.self, from: JSONSerialization.data(withJSONObject: object))
         XCTAssertNil(old.pipelineVersion); XCTAssertFalse(old.usesCollaborativeEditing)
+        XCTAssertNil(old.preparationVersion); XCTAssertFalse(old.usesImprovedPreparation)
         XCTAssertEqual(old.stages, Stage.allCases); XCTAssertEqual(old.effectiveQuality, .publication)
         let request = TranslationRequest(requestID: "old-0-editor", source: "Alice.", context: "", draft: "Alice.", stage: .editor, options: old)
         let decoded = try JSONDecoder().decode(TranslationRequest.self, from: encoder.encode(request))
@@ -79,7 +81,8 @@ final class StrengthTests: XCTestCase, @unchecked Sendable {
         let chief = try XCTUnwrap(requests.last); XCTAssertEqual(chief.stage, .editor); XCTAssertEqual(chief.draft, source)
         XCTAssertEqual(Set(chief.reviews?.map(\.role) ?? []), [.proofread, .linguist])
         XCTAssertTrue(chief.chapterContext?.contains("FULL CURRENT CHAPTER") == true)
-        XCTAssertTrue(chief.chapterContext?.contains("CHAPTER REVIEW OVERVIEW") == true)
+        XCTAssertTrue(chief.input.contains("<reviewerFeedback>"))
+        XCTAssertFalse(chief.chapterContext?.contains("CHAPTER REVIEW OVERVIEW") == true)
         XCTAssertTrue(chief.prompt.contains("reject preference-only rewrites"))
         XCTAssertFalse(requests.contains { $0.stage == .verify })
     }
@@ -90,7 +93,7 @@ final class StrengthTests: XCTestCase, @unchecked Sendable {
         let plan = Chunker.plan(text: source, kind: .fiction), requests = await provider.requests
         let firstIndices = Set(plan.chunks.indices.filter { plan.sectionForChunk[$0] == 0 })
         let firstChiefs = requests.filter { $0.stage == .editor && firstIndices.contains($0.chunkIndex ?? -1) }
-        XCTAssertTrue(firstChiefs.allSatisfy { $0.chapterContext?.contains("Last clue.") == true })
+        XCTAssertTrue(firstChiefs.allSatisfy { $0.input.contains("Last clue.") })
         let firstChiefLast = try XCTUnwrap(requests.lastIndex { $0.stage == .editor && firstIndices.contains($0.chunkIndex ?? -1) })
         let secondStart = try XCTUnwrap(requests.firstIndex { $0.stage == .translate && !firstIndices.contains($0.chunkIndex ?? -1) })
         XCTAssertLessThan(firstChiefLast, secondStart)
@@ -102,6 +105,74 @@ final class StrengthTests: XCTestCase, @unchecked Sendable {
         let context = ChapterEditorialContext.make(title: "Long chapter", chunks: chunks, drafts: drafts, previousChapters: [])
         XCTAssertLessThanOrEqual(context.unicodeScalars.count, 32000); XCTAssertTrue(context.contains("not a full chapter"))
         for chunk in chunks { XCTAssertTrue(context.contains("Chunk \(chunk.index) SOURCE EXCERPTS")) }
+    }
+    func testChapterContextOmitsOnlyCurrentChunkAndItsDuplicatedFeedback() {
+        let chunks = (0..<3).map { TextChunk(index: $0, text: "UNIQUE-SOURCE-\($0)", context: "") }
+        let drafts = Dictionary(uniqueKeysWithValues: chunks.map { ($0.index, "UNIQUE-DRAFT-\($0.index)") })
+        let reviewers = Dictionary(uniqueKeysWithValues: chunks.map { chunk in
+            (chunk.index, [ReviewerFeedback(role: .proofread, report: .init(findings: [
+                .init(paragraphID: "p1", kind: .voice, severity: .minor, sourceQuote: chunk.text, explanation: "UNIQUE-EVIDENCE-\(chunk.index)", suggestedTranslation: "UNIQUE-SUGGESTION-\(chunk.index)")
+            ]))])
+        })
+        let context = ChapterEditorialContext.make(title: "The reveal", chunks: chunks, drafts: drafts, previousChapters: [("Prelude", "PREVIOUS-FINAL")], reviewers: reviewers, excludingChunkIndex: 1)
+        XCTAssertTrue(context.contains("Current chunk: 1, position 2 of 3"))
+        XCTAssertTrue(context.contains("Chapter: The reveal")); XCTAssertTrue(context.contains("PREVIOUS-FINAL"))
+        for index in [0, 2] {
+            XCTAssertTrue(context.contains("UNIQUE-SOURCE-\(index)")); XCTAssertTrue(context.contains("UNIQUE-DRAFT-\(index)"))
+            XCTAssertTrue(context.contains("UNIQUE-EVIDENCE-\(index)")); XCTAssertTrue(context.contains("UNIQUE-SUGGESTION-\(index)"))
+        }
+        for field in ["SOURCE", "DRAFT", "EVIDENCE", "SUGGESTION"] { XCTAssertFalse(context.contains("UNIQUE-\(field)-1")) }
+        let shared = ChapterEditorialContext.make(title: "The reveal", chunks: chunks, drafts: drafts, previousChapters: [], reviewers: reviewers)
+        XCTAssertTrue(shared.contains("UNIQUE-SOURCE-1")); XCTAssertTrue(shared.contains("UNIQUE-DRAFT-1")); XCTAssertTrue(shared.contains("UNIQUE-EVIDENCE-1"))
+    }
+    func testLongPerRequestChapterContextRetainsOtherChunkBoundaries() {
+        let chunks = (0..<40).map { TextChunk(index: $0, text: "SOURCE-\($0)-" + String(repeating: "甲", count: 3000), context: "") }
+        let drafts = Dictionary(uniqueKeysWithValues: chunks.map { ($0.index, "DRAFT-\($0.index)-" + String(repeating: "乙", count: 3000)) })
+        let context = ChapterEditorialContext.make(title: "Long chapter", chunks: chunks, drafts: drafts, previousChapters: [], excludingChunkIndex: 12)
+        XCTAssertLessThanOrEqual(context.unicodeScalars.count, 32000)
+        for chunk in chunks where chunk.index != 12 { XCTAssertTrue(context.contains("Chunk \(chunk.index) SOURCE EXCERPTS")) }
+        XCTAssertFalse(context.contains("Chunk 12 SOURCE EXCERPTS")); XCTAssertFalse(context.contains("SOURCE-12-")); XCTAssertFalse(context.contains("DRAFT-12-"))
+    }
+    func testPublicationInitialNovelRequestsUseFictionContextAndCompletedChapterVoice() async throws {
+        let source = "Chapter I\n\nOPENING-VOICE " + String(repeating: "甲", count: 2200) + "\n\nFIRST-CHAPTER-END.\n\nChapter II\n\nSECOND-CHAPTER-VOICE " + String(repeating: "乙", count: 2200) + "\n\nSECOND-CHAPTER-END."
+        let options = TranslationOptions(quality: .publication), provider = CollaborationProvider()
+        let plan = Chunker.plan(text: source, kind: .fiction, preparationVersion: options.preparationVersion)
+        XCTAssertEqual(plan.sections.count, 2); XCTAssertGreaterThan(plan.chunks.count, 2)
+        _ = try await TranslationEngine().run(jobID: "novel-background", source: source, options: options, provider: provider) { _ in }
+        let requests = await provider.requests
+        for request in requests where request.stage == .translate {
+            let index = try XCTUnwrap(request.chunkIndex)
+            let position = try XCTUnwrap(plan.chunks.firstIndex { $0.index == index })
+            let previousFinal = plan.sectionForChunk[position] == 0 ? nil : plan.chunks.enumerated().filter { plan.sectionForChunk[$0.offset] == 0 }.map { $0.element.text }.joined(separator: "\n\n")
+            XCTAssertEqual(request.context, FictionContext.make(source: source, plan: plan, index: index, previousChapterFinal: previousFinal))
+            XCTAssertTrue(request.context.contains("Author-voice sample from the opening"))
+            XCTAssertTrue(request.context.contains("Current chapter title"))
+            XCTAssertNil(request.chapterContext)
+        }
+        let boundary = try XCTUnwrap(plan.sectionForChunk.firstIndex(of: 1))
+        let startOfSecond = try XCTUnwrap(requests.first { $0.stage == .translate && $0.chunkIndex == plan.chunks[boundary].index })
+        XCTAssertTrue(startOfSecond.context.contains("PREVIOUS CHAPTER FINAL TRANSLATION"))
+        for request in requests where request.reviewMode == true || request.stage == .editor {
+            let index = try XCTUnwrap(request.chunkIndex)
+            XCTAssertFalse(request.chapterContext?.contains("Chunk \(index) source:") == true)
+            XCTAssertTrue(request.chapterContext?.contains("Current chunk: \(index)") == true)
+        }
+    }
+    func testLegacyPreparationRetainsCollaborativePayloadShape() async throws {
+        let source = "Chapter I\n\n" + String(repeating: "甲", count: 2200) + "\n\nLast clue."
+        let options = TranslationOptions(quality: .publication, preparationVersion: nil), provider = CollaborationProvider()
+        let plan = Chunker.plan(text: source, kind: .fiction, preparationVersion: nil)
+        _ = try await TranslationEngine().run(jobID: "legacy-context", source: source, options: options, provider: provider) { _ in }
+        let requests = await provider.requests
+        let initial = Dictionary(uniqueKeysWithValues: plan.chunks.map { ($0.index, $0.text) })
+        let shared = ChapterEditorialContext.make(title: plan.sections[0].title, chunks: plan.chunks, drafts: initial, previousChapters: [])
+        for request in requests {
+            let index = try XCTUnwrap(request.chunkIndex)
+            XCTAssertEqual(request.context, plan.chunks[index].context)
+            XCTAssertEqual(request.requestID, "legacy-context-p2-\(index)-\(request.stage.rawValue)")
+            if request.reviewMode == true { XCTAssertEqual(request.chapterContext, shared) }
+            if request.stage == .editor { XCTAssertTrue(request.chapterContext?.contains("Chunk \(index) source:") == true) }
+        }
     }
     func testPartialResumeReusesReviewerCheckpointAndSameChiefPayload() async throws {
         let provider = CollaborationProvider(), collector = Collector(); await provider.configure(failLanguage: true)

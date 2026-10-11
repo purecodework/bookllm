@@ -9,10 +9,11 @@ public struct IncrementalGlossaryProvider: TranslationProvider {
 
     public init(provider: any TranslationProvider, jobID: String, chunks: [TextChunk], target: String,
                 seed: [Term], snapshots: [Int: [Term]] = [:],
+                nameOverrides: @escaping @Sendable () async -> [String: String] = { [:] },
                 onSnapshot: @escaping @Sendable (Int, [Term]) async throws -> Void) {
         self.provider = provider
         ledger = IncrementalGlossaryLedger(provider: provider, jobID: jobID, chunks: chunks,
-            target: target, seed: seed, snapshots: snapshots, onSnapshot: onSnapshot)
+            target: target, seed: seed, snapshots: snapshots, nameOverrides: nameOverrides, onSnapshot: onSnapshot)
     }
 
     public func complete(_ request: TranslationRequest) async throws -> String {
@@ -34,13 +35,15 @@ private actor IncrementalGlossaryLedger {
     let chunks: [TextChunk]
     let target: String
     let onSnapshot: @Sendable (Int, [Term]) async throws -> Void
+    let nameOverrides: @Sendable () async -> [String: String]
     var terms: [Term]
     var snapshots: [Int: [Term]]
     var pending: [Int: Task<[Term], Error>] = [:]
 
     init(provider: any TranslationProvider, jobID: String, chunks: [TextChunk], target: String,
-         seed: [Term], snapshots: [Int: [Term]],
+         seed: [Term], snapshots: [Int: [Term]], nameOverrides: @escaping @Sendable () async -> [String: String],
          onSnapshot: @escaping @Sendable (Int, [Term]) async throws -> Void) {
+        self.nameOverrides = nameOverrides
         self.provider = provider; self.jobID = jobID; self.chunks = chunks.sorted { $0.index < $1.index }
         self.target = target; self.onSnapshot = onSnapshot; self.snapshots = snapshots
         terms = Self.merge(seed + snapshots.keys.sorted().flatMap { snapshots[$0] ?? [] })
@@ -80,7 +83,7 @@ private actor IncrementalGlossaryLedger {
                 // only observed terms can be reconstructed from saved snapshots.
                 let observed = extracted.filter { chunk.text.localizedCaseInsensitiveContains($0.source) }
                 let merged = Self.merge(existing + observed)
-                let snapshot = merged.filter { chunk.text.localizedCaseInsensitiveContains($0.source) }
+                let snapshot = NameOverrides.applying(await self.nameOverrides(), to: merged.filter { chunk.text.localizedCaseInsensitiveContains($0.source) })
                 guard snapshot.count <= 1000 else { throw TranslationError.message("本段匹配术语超过 1000 个，请检查本文术语后重新导入文稿。") }
                 try await self.onSnapshot(chunk.index, snapshot)
                 try Task.checkCancellation()

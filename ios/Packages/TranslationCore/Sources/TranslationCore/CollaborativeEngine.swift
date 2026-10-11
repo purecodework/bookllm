@@ -112,12 +112,20 @@ enum PipelineExecution {
 
 public enum ChapterEditorialContext {
     /// Full original and immutable initial chapter translation when they fit.
-    /// Longer chapters include labelled head/tail excerpts of EVERY chunk.
-    public static func make(title: String, chunks: [TextChunk], drafts: [Int: String], previousChapters: [(String, String)], reviewers: [Int: [ReviewerFeedback]] = [:]) -> String {
-        let intro = "Chapter editorial reference only. Translate the current source chunk only. Preserve deliberate scene/time/voice changes.\nChapter: " + head(title, 200) + "\n"
+    /// Longer chapters include labelled head/tail excerpts of every referenced
+    /// chunk. A request can omit its own source, draft and feedback from this
+    /// reference because those are already supplied in the dedicated fields.
+    /// The default preserves the context used by previously prepared requests.
+    public static func make(title: String, chunks: [TextChunk], drafts: [Int: String], previousChapters: [(String, String)], reviewers: [Int: [ReviewerFeedback]] = [:], excludingChunkIndex: Int? = nil) -> String {
+        var intro = "Chapter editorial reference only. Translate the current source chunk only. Preserve deliberate scene/time/voice changes.\nChapter: " + head(title, 200) + "\n"
+        if let excludingChunkIndex {
+            let position = chunks.firstIndex { $0.index == excludingChunkIndex }.map { String($0 + 1) } ?? "unknown"
+            intro += "Current chunk: \(excludingChunkIndex), position \(position) of \(chunks.count); its source and immutable initial draft are supplied separately. Any complete current-chunk reviewer reports are in reviewerFeedback.\n"
+        }
+        let referenced = chunks.filter { $0.index != excludingChunkIndex }
         let history = previousChapters.suffix(4).map { title, text in "Previously completed chapter: \(head(title, 120))\n\(head(text, 200))\n…\n\(tail(text, 400))" }.joined(separator: "\n")
-        let full = chunks.map { "Chunk \($0.index) source:\n\($0.text)\nImmutable initial translation:\n\(drafts[$0.index] ?? "")" }.joined(separator: "\n\n")
-        let findings = reviewers.keys.sorted().flatMap { index in
+        let full = referenced.map { "Chunk \($0.index) source:\n\($0.text)\nImmutable initial translation:\n\(drafts[$0.index] ?? "")" }.joined(separator: "\n\n")
+        let findings = reviewers.keys.sorted().filter { $0 != excludingChunkIndex }.flatMap { index in
             (reviewers[index] ?? []).flatMap { feedback in
                 feedback.report.findings.map { finding in
                     "Chunk \(index) / \(feedback.role.title) / \(finding.paragraphID) / \(finding.severity.rawValue) / \(finding.kind.rawValue): quote=\(head(finding.sourceQuote, 80)); evidence=\(head(finding.explanation, 80)); suggestion=\(head(finding.suggestedTranslation, 160))"
@@ -127,9 +135,10 @@ public enum ChapterEditorialContext {
         let summary = findings.isEmpty ? "" : "\nCHAPTER REVIEW OVERVIEW (\(findings.count) findings; bounded excerpts below; complete current-chunk reports are in reviewerFeedback):\n" + head(findings.joined(separator: "\n"), 10_000)
         let historyAndReview = history + summary
         let budget = 31_800 - intro.unicodeScalars.count - historyAndReview.unicodeScalars.count
-        if full.unicodeScalars.count <= budget { return intro + "FULL CURRENT CHAPTER:\n" + full + "\n" + historyAndReview }
-        let perChunk = max(1, (budget - 160 * chunks.count) / max(1, chunks.count * 2))
-        let excerpted = chunks.map { chunk in
+        let fullLabel = excludingChunkIndex == nil ? "FULL CURRENT CHAPTER:\n" : "FULL CURRENT CHAPTER REFERENCE (current chunk supplied separately):\n"
+        if full.unicodeScalars.count <= budget { return intro + fullLabel + full + "\n" + historyAndReview }
+        let perChunk = max(1, (budget - 160 * referenced.count) / max(1, referenced.count * 2))
+        let excerpted = referenced.map { chunk in
             "Chunk \(chunk.index) SOURCE EXCERPTS:\n" + excerpt(chunk.text, budget: perChunk) + "\nINITIAL DRAFT EXCERPTS:\n" + excerpt(drafts[chunk.index] ?? "", budget: perChunk)
         }.joined(separator: "\n")
         return head(intro + "LONG CHAPTER: labelled excerpts, not a full chapter. Missing middles must not be inferred.\n" + excerpted + "\n" + historyAndReview, 32_000)
@@ -143,7 +152,7 @@ public enum ChapterEditorialContext {
 public struct CollaborativeEngine: Sendable {
     public init() {}
     public func run(jobID: String, source: String, options: TranslationOptions, provider: any TranslationProvider, checkpoints: [Checkpoint] = [], onUpdate: @escaping @Sendable (Checkpoint) async throws -> Void) async throws -> String {
-        let plan = Chunker.plan(text: source, kind: options.documentKind)
+        let plan = Chunker.plan(text: source, kind: options.documentKind, preparationVersion: options.preparationVersion)
         let notes = EditorNotes.Scope(source: source, chunks: plan.chunks)
         let throughput = Throughput(maximum: options.quality.maxConcurrency)
         var cached: [PassKey: String] = [:]
@@ -155,22 +164,35 @@ public struct CollaborativeEngine: Sendable {
             let chunks = plan.chunks.enumerated().filter { plan.sectionForChunk[$0.offset] == section.index }.map(\.element)
             let initial = try await batch(chunks.map { ($0, Stage.translate) }, drafts: [:], reviews: [:], chapterContext: nil)
             // Both reviewers see the exact same frozen initial draft and chapter context.
-            let chapterContext = ChapterEditorialContext.make(title: section.title, chunks: chunks, drafts: initial, previousChapters: completedChapters)
+            let chapterContext = contexts(drafts: initial)
             let jobs = chunks.flatMap { [($0, Stage.proofread), ($0, Stage.linguist)] }
             let reviewResults = try await batchReports(jobs, drafts: initial, chapterContext: chapterContext)
-            let editorialContext = ChapterEditorialContext.make(title: section.title, chunks: chunks, drafts: initial, previousChapters: completedChapters, reviewers: reviewResults)
+            let editorialContext = contexts(drafts: initial, reviewers: reviewResults)
             let final = try await batch(chunks.map { ($0, Stage.editor) }, drafts: initial, reviews: reviewResults, chapterContext: editorialContext)
             for chunk in chunks { output[chunk.index] = final[chunk.index] ?? "" }
             completedChapters.append((section.title, chunks.map { final[$0.index] ?? "" }.joined(separator: "\n\n")))
+
+            func contexts(drafts: [Int: String], reviewers: [Int: [ReviewerFeedback]] = [:]) -> [Int: String] {
+                if !options.usesImprovedPreparation {
+                    let shared = ChapterEditorialContext.make(title: section.title, chunks: chunks, drafts: drafts, previousChapters: completedChapters, reviewers: reviewers)
+                    return Dictionary(uniqueKeysWithValues: chunks.map { ($0.index, shared) })
+                }
+                return Dictionary(uniqueKeysWithValues: chunks.map { chunk in
+                    (chunk.index, ChapterEditorialContext.make(title: section.title, chunks: chunks, drafts: drafts, previousChapters: completedChapters, reviewers: reviewers, excludingChunkIndex: chunk.index))
+                })
+            }
         }
         return plan.chunks.map { output[$0.index] ?? "" }.joined(separator: "\n\n")
 
         func request(_ chunk: TextChunk, _ stage: Stage, drafts: [Int: String], reviews: [Int: [ReviewerFeedback]], chapterContext: String?) -> TranslationRequest {
             var chunkOptions = options
             chunkOptions.glossary = GlossaryMemory.relevant(options.glossary, to: chunk.text)
-            return TranslationRequest(requestID: "\(jobID)-p2-\(chunk.index)-\(stage.rawValue)", source: chunk.text, context: chunk.context, draft: drafts[chunk.index] ?? "", stage: stage, options: chunkOptions, reviewMode: stage == .proofread || stage == .linguist ? true : nil, reviews: reviews[chunk.index], chapterContext: chapterContext, chunkIndex: chunk.index)
+            let context = options.usesImprovedPreparation && options.documentKind == .fiction
+                ? FictionContext.make(source: source, plan: plan, index: chunk.index, priorDrafts: drafts, previousChapterFinal: completedChapters.last?.1)
+                : chunk.context
+            return TranslationRequest(requestID: "\(jobID)-p2-\(chunk.index)-\(stage.rawValue)", source: chunk.text, context: context, draft: drafts[chunk.index] ?? "", stage: stage, options: chunkOptions, reviewMode: stage == .proofread || stage == .linguist ? true : nil, reviews: reviews[chunk.index], chapterContext: chapterContext, chunkIndex: chunk.index)
         }
-        func execute(_ jobs: [(TextChunk, Stage)], drafts: [Int: String], reviews: [Int: [ReviewerFeedback]], chapterContext: String?) async throws -> [Checkpoint] {
+        func execute(_ jobs: [(TextChunk, Stage)], drafts: [Int: String], reviews: [Int: [ReviewerFeedback]], chapterContext: [Int: String]?) async throws -> [Checkpoint] {
             let existing = jobs.compactMap { chunk, stage -> Checkpoint? in cached[PassKey(index: chunk.index, stage: stage)].map { .init(index: chunk.index, stage: stage, text: $0) } }
             let pending = jobs.filter { cached[PassKey(index: $0.0.index, stage: $0.1)] == nil }
             var results = existing
@@ -181,7 +203,7 @@ public struct CollaborativeEngine: Sendable {
                     let limit = await throughput.current()
                     while next < pending.count && active < limit {
                         let (chunk, stage) = pending[next]
-                        let input = request(chunk, stage, drafts: drafts, reviews: reviews, chapterContext: chapterContext)
+                        let input = request(chunk, stage, drafts: drafts, reviews: reviews, chapterContext: chapterContext?[chunk.index])
                         group.addTask {
                             let text = try await PipelineExecution.complete(input, provider: provider, throughput: throughput)
                             guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw TranslationError.message("模型返回了空内容。") }
@@ -194,11 +216,11 @@ public struct CollaborativeEngine: Sendable {
             }
             return results
         }
-        func batch(_ jobs: [(TextChunk, Stage)], drafts: [Int: String], reviews: [Int: [ReviewerFeedback]], chapterContext: String?) async throws -> [Int: String] {
+        func batch(_ jobs: [(TextChunk, Stage)], drafts: [Int: String], reviews: [Int: [ReviewerFeedback]], chapterContext: [Int: String]?) async throws -> [Int: String] {
             let results = try await execute(jobs, drafts: drafts, reviews: reviews, chapterContext: chapterContext)
             return Dictionary(uniqueKeysWithValues: results.map { ($0.index, $0.text) })
         }
-        func batchReports(_ jobs: [(TextChunk, Stage)], drafts: [Int: String], chapterContext: String) async throws -> [Int: [ReviewerFeedback]] {
+        func batchReports(_ jobs: [(TextChunk, Stage)], drafts: [Int: String], chapterContext: [Int: String]) async throws -> [Int: [ReviewerFeedback]] {
             let results = try await execute(jobs, drafts: drafts, reviews: [:], chapterContext: chapterContext)
             var reports: [Int: [ReviewerFeedback]] = [:]
             for point in results {

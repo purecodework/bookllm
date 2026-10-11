@@ -6,14 +6,25 @@ import FoundationNetworking
 public struct APIProvider: TranslationProvider {
     public enum Connection: Sendable { case ownKey(baseURL: URL, key: String, model: String), cloud(baseURL: URL, token: String) }
     public let connection: Connection
-    public init(connection: Connection) { self.connection = connection }
+    public let limits: ModelRequestLimits
+    private let session: URLSession
+    public init(connection: Connection, limits: ModelRequestLimits = .standard, session: URLSession = .shared) {
+        self.connection = connection; self.limits = limits; self.session = session
+    }
+    // The planning revision is local persistence metadata, not a cloud protocol field.
+    private func cloudBody(_ original: TranslationRequest) throws -> Data {
+        var request = original; request.options.preparationVersion = nil
+        return try JSONEncoder().encode(request)
+    }
     public func complete(_ request: TranslationRequest) async throws -> String {
         let text: String
         switch connection {
         case .ownKey(let url, let key, let model):
-            text = try await chat(url: url, key: key, model: model, system: request.prompt, input: request.input)
+            text = try await ownCompletion(url: url, key: key, model: model) { limits, reduction in
+                try RequestBudget.prepare(request, limits: limits, backgroundReduction: reduction)
+            }
         case .cloud(let url, let token):
-            let data = try await post(url: url.appendingPathComponent("translate"), key: token, body: JSONEncoder().encode(request))
+            let data = try await post(url: url.appendingPathComponent("translate"), key: token, body: cloudBody(request))
             text = try JSONDecoder().decode(TextResponse.self, from: data).text
         }
         try CoverageValidator.validateCompletion(request: request, output: request.glossaryCapture == true ? GlossaryCapture.text(text) : text)
@@ -23,20 +34,54 @@ public struct APIProvider: TranslationProvider {
         #if canImport(FoundationNetworking)
         let text = try await complete(request); await onPartial(text); return text
         #else
-        let url: URL, key: String, body: Data
-        let own: Bool
+        let text: String
         switch connection {
-        case .ownKey(let baseURL, let apiKey, let model):
-            url = baseURL.appendingPathComponent("chat/completions"); key = apiKey; own = true
-            body = try JSONSerialization.data(withJSONObject: ["model": model, "messages": [["role": "system", "content": request.prompt], ["role": "user", "content": request.input]], "temperature": 0.3, "max_tokens": 8192, "stream": true])
+        case .ownKey(let url, let key, let model):
+            text = try await ownStream(request, url: url, key: key, model: model, onPartial: onPartial)
         case .cloud(let baseURL, let token):
-            url = baseURL.appendingPathComponent("translate/stream"); key = token; own = false; body = try JSONEncoder().encode(request)
+            text = try await streamed(url: baseURL.appendingPathComponent("translate/stream"), key: token,
+                body: cloudBody(request), own: false, onPartial: onPartial)
         }
+        try CoverageValidator.validateCompletion(request: request, output: request.glossaryCapture == true ? GlossaryCapture.text(text) : text)
+        return text
+        #endif
+    }
+    #if !canImport(FoundationNetworking)
+    private func ownStream(_ request: TranslationRequest, url: URL, key: String, model: String,
+                           onPartial: @escaping @Sendable (String) async -> Void) async throws -> String {
+        var currentLimits = limits
+        var previous: RequestBudget.Prepared?
+        var reduction = 0
+        for attempt in 0..<3 {
+            let prepared = try RequestBudget.prepare(request, limits: currentLimits, backgroundReduction: reduction)
+            try requireChanged(prepared, previous: previous)
+            do {
+                return try await streamed(url: url.appendingPathComponent("chat/completions"), key: key,
+                    body: chatBody(url: url, model: model, prepared: prepared, stream: true), own: true, onPartial: onPartial)
+            } catch let rejection as ModelLimitRejection {
+                guard attempt < 2 else { throw TranslationError.message("自动收缩后仍超出模型容量，请核对 API 模型窗口与输出上限。") }
+                previous = prepared
+                if rejection.contextExceeded { reduction = prepared.backgroundReduction + 1 }
+                currentLimits = try rejection.reduced(currentLimits)
+            }
+        }
+        throw TranslationError.message("模型容量检查失败。")
+    }
+    private func streamed(url: URL, key: String, body: Data, own: Bool,
+                          onPartial: @escaping @Sendable (String) async -> Void) async throws -> String {
         guard url.scheme == "https", url.host != nil else { throw TranslationError.message("API 地址必须使用 HTTPS。") }
         var network = URLRequest(url: url); network.httpMethod = "POST"; network.httpBody = body; network.timeoutInterval = 180
         network.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization"); network.setValue("application/json", forHTTPHeaderField: "Content-Type"); network.setValue("text/event-stream", forHTTPHeaderField: "Accept")
-        let (bytes, response) = try await URLSession.shared.bytes(for: network)
+        let (bytes, response) = try await session.bytes(for: network)
         guard let http = response as? HTTPURLResponse else { throw TranslationError.transient("网络响应无效。") }
+        if own, [400, 413, 422].contains(http.statusCode) {
+            var errorData = Data()
+            for try await byte in bytes {
+                errorData.append(byte)
+                if errorData.count >= 65_536 { break }
+            }
+            if let rejection = ModelLimitRejection.decode(errorData) { throw rejection }
+        }
         if http.statusCode == 402 { throw TranslationError.insufficientCredits }
         if http.statusCode == 429 { throw TranslationError.rateLimited(Double(http.value(forHTTPHeaderField: "Retry-After") ?? "2") ?? 2) }
         if http.statusCode == 409 {
@@ -71,10 +116,9 @@ public struct APIProvider: TranslationProvider {
             }
         }
         guard stopped, !result.isEmpty else { throw TranslationError.transient("流式连接提前结束，请继续翻译。") }
-        try CoverageValidator.validateCompletion(request: request, output: request.glossaryCapture == true ? GlossaryCapture.text(result) : result)
         return result
-        #endif
     }
+    #endif
     public func extractTerms(source: String, target: String, requestID: String) async throws -> [Term] {
         let sample = String(source.prefix(12000))
         switch connection {
@@ -100,19 +144,61 @@ public struct APIProvider: TranslationProvider {
             return try JSONDecoder().decode([Term].self, from: data)
         }
     }
-    private func chat(url: URL, key: String, model: String, system: String, input: String, maxTokens: Int = 8192) async throws -> String {
-        let body = try JSONSerialization.data(withJSONObject: ["model": model, "messages": [["role": "system", "content": system], ["role": "user", "content": input]], "temperature": 0.3, "max_tokens": maxTokens, "stream": false])
-        let data = try await post(url: url.appendingPathComponent("chat/completions"), key: key, body: body)
-        let decoded = try JSONDecoder().decode(ChatResponse.self, from: data)
-        guard let first = decoded.choices.first, first.finish_reason == "stop", let text = first.message.content else { throw TranslationError.message("模型输出未完整结束。请降低分块大小或更换模型后重试。") }
-        return text
+    private func chat(url: URL, key: String, model: String, system: String, input: String, maxTokens: Int = 3072) async throws -> String {
+        try await ownCompletion(url: url, key: key, model: model) { limits, _ in
+            try RequestBudget.prepare(system: system, input: input, maxTokens: maxTokens, limits: limits)
+        }
     }
-    private func post(url: URL, key: String, body: Data) async throws -> Data {
+    private func chatBody(url: URL, model: String, prepared: RequestBudget.Prepared, stream: Bool) throws -> Data {
+        var body: [String: Any] = ["model": model,
+            "messages": [["role": "system", "content": prepared.system], ["role": "user", "content": prepared.input]],
+            "temperature": 0.3, "max_tokens": prepared.maxTokens, "stream": stream]
+        // Flash defaults to thinking mode. Translation already has explicit
+        // editorial stages; keep its reserved output available for the text.
+        // Provider-specific fields must never leak to other compatible APIs.
+        if url.host?.lowercased() == "api.deepseek.com",
+           ["deepseek-flash", "deepseek-v4-flash", "deepseek-v4-flash-vision-exp"].contains(model.lowercased()) {
+            body["thinking"] = ["type": "disabled"]
+        }
+        return try JSONSerialization.data(withJSONObject: body)
+    }
+    private func ownCompletion(url: URL, key: String, model: String,
+                               prepare: (ModelRequestLimits, Int) throws -> RequestBudget.Prepared) async throws -> String {
+        var currentLimits = limits
+        var previous: RequestBudget.Prepared?
+        var reduction = 0
+        for attempt in 0..<3 {
+            let prepared = try prepare(currentLimits, reduction)
+            try requireChanged(prepared, previous: previous)
+            do {
+                let data = try await post(url: url.appendingPathComponent("chat/completions"), key: key,
+                    body: chatBody(url: url, model: model, prepared: prepared, stream: false), adaptLimits: true)
+                let decoded = try JSONDecoder().decode(ChatResponse.self, from: data)
+                guard let first = decoded.choices.first, first.finish_reason == "stop", let text = first.message.content else {
+                    throw TranslationError.message("模型输出未完整结束。请提高最大输出设置或更换模型后重试。")
+                }
+                return text
+            } catch let rejection as ModelLimitRejection {
+                guard attempt < 2 else { throw TranslationError.message("自动收缩后仍超出模型容量，请核对 API 模型窗口与输出上限。") }
+                previous = prepared
+                if rejection.contextExceeded { reduction = prepared.backgroundReduction + 1 }
+                currentLimits = try rejection.reduced(currentLimits)
+            }
+        }
+        throw TranslationError.message("模型容量检查失败。")
+    }
+    private func requireChanged(_ next: RequestBudget.Prepared, previous: RequestBudget.Prepared?) throws {
+        if let previous, next.system == previous.system, next.input == previous.input, next.maxTokens == previous.maxTokens {
+            throw TranslationError.message("自动收缩后已没有可缩减的背景或输出预算，请核对 API 模型容量或使用更大窗口的模型。原文与检查点已保留。")
+        }
+    }
+    private func post(url: URL, key: String, body: Data, adaptLimits: Bool = false) async throws -> Data {
         guard url.scheme == "https", url.host != nil else { throw TranslationError.message("API 地址必须使用 HTTPS。") }
         var request = URLRequest(url: url); request.httpMethod = "POST"; request.httpBody = body; request.timeoutInterval = 180
         request.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization"); request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
         guard let response = response as? HTTPURLResponse else { throw TranslationError.transient("网络响应无效。") }
+        if adaptLimits, [400, 413, 422].contains(response.statusCode), let rejection = ModelLimitRejection.decode(data) { throw rejection }
         if response.statusCode == 402 { throw TranslationError.insufficientCredits }
         if response.statusCode == 429 { throw TranslationError.rateLimited(Double(response.value(forHTTPHeaderField: "Retry-After") ?? "2") ?? 2) }
         if response.statusCode == 409 {

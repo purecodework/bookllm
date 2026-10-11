@@ -173,6 +173,93 @@ final class StructuredChunkerTests: XCTestCase, @unchecked Sendable {
         XCTAssertTrue(chunks.allSatisfy { $0.text.reduce(0) { $0 + Chunker.tokenCost($1) } <= 64.001 })
     }
 
+    func testShortOpeningAbbreviationsDoNotBecomeStandaloneChunks() {
+        for opening in ["Dr.", "Mr.", "Prof.", "J.", "e.g."] {
+            let source = opening + " Rowan " + String(repeating: "read the letter slowly ", count: 40)
+            let chunks = Chunker.split(source, budget: 64)
+            XCTAssertEqual(chunks.map(\.text).joined(), source)
+            XCTAssertTrue(chunks.first?.text.hasPrefix(opening + " Rowan ") == true, opening)
+            XCTAssertGreaterThan(chunks.first?.text.count ?? 0, 100, opening)
+            XCTAssertTrue(chunks.allSatisfy { $0.text.reduce(0) { $0 + Chunker.tokenCost($1) } <= 64.001 })
+        }
+    }
+
+    func testMidChunkAbbreviationsDecimalsAndInitialsStayWithFollowingText() {
+        for fragment in ["Dr. Rowan", "J. Rowan", "e.g. Rowan", "3.14 units"] {
+            let source = String(repeating: "word ", count: 30) + fragment + " " + String(repeating: "x", count: 200)
+            let chunks = Chunker.split(source, budget: 64)
+            XCTAssertEqual(chunks.map(\.text).joined(), source)
+            XCTAssertTrue(chunks.first?.text.contains(fragment) == true, fragment)
+            XCTAssertTrue(chunks.allSatisfy { $0.text.reduce(0) { $0 + Chunker.tokenCost($1) } <= 64.001 })
+        }
+    }
+
+    func testAcademicNumberedInstructionsRemainInsideTheirSection() {
+        let source = "Introduction\nThe experiment used the following procedure.\n\n1. Install the package\n2. Run the benchmark\n3. Check the results\n\n2. Methods\nWe measured latency.\n\n2.1 Experimental Setup\nThe same device was used.\n"
+        let plan = Chunker.plan(text: source, kind: .academic, budget: 80)
+        XCTAssertEqual(plan.sections.map(\.title), ["Introduction", "2. Methods", "2.1 Experimental Setup"])
+        assertLossless(plan, source: source, budget: 80)
+    }
+
+    func testUnfamiliarNumberedAcademicTitlesNeedLayoutEvidence() {
+        let source = "1. Proposed Architecture\nThe system has two layers.\n\n2. Training Strategy\nWe tune both layers jointly.\n\n1. Apples\n2. Pears\n"
+        let plan = Chunker.plan(text: source, kind: .academic)
+        XCTAssertEqual(plan.sections.map(\.title), ["1. Proposed Architecture", "2. Training Strategy"])
+        assertLossless(plan, source: source, budget: DocumentKind.academic.defaultBudget)
+    }
+
+    func testSectionHeadingStaysWithProseWhenParagraphNeedsSplitting() {
+        for heading in ["Introduction\n", "Introduction\n\n", "# A short title\n\n"] {
+            for length in [190, 450] {
+                let source = heading + String(repeating: "x", count: length) + ".\n"
+                let plan = Chunker.plan(text: source, kind: .academic, budget: 64)
+                XCTAssertTrue(plan.chunks.first?.text.hasPrefix(heading) == true)
+                XCTAssertTrue(plan.chunks.first?.text.contains("xxxxxxxxxx") == true)
+                assertLossless(plan, source: source, budget: 64)
+            }
+        }
+    }
+
+    func testFictionProtectsLocalTablesAndCodeWhileKeepingChapters() {
+        let table = "| Name | Amount |\n| --- | --- |\n| Alice | 3 |\n"
+        let code = "```text\nChapter III\nlet secret = 1\n```\n"
+        let source = "Chapter I\n" + String(repeating: "P", count: 180) + "\n\n" + table + "\n" + code + "\nChapter II\nAlice closed the ledger.\n"
+        let plan = Chunker.plan(text: source, kind: DocumentClassifier.detect(text: source), budget: 80)
+        XCTAssertEqual(plan.sections.map(\.title), ["Chapter I", "Chapter II"])
+        XCTAssertTrue(plan.chunks.contains { $0.text.contains(table) })
+        XCTAssertTrue(plan.chunks.contains { $0.text.contains(code) })
+        assertLossless(plan, source: source, budget: 80)
+    }
+
+    func testFittingStructuresStayWholeBeforeOversizedProse() {
+        let code = "```swift\nlet value = 1\nlet other = 2\n```\n"
+        let table = "| Name | Value |\n| --- | --- |\n| API | 1 |\n"
+        for structure in [code, table] {
+            for kind in [DocumentKind.fiction, .technical, .academic] {
+                let source = "# Start\n\n" + structure + "\n" + String(repeating: "x", count: 600)
+                let plan = Chunker.plan(text: source, kind: kind, budget: 64)
+                XCTAssertTrue(plan.chunks.contains { $0.text.contains(structure) })
+                assertLossless(plan, source: source, budget: 64)
+            }
+        }
+    }
+
+    func testSavedPreparationVersionsKeepOriginalNumberedSectionsAndTinyBoundaries() {
+        let source = "Introduction\n\nDr. " + String(repeating: "x", count: 450) + "\n\n1. Install the package\n2. Run the benchmark\n"
+        let legacy = Chunker.plan(text: source, kind: .academic, budget: 64, preparationVersion: nil)
+        XCTAssertEqual(legacy.sections.map(\.title), ["Introduction", "1. Install the package", "2. Run the benchmark"])
+        XCTAssertEqual(legacy.chunks.prefix(2).map(\.text), ["Introduction\n\n", "Dr."])
+        for version in [0, 1, 3] {
+            XCTAssertEqual(Chunker.plan(text: source, kind: .academic, budget: 64, preparationVersion: version), legacy)
+        }
+        assertLossless(legacy, source: source, budget: 64)
+        let current = Chunker.plan(text: source, kind: .academic, budget: 64)
+        XCTAssertEqual(current.sections.map(\.title), ["Introduction"])
+        XCTAssertTrue(current.chunks.first?.text.hasPrefix("Introduction\n\nDr. ") == true)
+        XCTAssertLessThan(current.chunks.count, legacy.chunks.count)
+        assertLossless(current, source: source, budget: 64)
+    }
+
     func testPoetryKeepsFittingStanzasAndPoemSectionsTogether() {
         let stanza = "月亮照着远山也照着长路\n露珠落在窗前也落在手心\n夜风经过河岸又经过桥头\n\n"
         let source = "# 夜曲\n\n" + stanza + stanza + "# 晨歌\n\n清晨来到树梢\n星光渐渐隐去\n"

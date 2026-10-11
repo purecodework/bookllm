@@ -34,7 +34,7 @@ struct WorkLookupView: View {
                 PrimaryButton(title: "打开译作", icon: "book") { selected = WorkLink.identifier(input) }.disabled(WorkLink.identifier(input) == nil)
                 Spacer()
             }.padding(24).background(Ink.paper).navigationTitle("打开译作").navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("关闭") { dismiss() } } }
+                .toolbar { PaperToolbarItem(placement: .cancellationAction) { Button("关闭") { dismiss() } } }
                 .navigationDestination(isPresented: Binding(get: { selected != nil }, set: { if !$0 { selected = nil } })) { if let selected { WorkPurchaseView(workID: selected) } }
         }
     }
@@ -118,7 +118,7 @@ struct PublishWorkView: View {
                     } else { Section { Text("发布需要 Apple 账户。自带 API 译作也可发布。").font(.system(size: 13)); AppleLoginView() } }
                     if let error { Section { Text(error).font(.system(size: 12)).foregroundStyle(Ink.orange) } }
                 }.scrollContentBackground(.hidden).background(Ink.paper).navigationTitle("定价分享").navigationBarTitleDisplayMode(.inline)
-                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { dismiss() } } }
+                    .toolbar { PaperToolbarItem(placement: .confirmationAction) { Button("完成") { dismiss() } } }
                     .onAppear { price = job.publicationPrice ?? 10 }
             }
         }

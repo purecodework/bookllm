@@ -1,158 +1,165 @@
 import SwiftUI
-import UIKit
 import TranslationCore
+
+extension Stage {
+    var portrait: String {
+        switch self { case .translate: "RoleTranslator"; case .proofread: "RoleProofreader"; case .linguist: "RoleLinguist"; case .editor, .verify: "RoleEditor" }
+    }
+    var responsibility: String {
+        switch self {
+        case .translate: "忠实传达原作，保留事实、段落与人物声音。"
+        case .proofread: "逐段对照原文，检查漏译、错译、名称、数字与术语一致性。"
+        case .linguist: "检查外语、习语、语域与人物口吻，核对编者注。"
+        case .editor: "整合校对与语言专家意见，依据原文解决冲突，协调节奏与人物声音。"
+        case .verify: "沿用旧任务的终审检查点，核对事实与完整性。"
+        }
+    }
+}
+
+extension Quality {
+    var usageSummary: String {
+        switch self {
+        case .fast: "先了解内容，边译边读。完成初译后检查完整性。"
+        case .refined: "适合日常阅读。初译后核对原意、遗漏与术语。"
+        case .deep: "适合重视习语、外语与人物口吻的内容。增加语言专家审查。"
+        case .publication: "适合希望细读的内容。校对与语言专家并行审查，再由主编整合。"
+        case .definitive: "旧任务沿用原有翻译、审校与终审检查点。"
+        }
+    }
+    var processSummary: String {
+        self == .publication
+            ? "初译 → 校对与语言专家并行 → 主编整合 → 完整性检查"
+            : stages.map(\.title).joined(separator: " → ") + " → 完整性检查"
+    }
+}
 
 @MainActor struct TranslationStrengthPicker: View {
     @Binding var selection: Quality
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var isPresented = false
-    @State private var dragProgress: Double?
-    private let levels = Quality.allCases
-    private var index: Int { levels.firstIndex(of: selection) ?? 0 }
-    private var progress: Double { dragProgress ?? Double(index) / Double(levels.count - 1) }
-
     var body: some View {
-        HStack {
-            Text("翻译强度").font(.system(size: 14))
-            Spacer()
-            Button { isPresented.toggle() } label: {
-                HStack(spacing: 7) {
-                    if index >= 2 { QualityFlame(quality: selection).frame(width: 14, height: 18) }
-                    Text(selection.title).font(.system(size: 13, weight: .medium))
-                    Image(systemName: "chevron.down").font(.system(size: 9, weight: .semibold)).foregroundStyle(Ink.muted)
-                }
-                .padding(.horizontal, 12).frame(height: 36)
-                .background(.white.opacity(0.7), in: RoundedRectangle(cornerRadius: 9))
-                .overlay { RoundedRectangle(cornerRadius: 9).stroke(Ink.text.opacity(0.09), lineWidth: 1) }
-                .frame(minHeight: 44).contentShape(Rectangle())
-            }.buttonStyle(.plain)
-                .accessibilityLabel("翻译强度，\(selection.title)")
-                .accessibilityHint("打开强度选择器")
-                .popover(isPresented: $isPresented, arrowEdge: .top) {
-                    optionsPanel
-                        .presentationCompactAdaptation(.popover)
-                        .presentationBackground(.white)
-                }
-        }.foregroundStyle(Ink.text)
-    }
-
-    private var optionsPanel: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack {
-                Text("翻译强度").font(.system(size: 13, weight: .semibold))
-                Spacer()
-                Text(selection == .publication ? "协作" : "\(selection.stages.count) 步").font(.system(size: 11)).foregroundStyle(Ink.muted)
-            }.padding(.bottom, 13)
-            rail
-            HStack(spacing: 0) {
-                ForEach(levels) { level in
-                    Button { snap(level) } label: {
-                        Text(level.title).font(.system(size: 11, weight: level == selection ? .semibold : .regular))
-                            .foregroundStyle(level == selection ? Ink.text : Ink.muted)
-                            .frame(maxWidth: .infinity).frame(height: 44).contentShape(Rectangle())
-                    }.buttonStyle(.plain)
-                        .accessibilityLabel("\(level.title)，\(level.stages.count) 轮处理")
-                        .accessibilityAddTraits(level == selection ? .isSelected : [])
-                }
-            }.padding(.horizontal, -10).padding(.top, -10)
-            Divider().overlay(Ink.text.opacity(0.04)).padding(.vertical, 11)
-            Text(selection.detail).font(.system(size: 12)).fixedSize(horizontal: false, vertical: true)
-            Text(selection == .publication ? "译者 → 校对＋语言专家 → 主编" : selection.stages.map(\.title).joined(separator: " · "))
-                .font(.system(size: 10)).foregroundStyle(Ink.muted)
-                .fixedSize(horizontal: false, vertical: true).padding(.top, 6)
-        }.padding(18).frame(width: 286)
-            .animation(reduceMotion ? nil : .easeInOut(duration: 0.16), value: selection)
-            .onDisappear { dragProgress = nil }
-    }
-
-    private var rail: some View {
-        GeometryReader { geometry in
-            let travel = max(1, geometry.size.width - 20)
-            let offset = travel * CGFloat(progress)
-            ZStack(alignment: .leading) {
-                Capsule().fill(Ink.text.opacity(0.10)).frame(height: 3).padding(.horizontal, 10)
-                Capsule().fill(Ink.text).frame(width: offset, height: 3).padding(.leading, 10)
-                ForEach(levels.indices, id: \.self) { tick in
-                    Circle().fill(tick <= index ? Ink.text : Color(red: 0.76, green: 0.76, blue: 0.75))
-                        .frame(width: 5, height: 5)
-                        .position(x: 10 + travel * CGFloat(tick) / CGFloat(levels.count - 1), y: 22)
-                }
-                Circle().fill(.white).frame(width: 16, height: 16)
-                    .overlay { Circle().stroke(Ink.text, lineWidth: 2) }
-                    .shadow(color: .black.opacity(0.12), radius: 2, y: 1)
-                    .padding(.leading, 2 + offset)
-            }.frame(height: 44).contentShape(Rectangle())
-                .gesture(DragGesture(minimumDistance: 0).onChanged { value in
-                    let ratio = min(1, max(0, Double((value.location.x - 10) / travel)))
-                    dragProgress = ratio
-                    choose(Int((ratio * Double(levels.count - 1)).rounded()))
-                }.onEnded { _ in
-                    withAnimation(reduceMotion ? nil : .spring(response: 0.25, dampingFraction: 0.86)) { dragProgress = nil }
-                })
-        }.frame(height: 44)
-            .animation(reduceMotion || dragProgress != nil ? nil : .spring(response: 0.25, dampingFraction: 0.86), value: selection)
-            .accessibilityElement(children: .ignore).accessibilityLabel("翻译强度")
-            .accessibilityValue("\(selection.title)，\(selection.stages.map(\.title).joined(separator: "、"))")
-            .accessibilityHint("强度越高，审校轮次、耗时与用量越多。")
-            .accessibilityAdjustableAction { direction in
-                switch direction {
-                case .increment: snap(levels[min(levels.count - 1, index + 1)])
-                case .decrement: snap(levels[max(0, index - 1)])
-                @unknown default: break
-                }
-            }
-    }
-
-    private func snap(_ level: Quality) {
-        withAnimation(reduceMotion ? nil : .spring(response: 0.25, dampingFraction: 0.86)) {
-            dragProgress = nil; choose(levels.firstIndex(of: level) ?? 0)
+        VStack(alignment: .leading, spacing: 18) {
+            Text("翻译质量").font(.headline.weight(.regular))
+            QualityTabs(selection: $selection)
+            Text(selection.usageSummary).font(.subheadline).fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("quality-usage-summary")
+            Text("审校阶段越多，通常模型用量也越多。实际用量受内容、术语整理和重试影响。")
+                .font(.caption).foregroundStyle(Ink.muted).lineSpacing(4).fixedSize(horizontal: false, vertical: true)
         }
     }
-    private func choose(_ value: Int) {
-        guard levels.indices.contains(value), levels[value] != selection else { return }
-        selection = levels[value]; UISelectionFeedbackGenerator().selectionChanged()
+}
+
+struct RolePipelineView: View {
+    let quality: Quality
+    @State private var details = false
+    @ScaledMetric(relativeTo: .caption) private var portraitHeight = 56.0
+    private var stages: [Stage] { quality.stages.filter { $0 != .verify } }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("参与翻译与审校的模型角色").font(.caption).foregroundStyle(Ink.muted)
+            HStack(alignment: .top, spacing: 8) {
+                ForEach(stages, id: \.rawValue) { stage in
+                    VStack(spacing: 8) {
+                        Image(stage.portrait).resizable().scaledToFit().frame(height: min(96, portraitHeight)).accessibilityHidden(true)
+                        Text(stage.title).font(.caption).multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }.frame(maxWidth: .infinity)
+                }
+            }
+            DisclosureGroup(isExpanded: $details) {
+                VStack(alignment: .leading, spacing: 16) {
+                    ForEach(stages, id: \.rawValue) { stage in
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(stage.title).font(.subheadline)
+                            Text(stage.responsibility).font(.caption).foregroundStyle(Ink.muted)
+                                .lineSpacing(4).fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    PaperRule()
+                    Text("处理顺序").font(.caption).foregroundStyle(Ink.muted)
+                    Text(quality.processSummary).font(.subheadline).fixedSize(horizontal: false, vertical: true)
+                }.padding(.top, 16)
+            } label: {
+                Text("查看角色职责与处理流程").frame(minHeight: 44, alignment: .leading)
+            }.font(.subheadline).accessibilityIdentifier("role-pipeline-details")
+        }
+    }
+}
+struct QualityTabs: View {
+    @Binding var selection: Quality
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Namespace private var indicator
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(Quality.allCases) { quality in
+                let selected = selection == quality || (selection == .definitive && quality == .publication)
+                Button {
+                    guard selection != quality else { return }
+                    withAnimation(reduceMotion ? nil : .timingCurve(0.22, 1, 0.36, 1, duration: 0.32)) { selection = quality }
+                } label: {
+                    VStack(spacing: 0) {
+                        Text(quality.title).font(.subheadline).frame(maxWidth: .infinity).frame(minHeight: 44)
+                        ZStack {
+                            Rectangle().fill(Ink.line).frame(height: 0.5)
+                            if selected {
+                                Rectangle().fill(Ink.accent).frame(height: 1.5).matchedGeometryEffect(id: "quality", in: indicator)
+                            }
+                        }.frame(height: 2)
+                    }.foregroundStyle(selected ? Ink.text : Ink.muted).contentShape(Rectangle())
+                }.buttonStyle(.plain).accessibilityAddTraits(selected ? .isSelected : [])
+            }
+        }
+    }
+}
+struct RoleEnsemble: View {
+    let stages: [Stage]
+    var states: [Stage: String] = [:]
+    @State private var selected: Stage = .translate
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ScaledMetric(relativeTo: .caption) private var portraitHeight = 92.0
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            ViewThatFits(in: .horizontal) {
+                HStack { Text(states.isEmpty ? "模型角色" : "模型处理状态"); Spacer(); Text("点击查看职责") }
+                VStack(alignment: .leading, spacing: 6) { Text(states.isEmpty ? "模型角色" : "模型处理状态"); Text("点击查看职责") }
+            }.font(.caption).foregroundStyle(Ink.muted)
+            HStack(alignment: .top, spacing: 6) {
+                ForEach(stages, id: \.rawValue) { stage in
+                    Button { withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) { selected = stage } } label: {
+                        VStack(spacing: 7) {
+                            Image(stage.portrait).resizable().scaledToFit().frame(height: min(120, portraitHeight))
+                                .opacity(states[stage] == "待处理" ? 0.35 : 1).accessibilityHidden(true)
+                            Text(stage.title).font(.caption).foregroundStyle(Ink.text)
+                                .padding(.bottom, 5).overlay(alignment: .bottom) { if selected == stage { Rectangle().fill(Ink.accent).frame(height: 1) } }
+                            if let status = states[stage] { Text(status).font(.caption).foregroundStyle(Ink.muted) }
+                        }.frame(maxWidth: .infinity).contentShape(Rectangle())
+                    }.buttonStyle(.plain).accessibilityElement(children: .combine)
+                        .accessibilityLabel(stage.title + (states[stage].map { "，" + $0 } ?? ""))
+                        .accessibilityHint("查看职责").accessibilityAddTraits(selected == stage ? .isSelected : [])
+                        .transition(reduceMotion ? .opacity : .asymmetric(
+                            insertion: .modifier(active: RoleReveal(amount: 0), identity: RoleReveal(amount: 1)).animation(.timingCurve(0.22, 1, 0.36, 1, duration: 0.6)),
+                            removal: .opacity.animation(.easeOut(duration: 0.18))))
+                }
+            }.frame(minHeight: states.isEmpty ? 113 : 134, alignment: .top)
+                .animation(reduceMotion ? nil : .timingCurve(0.22, 1, 0.36, 1, duration: 0.52), value: stages)
+            PaperRule()
+            VStack(alignment: .leading, spacing: 7) {
+                Text(selected.title).font(.subheadline)
+                Text(selected.responsibility).font(.caption).foregroundStyle(Ink.muted).lineSpacing(5).fixedSize(horizontal: false, vertical: true)
+            }.frame(minHeight: 66, alignment: .top).id(selected).transition(.opacity)
+                .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: selected)
+        }.onAppear {
+            selected = states.isEmpty ? stages.last ?? .translate : stages.first(where: { ["处理中", "检查中", "重试中"].contains(states[$0] ?? "") }) ?? stages.first ?? .translate
+        }.onChange(of: stages) { _, value in
+            if states.isEmpty { selected = value.last ?? .translate }
+            else if !value.contains(selected) { selected = value.first ?? .translate }
+        }
     }
 }
 
-/// Small morphing flame, not a full-screen effect. No animation while inactive or reduced motion is enabled.
-struct QualityFlame: View {
-    let quality: Quality
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.scenePhase) private var scenePhase
-    private var blue: Bool { quality == .deep }
-    private var strong: Bool { quality == .publication || quality == .definitive }
-    var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion || scenePhase != .active)) { timeline in
-            let time = reduceMotion || scenePhase != .active ? 0 : timeline.date.timeIntervalSinceReferenceDate
-            Canvas { context, size in
-                let outer = blue ? Color(red: 0.14, green: 0.37, blue: 0.92) : Color(red: 0.93, green: 0.28, blue: 0.12)
-                let inner = blue ? Color(red: 0.36, green: 0.80, blue: 1) : Color(red: 1, green: 0.70, blue: 0.24)
-                let wave = sin(time * (strong ? 5.6 : 3.2)) * (strong ? 0.065 : 0.035)
-                let frame = CGRect(x: size.width * 0.12, y: size.height * 0.04, width: size.width * 0.76, height: size.height * 0.90)
-                context.fill(flame(in: frame, wave: wave), with: .linearGradient(Gradient(colors: [inner, outer]), startPoint: .zero, endPoint: CGPoint(x: 0, y: size.height)))
-                let center = CGRect(x: size.width * 0.30, y: size.height * 0.33, width: size.width * 0.42, height: size.height * 0.60)
-                context.fill(flame(in: center, wave: -wave * 0.6), with: .linearGradient(Gradient(colors: [.white.opacity(0.96), inner]), startPoint: CGPoint(x: 0, y: center.minY), endPoint: CGPoint(x: 0, y: center.maxY)))
-                if strong {
-                    for ember in 0..<3 {
-                        let cycle = (time * 0.55 + Double(ember) / 3).truncatingRemainder(dividingBy: 1)
-                        let x = size.width * (0.28 + Double(ember) * 0.2 + sin(time * 2 + Double(ember)) * 0.04)
-                        let y = size.height * (0.5 - cycle * 0.46)
-                        context.opacity = reduceMotion ? 0.45 : (1 - cycle) * 0.65
-                        context.fill(Path(ellipseIn: CGRect(x: x, y: y, width: 1.6, height: 1.6)), with: .color(inner))
-                    }
-                }
-            }
-        }.accessibilityHidden(true).allowsHitTesting(false)
-    }
-    private func flame(in rect: CGRect, wave: Double) -> Path {
-        func point(_ x: Double, _ y: Double) -> CGPoint { .init(x: rect.minX + rect.width * x, y: rect.minY + rect.height * y) }
-        var p = Path(); p.move(to: point(0.5, 1))
-        p.addCurve(to: point(0.14, 0.48), control1: point(-0.05, 0.97), control2: point(0.02, 0.68))
-        p.addCurve(to: point(0.38 + wave, 0.05), control1: point(0.33, 0.34), control2: point(0.48 + wave, 0.22))
-        p.addCurve(to: point(0.65, 0.48), control1: point(0.74 + wave, 0.22), control2: point(0.50, 0.40))
-        p.addCurve(to: point(0.82, 0.31), control1: point(0.73, 0.46), control2: point(0.82, 0.38))
-        p.addCurve(to: point(0.5, 1), control1: point(1.12, 0.72), control2: point(1.00, 0.97))
-        p.closeSubpath(); return p
+private struct RoleReveal: AnimatableModifier {
+    nonisolated var amount: CGFloat
+    nonisolated var animatableData: CGFloat { get { amount } set { amount = newValue } }
+    func body(content: Content) -> some View {
+        content.opacity(amount).offset(y: (1 - amount) * 6)
+            .mask(alignment: .top) { Rectangle().scaleEffect(x: 1, y: amount, anchor: .top) }
     }
 }
-#Preview { TranslationStrengthPicker(selection: .constant(.publication)).padding(28).background(Ink.paper) }

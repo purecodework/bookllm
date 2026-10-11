@@ -9,9 +9,16 @@ struct ImportSessionView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if importer.phase == .reviewing, let result = importer.result {
-                    OCRReviewView(imported: result) { reviewed in
-                        do { try importer.accept(reviewed, studio: studio) } catch { studio.message = error.localizedDescription }
+                if let recoveryError = importer.recoveryError {
+                    recoveryView(recoveryError)
+                } else if importer.phase == .reviewing, let result = importer.result, !importer.needsOCRReview {
+                    libraryRetry(result)
+                } else if importer.phase == .reviewing, let result = importer.result {
+                    VStack(spacing: 0) {
+                        if let error = importer.error { Text(error).font(.subheadline).foregroundStyle(Ink.error).padding(24).fixedSize(horizontal: false, vertical: true) }
+                        OCRReviewView(imported: result, saveTitle: importer.accepting ? "正在加入书库…" : "确认原稿，加入书库") { reviewed in
+                            Task { do { try await importer.accept(reviewed, studio: studio) } catch { } }
+                        }.disabled(importer.accepting)
                     }
                 } else {
                     VStack(alignment: .leading, spacing: 22) {
@@ -26,25 +33,56 @@ struct ImportSessionView: View {
                         if importer.phase == .processing { PrimaryButton(title: "暂停识别", icon: "pause") { importer.pause() } }
                         else {
                             if importer.draft != nil { PrimaryButton(title: "继续识别", icon: "play") { importer.resume(studio: studio) } }
-                            Button("放弃导入", role: .destructive) { importer.discard() }.font(.system(size: 13))
+                            Button("放弃导入", role: .destructive) { discarding = true }.font(.system(size: 13)).frame(minHeight: 44)
                             Button("稍后继续") { importer.presented = false }.font(.system(size: 13))
                         }
                         Spacer()
                     }.padding(26)
                 }
-            }.background(Ink.paper).navigationTitle(importer.phase == .reviewing ? "核对识别原稿" : "导入").navigationBarTitleDisplayMode(.inline)
+            }.background(Ink.paper).navigationTitle(importer.phase == .reviewing ? importer.needsOCRReview ? "核对识别原稿" : "加入书库" : "导入").navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     if importer.phase == .reviewing {
-                        ToolbarItem(placement: .topBarLeading) { Button("放弃", role: .destructive) { discarding = true } }
-                        ToolbarItem(placement: .topBarTrailing) { Button("稍后核对") { importer.presented = false } }
+                        PaperToolbarItem(placement: .topBarLeading) { Button("放弃", role: .destructive) { discarding = true }.disabled(importer.accepting) }
+                        PaperToolbarItem(placement: .topBarTrailing) { Button(importer.needsOCRReview ? "稍后核对" : "稍后继续") { importer.presented = false }.disabled(importer.accepting) }
                     }
                 }
-                .confirmationDialog("放弃这次导入？", isPresented: $discarding, titleVisibility: .visible) { Button("放弃导入", role: .destructive) { importer.discard() } } message: { Text("识别稿将删除，原始文件不会改动。") }
+                .confirmationDialog("放弃这次导入？", isPresented: $discarding, titleVisibility: .visible) { Button("放弃导入", role: .destructive) { importer.discard() } } message: {
+                    Text(importer.recoveryError == nil ? "识别稿将删除，您选择的原始文件不会改动。" : "将移除无法读取的恢复记录。保留的原文件和已识别页面不会删除；您可重新选择文件导入。")
+                }
         }.interactiveDismissDisabled()
+    }
+    private func recoveryView(_ message: String) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                Text("无法恢复这次导入").font(.title3)
+                Text(message).font(.subheadline).foregroundStyle(Ink.error).fixedSize(horizontal: false, vertical: true)
+                if let error = importer.error { Text(error).font(.caption).foregroundStyle(Ink.error) }
+                PrimaryButton(title: "重试读取恢复记录", icon: "arrow.clockwise") { importer.retryRecovery(studio: studio) }
+                Button("放弃这次导入", role: .destructive) { discarding = true }.frame(minHeight: 44)
+                Button("稍后处理") { importer.presented = false }.frame(minHeight: 44)
+            }.padding(24).frame(maxWidth: PaperLayout.formWidth).frame(maxWidth: .infinity)
+        }
+    }
+    private func libraryRetry(_ imported: ImportedText) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                Text(imported.title).font(.title3)
+                Text("原稿已读取，尚未加入书库").font(.subheadline)
+                Text("\(imported.format) · \(imported.text.count.formatted()) 字符。原文件仍保留，重试会保存完整原稿。").font(.caption).foregroundStyle(Ink.muted)
+                if let error = importer.error { Text(error).font(.subheadline).foregroundStyle(Ink.error).fixedSize(horizontal: false, vertical: true) }
+                PrimaryButton(title: importer.accepting ? "正在加入书库…" : "重试加入书库", icon: "arrow.clockwise") {
+                    Task { do { try await importer.accept(imported, studio: studio) } catch { } }
+                }.disabled(importer.accepting)
+                PaperRule()
+                Text(imported.text.count > 1200 ? "原稿预览（前 1,200 字符）" : "原稿预览").font(.caption).foregroundStyle(Ink.muted)
+                Text(String(imported.text.prefix(1200))).font(PaperType.reading(17)).lineSpacing(6).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)
+            }.padding(24).frame(maxWidth: PaperLayout.formWidth).frame(maxWidth: .infinity)
+        }
     }
 }
 struct OCRReviewView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(ImportCoordinator.self) private var importer
     let imported: ImportedText
     var readOnly = false
     var saveTitle: String
@@ -61,7 +99,7 @@ struct OCRReviewView: View {
     @State private var rereading: Int?
     @State private var rereadTask: Task<Void, Never>?
     @State private var rereadError: String?
-    init(imported: ImportedText, readOnly: Bool = false, saveTitle: String = "确认原稿，加入书架", onSave: @escaping (ImportedText) -> Void) {
+    init(imported: ImportedText, readOnly: Bool = false, saveTitle: String = "确认原稿，加入书库", onSave: @escaping (ImportedText) -> Void) {
         self.imported = imported; self.readOnly = readOnly; self.saveTitle = saveTitle; self.onSave = onSave
         let initial = imported.ocrPages ?? [.init(number: 1, text: imported.text, usedOCR: false)]
         _pages = State(initialValue: initial)
@@ -109,17 +147,19 @@ struct OCRReviewView: View {
                 .task(id: page.number) {
                     preview = nil; originalError = nil
                     guard let id = imported.sourceDocumentID, let draft = sourceDraft(id) else { originalError = "没有保留原文件。"; return }
-                    do { let data = try await Task.detached(priority: .utility) { try DocumentOCR.preview(url: draft.url, page: page.number) }.value; if !Task.isCancelled { preview = data } }
+                    let root = importer.rootURL
+                    do { let data = try await Task.detached(priority: .utility) { try DocumentOCR.preview(url: draft.url(rootURL: root), page: page.number) }.value; if !Task.isCancelled { preview = data } }
                     catch { if !Task.isCancelled { originalError = error.localizedDescription } }
                 }
         }
     }
     private func reread(_ page: OCRPage) {
         guard let id = imported.sourceDocumentID, let draft = sourceDraft(id) else { return }
+        let root = importer.rootURL
         rereading = page.number; rereadError = nil
         rereadTask = Task {
             do {
-                let worker = Task.detached(priority: .userInitiated) { try await DocumentOCR.reread(url: draft.url, page: page.number) }
+                let worker = Task.detached(priority: .userInitiated) { try await DocumentOCR.reread(url: draft.url(rootURL: root), page: page.number) }
                 let revised = try await withTaskCancellationHandler { try await worker.value } onCancel: { worker.cancel() }
                 try Task.checkCancellation()
                 if revised.text.isEmpty { rereadError = "未识别到更多文字，保留当前原稿。" }
@@ -136,14 +176,14 @@ struct OCRReviewView: View {
     }
     @discardableResult private func flushEdits() -> Bool {
         // Only the unfinished import owns this cache. A book edit is saved by its explicit Save action.
-        guard let draft = ImportFiles.pending(), draft.id == imported.sourceDocumentID else { pendingEdits.removeAll(); return true }
+        guard let draft = ImportFiles.pending(rootURL: importer.rootURL), draft.id == imported.sourceDocumentID else { pendingEdits.removeAll(); return true }
         do {
-            for page in pendingEdits.values { try ImportFiles.save(page, draft: draft) }
+            for page in pendingEdits.values { try ImportFiles.save(page, draft: draft, rootURL: importer.rootURL) }
             pendingEdits.removeAll(); saveError = nil; return true
         } catch { saveError = "修改未保存：\(error.localizedDescription)"; return false }
     }
     private func sourceDraft(_ id: String) -> ImportDraft? {
         let extensions = ["pdf", "png", "jpg", "jpeg", "heic", "heif", "tif", "tiff"]
-        return extensions.first { FileManager.default.fileExists(atPath: ImportFiles.directory(id).appendingPathComponent("source." + $0).path) }.map { .init(id: id, title: imported.title, file: "source." + $0) }
+        return extensions.first { FileManager.default.fileExists(atPath: ImportFiles.directory(id, rootURL: importer.rootURL).appendingPathComponent("source." + $0).path) }.map { .init(id: id, title: imported.title, file: "source." + $0) }
     }
 }

@@ -62,12 +62,14 @@ public enum Chunker {
     /// Follow chapters, poems, scenes, or document headings. Keep fitting stanzas,
     /// speaker turns, citations, code fences, and Markdown tables together.
     /// Neither section detection nor chunking inserts, trims, or normalizes source text.
-    public static func plan(text: String, kind: DocumentKind, budget: Double? = nil) -> ChunkPlan {
+    public static func plan(text: String, kind: DocumentKind, budget: Double? = nil, preparationVersion: Int? = 2) -> ChunkPlan {
+        // Saved requests depend on the exact old chunk text and indices.
+        guard preparationVersion == 2 else { return LegacyChunker.plan(text: text, kind: kind, budget: budget) }
         let limit = safeBudget(budget ?? kind.defaultBudget)
         let sections = makeSections(text, kind: kind)
         var pieces: [String] = [], sectionForChunk: [Int] = []
         for section in sections {
-            let sectionPieces = pack(blocks(in: section.text, kind: kind), budget: limit)
+            let sectionPieces = pack(blocks(in: section.text, kind: kind, sectionTitle: section.title), budget: limit)
             pieces.append(contentsOf: sectionPieces)
             sectionForChunk.append(contentsOf: repeatElement(section.index, count: sectionPieces.count))
         }
@@ -86,6 +88,7 @@ public enum Chunker {
     private struct Block {
         let text: String
         let protected: Bool
+        var headingOnly = false
     }
 
     private static func safeBudget(_ value: Double) -> Double { value.isFinite ? max(64, value) : 1800 }
@@ -96,24 +99,49 @@ public enum Chunker {
 
     private static func splitRaw(_ text: String, budget: Double, sentences: Bool = true) -> [String] {
         var pieces: [String] = [], buffer: [Character] = [], used = 0.0
-        var boundary: Int?
-        for character in text {
+        var boundary: Int?, wordBoundary: Int?
+        let characters = Array(text)
+        for (index, character) in characters.enumerated() {
             let next = tokenCost(character)
             // A very early punctuation boundary can leave almost an entire chunk
             // behind. Check again before adding the next character in that case.
             while used + next > budget, !buffer.isEmpty {
-                let end = boundary ?? buffer.count
+                let end = boundary ?? wordBoundary ?? buffer.count
                 pieces.append(String(buffer.prefix(end)))
                 buffer = Array(buffer.dropFirst(end))
                 used = buffer.reduce(0) { $0 + tokenCost($1) }
-                boundary = nil
+                boundary = nil; wordBoundary = nil
             }
             buffer.append(character); used += next
-            if character.isNewline || (sentences && "。！？.!?".contains(character)) { boundary = buffer.count }
+            // Do not orphan a short heading, honorific, or first sentence. Long
+            // protected structures still prefer every complete source line.
+            let sufficientlyFull = !sentences || used >= budget * 0.4
+            if sentences, sufficientlyFull, character.isWhitespace { wordBoundary = buffer.count }
+            if sufficientlyFull && (character.isNewline || (sentences && sentenceEnds(at: index, in: characters))) {
+                boundary = buffer.count
+            }
         }
         if !buffer.isEmpty { pieces.append(String(buffer)) }
         return pieces
     }
+
+    private static func sentenceEnds(at index: Int, in characters: [Character]) -> Bool {
+        let character = characters[index]
+        guard "。！？.!?".contains(character) else { return false }
+        guard character == "." else { return true }
+        let next = index + 1 < characters.count ? characters[index + 1] : nil
+        // Periods within decimals, URLs, and multi-part abbreviations do not end
+        // a sentence. A trailing punctuation mark is evaluated separately.
+        if let next, !next.isWhitespace, !"\"'”’)]}".contains(next) { return false }
+        var start = index
+        while start > 0, characters[start - 1].isLetter || characters[start - 1] == "." { start -= 1 }
+        let word = String(characters[start...index]).lowercased()
+        if nonterminalAbbreviations.contains(word) { return false }
+        // Initials (including J. R. R. Tolkien and U.S.) stay with what follows.
+        return !(word.count == 2 && word.first?.isLetter == true) && !word.dropLast().contains(".")
+    }
+
+    private static let nonterminalAbbreviations: Set<String> = ["dr.", "mr.", "mrs.", "ms.", "prof.", "rev.", "sr.", "jr.", "st.", "mt.", "vs.", "etc.", "e.g.", "i.e.", "fig.", "eq.", "no.", "vol.", "pp.", "p.", "a.m.", "p.m."]
 
     /// Read lines using String indices so CRLF, combining characters, and emoji
     /// stay byte-for-byte identical when the resulting lines are joined.
@@ -147,7 +175,7 @@ public enum Chunker {
         return Fence(character: marker, length: count)
     }
 
-    private static func heading(in line: String, kind: DocumentKind) -> String? {
+    private static func heading(in line: String, kind: DocumentKind, previousLine: String? = nil, nextLine: String? = nil) -> String? {
         let raw = content(line)
         // Four-space and tab-indented lines belong to Markdown code blocks.
         guard raw.prefix(while: { $0 == " " }).count <= 3, raw.first != "\t" else { return nil }
@@ -167,11 +195,29 @@ public enum Chunker {
                 matches(title, #"^(?:ACT|SCENE)[ \t]+(?:[0-9]+|[IVXLCDM]+)(?:[ \t]+.*|[.:：—–-].*)?$"#) ||
                 matches(title, #"^(?:INT|EXT|INT\./EXT|I/E)\.[ \t]+.+$"#) { return title }
         case .academic:
-            if matches(title, #"^(?:Abstract|Introduction|Methods?|Results|Discussion|Conclusions?|References|摘要|引言|方法|结果|讨论|结论|参考文献)[：:]?$"#) { return title }
-            if !isCitationEntry(title), matches(title, #"^[1-9][0-9]?(?:\.[0-9]{1,2})*(?:\.[ \t]*|[ \t]+)[^\d\[\]].{0,100}$"#) { return title }
+            if isAcademicSectionTitle(title) { return title }
+            if !isCitationEntry(title),
+               let range = title.range(of: #"^[1-9][0-9]?(?:\.[0-9]{1,2})*(?:\.[ \t]*|[ \t]+)"#, options: .regularExpression) {
+                let name = String(title[range.upperBound...]).trimmingCharacters(in: .whitespaces)
+                if isAcademicSectionTitle(name) { return title }
+                // Unmarked numbering is ambiguous with instructions and lists.
+                // Accept unfamiliar short titles only with surrounding layout
+                // evidence, rather than turning every numbered item into a job.
+                if (1...100).contains(name.count), !matches(name, #"^[\d\[\]]"#),
+                   !matches(name, #"[.!?。！？…;；]$"#), name.split(whereSeparator: { $0.isWhitespace }).count <= 12,
+                   !matches(name, #"^(?:install|run|download|configure|start|stop|open|close|click|select|choose|enter|type|press|copy|paste|save|delete|create|add|remove|execute|check|use|安装|运行|点击|选择|输入|打开|执行)(?:\b|\s|[：:])"#),
+                   previousLine.map(isBlank) ?? true,
+                   nextLine.map({ !matches(content($0).trimmingCharacters(in: .whitespaces), #"^(?:\d+[.)]\s+|[-*+]\s+)"#) }) ?? false {
+                    return title
+                }
+            }
         case .general, .technical, .poetry: break
         }
         return nil
+    }
+
+    private static func isAcademicSectionTitle(_ title: String) -> Bool {
+        matches(title, #"^(?:Abstract|Introduction|Background|Related Work|Literature Review|Materials(?: and Methods)?|Method(?:s|ology)?|Study Design|Experiments?|Experimental (?:Setup|Results)|Evaluation|Results(?: and Discussion)?|Discussion|Conclusions?|Limitations|Future Work|Acknowledg(?:e)?ments|References|Appendix(?: [A-Z])?|摘要|引言|背景|相关工作|文献综述|材料与方法|方法|实验|结果|讨论|结论|局限性|致谢|参考文献|附录)[：:]?$"#)
     }
 
     private static func matches(_ text: String, _ pattern: String) -> Bool {
@@ -193,14 +239,17 @@ public enum Chunker {
 
     private static func makeSections(_ text: String, kind: DocumentKind) -> [DocumentSection] {
         var result: [DocumentSection] = [], buffer = "", title = "正文", activeFence: Fence?
-        for line in lines(in: text) {
+        let sourceLines = lines(in: text)
+        for (index, line) in sourceLines.enumerated() {
             if let current = activeFence {
                 buffer += line
                 if fence(in: line, closing: current) != nil { activeFence = nil }
                 continue
             }
             if let opening = fence(in: line) { activeFence = opening; buffer += line; continue }
-            if let nextTitle = heading(in: line, kind: kind) {
+            if let nextTitle = heading(in: line, kind: kind,
+                                       previousLine: index > 0 ? sourceLines[index - 1] : nil,
+                                       nextLine: index + 1 < sourceLines.count ? sourceLines[index + 1] : nil) {
                 if !isBlank(buffer) {
                     result.append(DocumentSection(index: result.count, title: title, text: buffer))
                     buffer = ""
@@ -222,16 +271,23 @@ public enum Chunker {
         return !cells.isEmpty && cells.allSatisfy { $0.range(of: #"^:?-{3,}:?$"#, options: .regularExpression) != nil }
     }
 
-    private static func blocks(in text: String, kind: DocumentKind) -> [Block] {
+    private static func blocks(in text: String, kind: DocumentKind, sectionTitle: String) -> [Block] {
         let sourceLines = lines(in: text)
         var result: [Block] = [], prose = "", index = 0
-        let technical = kind == .technical || kind == .academic
         let wholeLines = kind == .poetry || kind == .script
         var proseProtected = wholeLines
+        func proseBlock(_ text: String) -> Block {
+            let nonblank = lines(in: text).filter { !isBlank($0) }
+            return Block(text: text, protected: proseProtected,
+                         headingOnly: !nonblank.isEmpty && nonblank.allSatisfy {
+                             heading(in: $0, kind: kind) != nil || content($0).trimmingCharacters(in: .whitespaces) == sectionTitle
+                         })
+        }
         while index < sourceLines.count {
             let line = sourceLines[index]
-            if technical, let opening = fence(in: line) {
-                if !prose.isEmpty { result.append(Block(text: prose, protected: proseProtected)); prose = "" }
+            // Preserve local structures regardless of the document's genre.
+            if let opening = fence(in: line) {
+                if !prose.isEmpty { result.append(proseBlock(prose)); prose = "" }
                 proseProtected = wholeLines
                 var code = line; index += 1
                 while index < sourceLines.count {
@@ -241,9 +297,9 @@ public enum Chunker {
                 result.append(Block(text: code, protected: true))
                 continue
             }
-            if technical, index + 1 < sourceLines.count, line.contains("|"), !isBlank(line),
+            if index + 1 < sourceLines.count, line.contains("|"), !isBlank(line),
                isTableDelimiter(sourceLines[index + 1]) {
-                if !prose.isEmpty { result.append(Block(text: prose, protected: proseProtected)); prose = "" }
+                if !prose.isEmpty { result.append(proseBlock(prose)); prose = "" }
                 proseProtected = wholeLines
                 var table = line + sourceLines[index + 1]; index += 2
                 while index < sourceLines.count {
@@ -257,32 +313,48 @@ public enum Chunker {
             }
             let citation = kind == .academic && isCitationEntry(line)
             if (kind == .script && isSpeaker(line)) || citation {
-                if !prose.isEmpty { result.append(Block(text: prose, protected: proseProtected)); prose = "" }
+                if !prose.isEmpty { result.append(proseBlock(prose)); prose = "" }
                 proseProtected = wholeLines || citation
             }
             prose += line; index += 1
             if isBlank(line) {
-                result.append(Block(text: prose, protected: proseProtected)); prose = ""; proseProtected = wholeLines
+                result.append(proseBlock(prose)); prose = ""; proseProtected = wholeLines
             }
         }
-        if !prose.isEmpty { result.append(Block(text: prose, protected: proseProtected)) }
+        if !prose.isEmpty { result.append(proseBlock(prose)) }
         return result
     }
 
     private static func pack(_ blocks: [Block], budget: Double) -> [String] {
-        var result: [String] = [], buffer = "", used = 0.0
+        var result: [String] = [], buffer = "", used = 0.0, headingOnly = false, containsProtected = false
         for block in blocks {
             let blockCost = cost(block.text)
             if blockCost <= budget {
-                if used + blockCost > budget, !buffer.isEmpty { result.append(buffer); buffer = ""; used = 0 }
+                if used + blockCost > budget, !buffer.isEmpty {
+                    if headingOnly && !block.protected {
+                        let pieces = splitRaw(buffer + block.text, budget: budget)
+                        result.append(contentsOf: pieces.dropLast())
+                        buffer = pieces.last ?? ""; used = cost(buffer); headingOnly = false; containsProtected = false
+                        continue
+                    }
+                    result.append(buffer); buffer = ""; used = 0; containsProtected = false
+                }
+                headingOnly = buffer.isEmpty ? block.headingOnly : headingOnly && block.headingOnly
+                containsProtected = containsProtected || block.protected
                 buffer += block.text; used += blockCost
             } else {
-                if !buffer.isEmpty { result.append(buffer); buffer = ""; used = 0 }
+                var oversized = block.text
+                if !buffer.isEmpty {
+                    if block.protected || containsProtected { result.append(buffer) }
+                    else { oversized = buffer + oversized }
+                    buffer = ""; used = 0
+                }
                 // Hard fallback for oversized structures, preferring complete
                 // verse, dialogue, citation, code, and table lines over sentences.
-                let pieces = splitRaw(block.text, budget: budget, sentences: !block.protected)
+                let pieces = splitRaw(oversized, budget: budget, sentences: !block.protected)
                 result.append(contentsOf: pieces.dropLast())
                 if let last = pieces.last { buffer = last; used = cost(last) }
+                headingOnly = false; containsProtected = block.protected && !buffer.isEmpty
             }
         }
         if !buffer.isEmpty { result.append(buffer) }

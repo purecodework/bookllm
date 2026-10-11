@@ -8,6 +8,7 @@ public struct EfficientGlossaryProvider: TranslationProvider {
     public init(provider: any TranslationProvider, jobID: String, chunks: [TextChunk], sections: [Int] = [],
                 kind: DocumentKind, target: String, seed: [Term], snapshots: [Int: [Term]] = [:],
                 discoveries: [Int: [Term]] = [:], queries: [Int: GlossaryQuery] = [:], rejected: [Int: [String]] = [:],
+                nameOverrides: @escaping @Sendable () async -> [String: String] = { [:] },
                 onQuery: @escaping @Sendable (Int, GlossaryQuery) async throws -> Void,
                 onRejected: @escaping @Sendable (Int, [String]) async throws -> Void,
                 onSnapshot: @escaping @Sendable (Int, [Term]) async throws -> Void,
@@ -15,7 +16,7 @@ public struct EfficientGlossaryProvider: TranslationProvider {
         self.provider = provider
         memory = EfficientGlossaryMemory(provider: provider, jobID: jobID, chunks: chunks, sections: sections,
             kind: kind, target: target, seed: seed, snapshots: snapshots, discoveries: discoveries, queries: queries,
-            rejected: rejected, onQuery: onQuery, onRejected: onRejected, onSnapshot: onSnapshot, onDiscovery: onDiscovery)
+            rejected: rejected, nameOverrides: nameOverrides, onQuery: onQuery, onRejected: onRejected, onSnapshot: onSnapshot, onDiscovery: onDiscovery)
     }
     public func complete(_ request: TranslationRequest) async throws -> String {
         let prepared = try await memory.prepare(request)
@@ -45,6 +46,7 @@ private actor EfficientGlossaryMemory {
     let onRejected: @Sendable (Int, [String]) async throws -> Void
     let onSnapshot: @Sendable (Int, [Term]) async throws -> Void
     let onDiscovery: @Sendable (Int, [Term]) async throws -> Void
+    let nameOverrides: @Sendable () async -> [String: String]
     var terms: [Term]
     var snapshots: [Int: [Term]]
     var discoveries: [Int: [Term]]
@@ -55,11 +57,13 @@ private actor EfficientGlossaryMemory {
     init(provider: any TranslationProvider, jobID: String, chunks: [TextChunk], sections: [Int],
          kind: DocumentKind, target: String, seed: [Term], snapshots: [Int: [Term]], discoveries: [Int: [Term]],
          queries: [Int: GlossaryQuery], rejected: [Int: [String]],
+         nameOverrides: @escaping @Sendable () async -> [String: String],
          onQuery: @escaping @Sendable (Int, GlossaryQuery) async throws -> Void,
          onRejected: @escaping @Sendable (Int, [String]) async throws -> Void,
          onSnapshot: @escaping @Sendable (Int, [Term]) async throws -> Void,
          onDiscovery: @escaping @Sendable (Int, [Term]) async throws -> Void) {
         let sortedChunks = chunks.sorted { $0.index < $1.index }
+        self.nameOverrides = nameOverrides
         self.provider = provider; self.jobID = jobID; self.chunks = sortedChunks
         self.kind = kind; self.target = target; self.snapshots = snapshots; self.discoveries = discoveries
         self.queries = queries; self.onQuery = onQuery; self.onRejected = onRejected
@@ -162,7 +166,7 @@ private actor EfficientGlossaryMemory {
         }
         for chunk in members where snapshots[chunk.index] == nil {
             try Task.checkCancellation()
-            let snapshot = GlossaryMemory.relevant(terms, to: chunk.text)
+            let snapshot = NameOverrides.applying(await nameOverrides(), to: GlossaryMemory.relevant(terms, to: chunk.text))
             guard snapshot.count <= 1000 else { throw TranslationError.message("本段匹配术语超过服务限制，请检查本文术语后重新导入。") }
             try await onSnapshot(chunk.index, snapshot); snapshots[chunk.index] = snapshot
         }

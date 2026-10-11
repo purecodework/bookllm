@@ -1,0 +1,78 @@
+{
+  "identifier": "84F8A4E8-0E07-447A-AEE1-02BB1690A0F3",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "6.00",
+      "familyShareable": false,
+      "internalID": "651186F9-77E0-49A6-84CC-3410615FDB6C",
+      "localizations": [
+        {
+          "description": "云端翻译点数；仅供本地商店界面测试。",
+          "displayName": "100 翻译点数",
+          "locale": "zh_CN"
+        },
+        {
+          "description": "Provisional local StoreKit testing product. Provider API fees are separate.",
+          "displayName": "100 Translation Credits",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "app.bookllm.credits.100",
+      "referenceName": "100 翻译点数",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "40.00",
+      "familyShareable": false,
+      "internalID": "E0B3503B-56A7-48D8-A387-1F99D51158A2",
+      "localizations": [
+        {
+          "description": "云端翻译点数；仅供本地商店界面测试。",
+          "displayName": "1,000 翻译点数",
+          "locale": "zh_CN"
+        },
+        {
+          "description": "Provisional local StoreKit testing product. Provider API fees are separate.",
+          "displayName": "1,000 Translation Credits",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "app.bookllm.credits.1000",
+      "referenceName": "1,000 翻译点数",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "98.00",
+      "familyShareable": false,
+      "internalID": "634477E5-92DB-47C5-B31F-6434CD5C47A5",
+      "localizations": [
+        {
+          "description": "买断后使用自己的 API；模型服务商费用另计。",
+          "displayName": "自带 API · 永久解锁",
+          "locale": "zh_CN"
+        },
+        {
+          "description": "Provisional local StoreKit testing product. Provider API fees are separate.",
+          "displayName": "Bring Your Own API · Lifetime",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "app.bookllm.byok.lifetime",
+      "referenceName": "自带 API · 永久解锁",
+      "type": "NonConsumable"
+    }
+  ],
+  "settings": {
+    "_applicationInternalID": "",
+    "_developerTeamID": "",
+    "_failTransactionsEnabled": false,
+    "_locale": "zh_CN",
+    "_storefront": "CHN"
+  },
+  "subscriptionGroups": [],
+  "version": {
+    "major": 3,
+    "minor": 0
+  }
+}

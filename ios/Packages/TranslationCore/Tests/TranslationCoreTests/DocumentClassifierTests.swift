@@ -89,6 +89,22 @@ final class DocumentClassifierTests: XCTestCase {
         XCTAssertEqual(DocumentClassifier.detect(text: text), .technical)
     }
 
+    func testLocalTableDoesNotOverrideNovelChapters() {
+        let source = "Chapter I\nAlice found the old ledger.\n\n| Name | Amount |\n| --- | --- |\n| Alice | 3 |\n\nChapter II\nShe followed the river home.\n"
+        let kind = DocumentClassifier.detect(text: source)
+        XCTAssertEqual(kind, .fiction)
+        let plan = Chunker.plan(text: source, kind: kind)
+        XCTAssertEqual(plan.sections.map(\.title), ["Chapter I", "Chapter II"])
+        XCTAssertEqual(plan.chunks.map(\.text).joined(), source)
+    }
+
+    func testNovelStructureCanContainCodeWithoutChangingGenre() {
+        let source = "Chapter I\nThe message on the terminal read:\n```text\nChapter III\nlet secret = 1\n```\nChapter II\nAlice closed the screen.\n"
+        XCTAssertEqual(DocumentClassifier.detect(text: source), .fiction)
+        XCTAssertEqual(Chunker.plan(text: source, kind: .fiction).sections.map(\.title), ["Chapter I", "Chapter II"])
+        XCTAssertEqual(DocumentClassifier.detect(text: source, title: "Programming Reference Manual"), .technical)
+    }
+
     func testAcademicAbstractAndKeywordsDoNotRequireReferencesInSample() {
         let text = "# A Controlled Study\n## 1. Abstract\nWe compare two translation methods using a fixed evaluation set.\nKeywords: translation; evaluation\n## 2. Methods\nThe study enrolled 120 participants."
         XCTAssertEqual(DocumentClassifier.detect(text: text), .academic)

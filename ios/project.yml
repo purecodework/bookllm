@@ -50,6 +50,31 @@ targets:
         Release:
           SWIFT_COMPILATION_MODE: wholemodule
           SWIFT_OPTIMIZATION_LEVEL: '-O'
+  BookLLMTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests
+        excludes: [Fixtures]
+      - path: Tests/Fixtures
+        buildPhase: resources
+    dependencies:
+      - target: BookLLM
+      - package: TranslationCore
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: app.bookllm.ios.BookLLMTests
+  BookLLMUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    dependencies:
+      - target: BookLLM
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: app.bookllm.ios.BookLLMUITests
 schemes:
   BookLLM:
     build:
@@ -58,5 +83,7 @@ schemes:
     run:
       config: Debug
       storeKitConfiguration: StoreKit/BookLLM.storekit
+    test:
+      targets: [BookLLMTests, BookLLMUITests]
     archive:
       config: Release
