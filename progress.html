@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>译间 · iOS 开发进度</title>
+  <style>
+    :root { --paper:#f6f4ee; --ink:#302f2c; --muted:#666a60; --green:#525f50; --line:#d5d4cc; --wash:#e9ebe3; --pending:#806449; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:15px/1.75 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif; }
+    main { max-width:1020px; margin:auto; padding:44px 28px 32px; }
+    header { display:flex; align-items:flex-start; justify-content:space-between; gap:24px; border-bottom:1px solid var(--line); padding-bottom:26px; }
+    .eyebrow, .stamp, .label { color:var(--muted); font-size:12px; }
+    h1 { margin:8px 0 10px; font:400 clamp(30px,5vw,42px)/1.3 "Songti SC","Noto Serif CJK SC",serif; }
+    h2 { font-size:18px; font-weight:500; margin:0 0 16px; }
+    p { margin:0 0 12px; }
+    .intro { max-width:580px; color:var(--muted); }
+    .stamp { white-space:nowrap; padding-top:5px; text-align:right; }
+    .status { display:inline-block; color:var(--green); background:var(--wash); padding:3px 10px; font-size:12px; border-radius:4px; }
+    .stamp time { display:block; margin-top:8px; }
+    a { color:var(--green); text-underline-offset:4px; }
+    a:hover { text-decoration-thickness:2px; }
+    a:focus-visible, summary:focus-visible { outline:2px solid var(--green); outline-offset:5px; }
+    .columns { display:grid; grid-template-columns:1.3fr 1fr; gap:42px; margin:28px 0; }
+    section { min-width:0; }
+    ul { list-style:none; padding:0; margin:0; }
+    .rows li { padding:11px 0; border-bottom:1px solid var(--line); }
+    .rows strong { font-weight:500; display:block; }
+    .rows span { color:var(--muted); font-size:13px; display:block; margin-top:3px; }
+    table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+    th, td { text-align:left; padding:9px 0; border-bottom:1px solid var(--line); }
+    th { color:var(--muted); font-size:12px; font-weight:400; }
+    th:last-child, td:last-child { text-align:right; }
+    .pass { color:var(--green); }
+    .note { color:var(--muted); font-size:13px; margin-top:12px; }
+    .workflow { padding:22px; background:var(--wash); border-radius:7px; margin:26px 0; }
+    .workflow p:last-child { margin:0; }
+    .flow { color:var(--green); font-size:17px; margin:8px 0; }
+    .flow span { display:inline-block; }
+    .pending { color:var(--pending); }
+    .evidence { border-top:1px solid var(--line); padding-top:24px; margin-top:28px; }
+    figure { margin:16px 0; }
+    img { display:block; width:100%; height:auto; border:1px solid var(--line); }
+    figcaption { font-size:12px; color:var(--muted); margin-top:8px; }
+    .links { display:flex; flex-wrap:wrap; gap:8px 22px; }
+    .links a { display:inline-flex; align-items:center; min-height:44px; }
+    details { margin-top:18px; }
+    summary { cursor:pointer; color:var(--green); min-height:44px; padding:9px 0; }
+    pre { overflow:auto; margin:10px 0; padding:14px; background:var(--wash); border-radius:4px; font:12px/1.7 ui-monospace,Menlo,monospace; }
+    footer { border-top:1px solid var(--line); margin-top:28px; padding-top:16px; color:var(--muted); font-size:12px; }
+    @media(max-width:680px) { main { padding:26px 20px; } header { display:block; } .stamp { text-align:left; margin-top:16px; } .stamp time { display:inline; margin-left:8px; } .columns { grid-template-columns:1fr; gap:28px; } .workflow { padding:18px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <div class="eyebrow">译间 / BookLLM · 原生 SwiftUI</div>
+        <h1>iOS 开发进度</h1>
+        <p class="intro">纸面界面与翻译准备修正已实现。最新翻译 mock 回归与一次 DeepSeek 短文 SSE、保存重载验证通过；旧任务与用户数据保留。</p>
+      </div>
+      <div class="stamp"><span class="status">短文 API 验证通过</span><time datetime="2026-10-11">更新于 2026.10.11</time></div>
+    </header>
+
+    <section class="workflow" aria-labelledby="deepseek-smoke-title">
+      <div class="label">2026.10.11 · mock 先行，单次真实请求</div>
+      <h2 id="deepseek-smoke-title">四档流程通过 mock，速读真实 API 跑通</h2>
+      <p>核心 174 项、相关原生 mock 15 项通过；真实测试默认跳过。显式启用后仅发送一次 DeepSeek Flash 请求，短文流式翻译、完成检查、保存与重载通过，重载不重发。新增连接使用 Flash，显式关闭其默认思考；保留已保存模型。</p>
+      <p>真实用例合计 3.631 秒，包含翻译和持久化检查；输出上限 128 tokens，准确总用量未取得。另外三档、长文耗时与真实译质尚未实测。密钥临时文件已删除，正常 Keychain 与书库未改。</p>
+      <p><a href="ios/qa/paper-ui/verification.md">查看本轮范围、单次请求证据与复现入口</a></p>
+    </section>
+
+    <div class="columns">
+      <section aria-labelledby="done-title">
+        <h2 id="done-title">已完成</h2>
+        <ul class="rows">
+          <li><strong>书库与导入保护</strong><span>文字导入入口、本机粘贴草稿恢复、失败保留、稳定 ID 入库去重。</span></li>
+          <li><strong>设置、费用与商品</strong><span>档位用途与风格前置；权益、另收费和服务不可用明确，商品重试与 API 保存保护。</span></li>
+          <li><strong>本书进度与译名</strong><span>前台／后台行为解释、真实暂停状态；完整生效说明，保留旧任务和冻结请求。</span></li>
+          <li><strong>阅读与导出</strong><span>全屏阅读返回原进度、完整目录；全书／当前章／指定章节，终稿快照与五格式回读。</span></li>
+          <li><strong>原生布局</strong><span>窄屏布局、最大辅助字号和键盘回归；iPad 横竖屏、居中内容与表单。人工无障碍复验尚待完成。</span></li>
+        </ul>
+      </section>
+      <section aria-labelledby="test-title">
+        <h2 id="test-title">10 月 10 日历史验证</h2>
+        <table>
+          <thead><tr><th scope="col">项目</th><th scope="col">结果</th></tr></thead>
+          <tbody>
+            <tr><td>TranslationCore</td><td class="pass">142 项通过</td></tr>
+            <tr><td>原生 App 单测</td><td class="pass">46 项通过</td></tr>
+            <tr><td>iPhone / iPad UI 测试</td><td class="pass">12 + 1 条通过</td></tr>
+            <tr><td>Debug / Release 模拟器构建</td><td class="pass">通过</td></tr>
+          </tbody>
+        </table>
+        <p class="note">本轮共 201 项独立用例，相关复测不重复计数。10 月 9 日历史 160 项另存。完整设备截图和指定宽度布局快照分别标注。</p>
+        <p class="note">本页是静态进度记录，后续代码变化需重新验证。</p>
+      </section>
+    </div>
+
+    <section class="workflow" aria-labelledby="ux-title">
+      <div class="label">2026.10.10 · 十项全流程修正已实现</div>
+      <h2 id="ux-title">输入可恢复，下一步与范围更清楚</h2>
+      <p>粘贴草稿自动保存在本机；商品与保存失败可恢复；目录展示全部已知章节；导出明确全书、当前章和指定章节。阅读全屏返回原进度，译名保存前显示生效边界，iPad 内容居中。</p>
+      <p><a href="ios/qa/ux-improvements-2026-10-10/report.html">查看实施报告与最新原生前后截图</a> · <a href="ios/qa/ux-audit-2026-10-09/report.html">原始审查</a>。正常 App 已重新启动并保留原书库；真实服务和人工无障碍项目单独标注。</p>
+    </section>
+
+    <section class="workflow" aria-labelledby="translation-preparation-title">
+      <div class="label">2026.10.10 · 翻译准备四项修正</div>
+      <h2 id="translation-preparation-title">完整请求预算与更合理的上下文边界</h2>
+      <p>自带 API 可设置窗口与输出 tokens，完整消息预检自动收缩背景，明确容量拒绝后继续缩减；必需正文过大时保留并提示。小说局部表格不改变章节，论文步骤与缩写不再产生微小分块，精修首译补齐小说上下文并减少重复输入。</p>
+      <p>最新核心 171 项、App 55 项、相关 iPhone UI 2 条通过，共 228 项；复测不重复计数，增量 Debug 构建通过。旧任务保持原分块与请求组装。预算采用估算，在线模型与实际译质未验证；云端预算仍由既有服务处理。</p>
+      <p><a href="ios/qa/paper-ui/verification.md">查看最新实现、兼容边界与验证记录</a> · <a href="ios/qa/model-request-fixes-2026-10-10/screenshots/model-limits-number-keyboard.png">原生数字键盘截图</a></p>
+    </section>
+
+    <section class="workflow" aria-labelledby="speed-title">
+      <div class="label">开发约定 · 已记录，性能尚待测量</div>
+      <h2 id="speed-title">减少每次启动的等待</h2>
+      <p class="flow"><span>SwiftUI 预览</span> → <span>按需增量 Debug 构建</span> → <span>复用已启动的模拟器</span></p>
+      <p>只想试用、代码未变且已安装最新版本时，直接启动 App。完整测试与 Release 构建用于对应验收；持续慢时分别测量编译、安装和首屏耗时。</p>
+    </section>
+
+    <section aria-labelledby="pending-title">
+      <h2 id="pending-title">尚待验证</h2>
+      <ul class="rows">
+        <li><strong class="pending">外部服务与真机</strong><span>真实 Apple 登录、支付、发布／购买交易和真机仍未验证；在线模型已完成速读短文验证，长文、多轮耗时与译质仍待实测。</span></li>
+        <li><strong class="pending">完整导入与 OCR 流程</strong><span>各格式通过系统选择器导入、扫描／混合 PDF 的完整交互仍有验证缺口。</span></li>
+        <li><strong class="pending">人工原生体验</strong><span>末段 Mac 锁定；本轮完整 VoiceOver、减少动态效果实操、iPad 分屏及最终桌面原生窗口可见性尚待复验。历史检查不计作本轮通过。</span></li>
+        <li><strong class="pending">观察项与启动性能</strong><span>仍有未定位的 frame dimension 运行时警告，未观察到流程阻断；尚无分阶段启动耗时数据。</span></li>
+      </ul>
+    </section>
+
+    <section class="evidence" aria-labelledby="polish-title">
+      <h2 id="polish-title">10 月 10 日追加：操作与视觉细节</h2>
+      <p>首次阅读／继续翻译动作更明确；语言行对齐，API 字段补中文，设置表单统一纸底；介绍可关闭且复看不改模式，目录说明可读，导出范围与格式标签常驻。</p>
+      <p>本次聚焦回归 16 项独立用例通过（14 iPhone UI、1 iPad UI、1 布局测试），Debug 构建通过。此前 201 项为上一轮结果，未在本次全部重跑。横屏旋转过渡截图已剔除，稳定横屏、真实服务和完整无障碍仍有缺口。</p>
+      <p><a href="ios/qa/ux-polish-2026-10-10/report.html">查看逐步报告与原生前后截图</a></p>
+    </section>
+    <section class="evidence" aria-labelledby="evidence-title">
+      <h2 id="evidence-title">原生证据与协作约定</h2>
+      <figure>
+        <a href="ios/qa/paper-ui/overview.png" aria-label="打开原生截图总览大图"><img src="ios/qa/paper-ui/overview.png" width="1244" height="500" alt="译间原生书库、翻译设置、进度面板、阅读器和译名编辑截图总览" loading="lazy"></a>
+        <figcaption>上图为 10 月 9 日历史纸面 UI 总览。最新截图见实施报告；测试夹具未进行真实模型或支付调用。</figcaption>
+      </figure>
+      <nav class="links" aria-label="项目记录">
+        <a href="AGENTS.md">协作约定</a>
+        <a href="ios/qa/paper-ui/verification.md">验证报告</a>
+        <a href="design-qa.md">视觉对照记录</a>
+        <a href="ios/qa/ux-improvements-2026-10-10/report.html">全流程修正报告</a>
+        <a href="ios/qa/paper-ui/quality-and-return.mp4">切档与返回录屏</a>
+        <a href="ios/README_ZH.md">iOS 运行说明</a>
+      </nav>
+      <details>
+        <summary>查看测试复现命令</summary>
+        <pre><code>cd ios/Packages/TranslationCore
+swift test</code></pre>
+        <pre><code># 在仓库根目录；按实际设备修改 destination
+xcodebuild -project ios/BookLLM.xcodeproj -scheme BookLLM \
+  -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17e' \
+  -collect-test-diagnostics never CODE_SIGNING_ALLOWED=NO test</code></pre>
+      </details>
+    </section>
+    <footer>仅记录 iOS 本轮工作 · 本页不连接模型、支付或线上服务。</footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,253 @@
+{
+  "version": "ui-handoff-v1",
+  "note": "PNG portraits are transparent raster assets, not SVG paths. Demo covers never replace real manuscript covers.",
+  "files": [
+    {
+      "path": "assets/demo-covers/garden-ui.webp",
+      "bytes": 13964,
+      "sha256": "7d940e4323048357a3e0abd1564ebf6510fba77f04327ffe302d347680b2a18c",
+      "width": 360,
+      "height": 519,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "path": "assets/demo-covers/garden.png",
+      "bytes": 2426504,
+      "sha256": "bafd943c9f64fe20747f2285c41a23da1fb51d1ea60ff96be37d4109e7b6d6c4",
+      "width": 1044,
+      "height": 1506,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "path": "assets/demo-covers/mountain-ui.webp",
+      "bytes": 19828,
+      "sha256": "27d4654c7fc3c0426ff1bc1cc18322d20ea9f770d57e1845cc7511472f59a340",
+      "width": 360,
+      "height": 520,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "path": "assets/demo-covers/mountain.png",
+      "bytes": 2616736,
+      "sha256": "77997bf600a76ce9ed99e24366a3c32b7414d8dc3f2c081e87281974fa18f4b5",
+      "width": 1044,
+      "height": 1507,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "path": "assets/icons/account.svg",
+      "bytes": 235,
+      "sha256": "ac2158d4fe2f56e582e93ccf166072349a5ec955070a74b4a6530cb5d6321ba8"
+    },
+    {
+      "path": "assets/icons/arrow.svg",
+      "bytes": 200,
+      "sha256": "6668f103b165256f352e0a9bd7071b86858a41fd4db9abe8e908ef17183bd300"
+    },
+    {
+      "path": "assets/icons/back.svg",
+      "bytes": 192,
+      "sha256": "aab786867ed2a998eb1c1795e0a5331c37bf8c633a8a421959e37637bde6c19d"
+    },
+    {
+      "path": "assets/icons/more.svg",
+      "bytes": 259,
+      "sha256": "d54438e11c54195b2f177fb80b51fc6f87a2c4916ab7127ca8a7056bd8ffb512"
+    },
+    {
+      "path": "assets/icons/pause.svg",
+      "bytes": 194,
+      "sha256": "74b0cbdf7f4c86175b130d9b69f35a4f714d17384177441112292213b9dc4d56"
+    },
+    {
+      "path": "assets/icons/play.svg",
+      "bytes": 194,
+      "sha256": "8337db05643b33008496633715440f4523f4d89bc4943510075c88cb5577c320"
+    },
+    {
+      "path": "assets/icons/plus.svg",
+      "bytes": 195,
+      "sha256": "be984bc1c2c12af46de7fbfb9cf29515dec564d685605403eebc3eed538e70ac"
+    },
+    {
+      "path": "assets/icons/search.svg",
+      "bytes": 226,
+      "sha256": "b917453dbb9ca74615a2fac9fb0665a8d6ab5315f6e04359ebe185b397fc7216"
+    },
+    {
+      "path": "assets/paper/paper-texture.png",
+      "bytes": 2251573,
+      "sha256": "e6848dd0ef60ae0c440168d9e6b4647e8473f3358218213c0bf9cf3ab54fa069",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "path": "assets/paper/paper-tile.jpg",
+      "bytes": 5543,
+      "sha256": "f18dd26340af63f5b9006e330a8e9370a3348b47dd8795706e1504043a8f8b2a",
+      "width": 520,
+      "height": 520,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "path": "assets/roles/editor.png",
+      "bytes": 402026,
+      "sha256": "6f8250dd3c650710ad09925251c5942561abdb70e7294244f6edd6535015ad75",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "path": "assets/roles/linguist.png",
+      "bytes": 254141,
+      "sha256": "6d14c1cac72069c24b9942ac16cc8cedf73c3d47b07ec05763b01480f17b153a",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "path": "assets/roles/proofreader.png",
+      "bytes": 260220,
+      "sha256": "97fdd268d5a239dcd094819bf99457479a84615429b14faa65bb4b90db434308",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "path": "assets/roles/role-contact-sheet.png",
+      "bytes": 100665,
+      "sha256": "b79013f456933e38333ced95adc60155ce163582e340e64f7e0e63de48ac4c51",
+      "width": 1320,
+      "height": 440,
+      "mode": "RGB",
+      "hasAlpha": false
+    },
+    {
+      "path": "assets/roles/translator.png",
+      "bytes": 416745,
+      "sha256": "71984c1017a533e74771cc582b45aa916afd1026ea8ab4d713e7b73f45c33f8c",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "path": "assets/roles/ui/editor@1x.png",
+      "bytes": 11254,
+      "sha256": "5197fa20c42258e184a4e73781938d625b12e2a60f7f75865fac8afe94ab3c05",
+      "width": 128,
+      "height": 128,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "path": "assets/roles/ui/editor@2x.png",
+      "bytes": 31257,
+      "sha256": "3419f174fc221cac41b5f8fe6c0e092068fce4a25b0cb44237dd8b6788677d50",
+      "width": 256,
+      "height": 256,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "path": "assets/roles/ui/editor@3x.png",
+      "bytes": 55702,
+      "sha256": "fbb9be37b693347e3cba8e4d5c8b8bb1da0a966a030c755295bc691a7d4369a6",
+      "width": 384,
+      "height": 384,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "path": "assets/roles/ui/linguist@1x.png",
+      "bytes": 7746,
+      "sha256": "a9cf96c5d6ade980c02bf4f8a4d3f6f1274d4966cae13818b5478ce289420730",
+      "width": 128,
+      "height": 128,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "path": "assets/roles/ui/linguist@2x.png",
+      "bytes": 20273,
+      "sha256": "d23dc72df621f9479b55878851385f121fbe1b4c815be2b8d8cf2571e13a1b8a",
+      "width": 256,
+      "height": 256,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "path": "assets/roles/ui/linguist@3x.png",
+      "bytes": 35666,
+      "sha256": "9dd70488d0962b27636d66c3eeb4718060b101f992993ccc8b0e90484f9cc93a",
+      "width": 384,
+      "height": 384,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "path": "assets/roles/ui/proofreader@1x.png",
+      "bytes": 7194,
+      "sha256": "b05c91f87a428e5f860be7205937ecb6bec3399980e9c4cd826b21648cd039df",
+      "width": 128,
+      "height": 128,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "path": "assets/roles/ui/proofreader@2x.png",
+      "bytes": 19482,
+      "sha256": "e95a0fbd3d56e4c5c9bada2b384b1eede73360d30044372b5022529af1ad0a6f",
+      "width": 256,
+      "height": 256,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "path": "assets/roles/ui/proofreader@3x.png",
+      "bytes": 35162,
+      "sha256": "ce726b574b09d55d51a4c1240049f6481f4dd21cd143578a3a32315e49e4739a",
+      "width": 384,
+      "height": 384,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "path": "assets/roles/ui/translator@1x.png",
+      "bytes": 11851,
+      "sha256": "7582250b10efae2db931abc510ae45eed70d5ba8294b728173729052ab3465e6",
+      "width": 128,
+      "height": 128,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "path": "assets/roles/ui/translator@2x.png",
+      "bytes": 32349,
+      "sha256": "fa24e02171bbce45799a3c663fa7cff2bdbb31f461ad358a94fe05ee0f538c56",
+      "width": 256,
+      "height": 256,
+      "mode": "RGBA",
+      "hasAlpha": true
+    },
+    {
+      "path": "assets/roles/ui/translator@3x.png",
+      "bytes": 58010,
+      "sha256": "90526f08adef2b89147a35db18be29cbfff6c6d4e5c6ff983ad697640ab457b2",
+      "width": 384,
+      "height": 384,
+      "mode": "RGBA",
+      "hasAlpha": true
+    }
+  ]
+}

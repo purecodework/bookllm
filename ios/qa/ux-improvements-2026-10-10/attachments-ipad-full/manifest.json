@@ -1,0 +1,53 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E38F67CE-DCDE-415F-AB11-C1CE2039D873",
+        "deviceName" : "iPad Pro 13-inch (M5)",
+        "exportedFileName" : "A0DA52C5-777A-42EF-881E-5989024B580C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "ux-ipad-reader-landscape_0_D0AF173E-4377-49EA-8A6C-CD248D45D7D6.png",
+        "timestamp" : 1791554470.164
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E38F67CE-DCDE-415F-AB11-C1CE2039D873",
+        "deviceName" : "iPad Pro 13-inch (M5)",
+        "exportedFileName" : "3E874F72-480E-4EAC-BE12-2FE960070F1E.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "ux-ipad-reader-portrait_0_CBDB3598-398D-4E3C-BB9E-AF609C160DD9.png",
+        "timestamp" : 1791554469.029
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E38F67CE-DCDE-415F-AB11-C1CE2039D873",
+        "deviceName" : "iPad Pro 13-inch (M5)",
+        "exportedFileName" : "45B73770-6259-4F57-B0FC-44FC1C69F2CB.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "ux-ipad-configuration-portrait_0_1C63394A-CB34-4E64-9DF3-364D4E233BF4.png",
+        "timestamp" : 1791554464.839
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E38F67CE-DCDE-415F-AB11-C1CE2039D873",
+        "deviceName" : "iPad Pro 13-inch (M5)",
+        "exportedFileName" : "87F01A1D-FCBA-41C5-999C-90B73CF814AD.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "ux-ipad-configuration-landscape_0_B1E8879E-C4A6-4136-9B35-21468847EB03.png",
+        "timestamp" : 1791554463.708
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E38F67CE-DCDE-415F-AB11-C1CE2039D873",
+        "deviceName" : "iPad Pro 13-inch (M5)",
+        "exportedFileName" : "C9AAD749-C7BA-463D-8077-AD998D3C3534.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "ux-ipad-library-landscape_0_0AFED450-FE27-450E-9E9A-50EFE9064345.png",
+        "timestamp" : 1791554461.691
+      }
+    ],
+    "testIdentifier" : "ExperienceFlowTests/testTabletPortraitAndLandscapeLayouts()",
+    "testIdentifierURL" : "test://com.apple.xcode/BookLLM/BookLLMUITests/ExperienceFlowTests/testTabletPortraitAndLandscapeLayouts"
+  }
+]

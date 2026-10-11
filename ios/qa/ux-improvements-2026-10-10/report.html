@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>译间 · 全流程体验修正 2026-10-10</title>
+  <style>
+    :root{--paper:#f6f4ee;--ink:#302f2c;--muted:#666a60;--green:#525f50;--line:#d5d4cc;--wash:#e9ebe3}
+    *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.8 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}
+    main{max-width:1120px;margin:auto;padding:40px 24px}header{border-bottom:1px solid var(--line);padding-bottom:24px}
+    h1{font:400 clamp(30px,5vw,44px)/1.4 "Songti SC",serif;margin:10px 0}h2{font-size:23px;font-weight:500}h3{font-size:18px;font-weight:500}
+    p{margin:0 0 13px}.muted,figcaption{color:var(--muted);font-size:13px}.status{color:var(--green);border:1px solid #c5cbc0;padding:3px 9px;display:inline-block;font-size:13px}
+    section{padding:24px 0;border-bottom:1px solid var(--line)}a{color:var(--green);text-underline-offset:4px}a:focus-visible,summary:focus-visible{outline:2px solid var(--green);outline-offset:4px}
+    nav{display:flex;flex-wrap:wrap;gap:8px 22px;margin:16px 0}nav a,summary{min-height:44px;padding:6px 0}summary{cursor:pointer;color:var(--green)}
+    .callout{background:var(--wash);padding:18px;margin:20px 0}.callout p:last-child{margin:0}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}
+    td,th{text-align:left;border-bottom:1px solid var(--line);padding:11px 9px;vertical-align:top}th{font-weight:500}td:first-child{width:165px}.pass{color:var(--green)}
+    .gallery{display:flex;gap:18px;overflow-x:auto;align-items:flex-start;padding-bottom:12px}.gallery figure{flex:0 0 255px;margin:0}.gallery figure.wide{flex-basis:650px;max-width:100%}
+    .pair{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:590px}.pair.wide{max-width:100%}figure{margin:0}img{display:block;width:100%;height:auto;border:1px solid var(--line)}figcaption{margin:8px 0}
+    footer{padding-top:20px}pre{overflow:auto;padding:16px;background:var(--wash);font:12px/1.7 ui-monospace,Menlo,monospace}li{margin:7px 0}
+    @media(max-width:600px){main{padding:24px 16px}td,th{padding:8px}.gallery figure{flex-basis:230px}.pair{gap:10px}.pair.wide{grid-template-columns:1fr}}
+  </style>
+</head>
+<body><main>
+<header>
+  <p class="muted">译间 / BookLLM · 原生 SwiftUI · 2026-10-10</p>
+  <h1>十项体验修正已实现</h1>
+  <p>从导入、选择档位到阅读、译名和导出，补齐下一步、失败恢复与作用范围。纸面视觉、四位人物和书库首页保留。</p>
+  <span class="status">201 项独立自动化用例通过 · Debug / Release 构建通过</span>
+  <p class="muted">仅改 iOS；没有提交或推送。保留正常书库、Keychain、购买权益、请求 ID、并发策略及计费规则。人工无障碍与真实服务的待验项目见末尾。</p>
+</header>
+<nav aria-label="报告目录"><a href="#changes">十项修正</a><a href="#comparison">原生前后对照</a><a href="#flows">流程截图</a><a href="#accessibility">大字号与 iPad</a><a href="#verification">测试与边界</a><a href="../ux-audit-2026-10-09/report.html">查看原审查</a></nav>
+<section id="changes"><h2>用户现在会看到什么</h2><div class="table-wrap"><table>
+<thead><tr><th scope="col">范围</th><th scope="col">实现结果</th></tr></thead><tbody>
+<tr><td>01 书库与导入</td><td>加号带“导入”文字；窄屏和大字号允许换行。导入面板可滚动，完整说明格式及 OCR。草稿设置可选改名。</td></tr>
+<tr><td>02 粘贴文本</td><td>固定“文稿名称（可选）”“原文”标签及占位；一个未入库草稿自动保存到本机，关闭或重启后恢复。明确放弃；入库落盘成功后才清草稿并进入设置，失败可重试，稳定 ID 避免重复。</td></tr>
+<tr><td>03 翻译设置</td><td>四档说明适用内容和真实流程，解释阶段增多通常增加模型用量。风格提前、人物紧凑，职责和流程默认收起；运行角色状态继续展开。</td></tr>
+<tr><td>04 费用与解锁</td><td>开始区显示当前方式及费用入口；未解锁引导买断，已解锁但连接缺失引导 API。明确买断权益及服务商另收费。点数服务未配置时显示不可用并禁购点数。</td></tr>
+<tr><td>05 商品与账户</td><td>加载中、对应商品缺失、失败和交易结果分别展示；重新加载、恢复购买和有效旧商品保留，价格仅取 StoreKit。API 本地编辑草稿在校验、Keychain 保存成功后才切换；编辑后取消“已保存”。</td></tr>
+<tr><td>06 进度与暂停</td><td>章节进度旁解释关闭面板、前台继续、后台暂停及手动恢复。真实任务结束前保持“正在暂停…”，保留既有后台与恢复逻辑。</td></tr>
+<tr><td>07 阅读与对照</td><td>从进度进入全屏阅读，返回保留原面板及位置；书库阅读返回书库。可靠分块标记原文／译文，保留原锚点，缺少数据时不猜造逐句对齐。</td></tr>
+<tr><td>08 目录</td><td>全部已知章节、当前章及真实状态均可见。审校保持原开放边界，速读仍可提前看原文和流式内容；不改变完成章节计数。</td></tr>
+<tr><td>09 译名</td><td>编辑默认大高度，保存前说明新准备内容生效、已准备／正在翻译／已完成内容保留原译名、不重译不扣点。完成书和旧固定词表说明限制，失败保留输入。</td></tr>
+<tr><td>10 导出与 iPad</td><td>书库直接导出默认全书，阅读入口默认当前章，可选择多章。用章节、完整／部分范围说明实际内容；默认大高度显示成功、范围、分享／保存和重新生成。终稿快照、五格式、封面、已购仅译文权限保留。书库／阅读 720 pt，表单 560 pt 居中。</td></tr>
+</tbody></table></div></section>
+<section id="comparison"><h2>原生前后对照</h2><p class="muted">前图来自 10 月 9 日审查，后图来自本轮真实 SwiftUI 渲染。内容与状态不同处不作逐像素比较。</p>
+<h3>输入有标签，也有可恢复的草稿</h3><div class="pair">
+<figure><a href="../ux-audit-2026-10-09/screenshots/03-paste-empty.png"><img src="../ux-audit-2026-10-09/screenshots/03-paste-empty.png" alt="修正前粘贴文本界面" loading="lazy"></a><figcaption>修正前 · 输入提示与保存方式不清楚</figcaption></figure>
+<figure><a href="screenshots/13-iphone-paste-restored.png"><img src="screenshots/13-iphone-paste-restored.png" alt="修正后粘贴草稿重启恢复" loading="lazy"></a><figcaption>修正后 · 重启恢复，本机保存与放弃明确</figcaption></figure></div>
+<h3>译名保存前能读到生效限制</h3><div class="pair">
+<figure><a href="../ux-audit-2026-10-09/screenshots/17-name-edit.png"><img src="../ux-audit-2026-10-09/screenshots/17-name-edit.png" alt="修正前译名编辑半屏" loading="lazy"></a><figcaption>修正前 · 生效说明受半屏限制</figcaption></figure>
+<figure><a href="screenshots/20-iphone-name-keyboard.png"><img src="screenshots/20-iphone-name-keyboard.png" alt="修正后译名编辑说明与保存" loading="lazy"></a><figcaption>修正后 · 大高度，说明在保存区上方；空值校验可见</figcaption></figure></div>
+<h3>iPad 内容与操作收拢到居中列</h3><div class="pair wide">
+<figure><a href="../ux-audit-2026-10-09/screenshots/18-ipad-library.png"><img src="../ux-audit-2026-10-09/screenshots/18-ipad-library.png" alt="修正前 iPad 横屏书库" loading="lazy"></a><figcaption>修正前 · 书库横向拉满</figcaption></figure>
+<figure><a href="screenshots/01-ipad-library.png"><img src="screenshots/01-ipad-library.png" alt="修正后 iPad 横屏居中书库" loading="lazy"></a><figcaption>修正后 · 最大 720 pt，操作靠近文稿</figcaption></figure></div>
+</section>
+<section id="flows"><h2>可核查的流程截图</h2><p class="muted">下列流程来自 Debug 独立存储与受控模型夹具，不证明真实支付或在线翻译通过。点击可查看完整设备原图。</p>
+<div class="gallery">
+<figure><a href="screenshots/04-iphone-library.png"><img src="screenshots/04-iphone-library.png" alt="带导入文字的书库" loading="lazy"></a><figcaption>书库 · 导入文字与真实章节计数</figcaption></figure>
+<figure><a href="screenshots/06-iphone-progress.png"><img src="screenshots/06-iphone-progress.png" alt="进度面板与前台后台说明" loading="lazy"></a><figcaption>进度 · 关闭／后台行为解释，真实并行角色</figcaption></figure>
+<figure><a href="screenshots/07-iphone-reader.png"><img src="screenshots/07-iphone-reader.png" alt="从进度进入全屏阅读" loading="lazy"></a><figcaption>阅读 · 全屏进入，返回原进度已通过 UI 测试</figcaption></figure>
+<figure><a href="screenshots/09-iphone-directory.png"><img src="screenshots/09-iphone-directory.png" alt="目录包含已完成和正在处理章节" loading="lazy"></a><figcaption>目录 · 尚未可读章节仍显示实际阶段</figcaption></figure>
+<figure><a href="screenshots/14-iphone-api.png"><img src="screenshots/14-iphone-api.png" alt="固定字段标签 API 设置" loading="lazy"></a><figcaption>API · 固定标签与本地编辑草稿，未保存不切换</figcaption></figure>
+</div>
+<h3>导出有明确范围和完成后的下一步</h3><div class="gallery">
+<figure><a href="screenshots/10-iphone-export-all.png"><img src="screenshots/10-iphone-export-all.png" alt="书库导出默认全书" loading="lazy"></a><figcaption>书库入口 · 全书已完成内容，2 / 2 章</figcaption></figure>
+<figure><a href="screenshots/12-iphone-export-current.png"><img src="screenshots/12-iphone-export-current.png" alt="阅读器导出默认当前章" loading="lazy"></a><figcaption>阅读入口 · 当前章，可切换全书或指定章节</figcaption></figure>
+<figure><a href="screenshots/11-iphone-export-ready.png"><img src="screenshots/11-iphone-export-ready.png" alt="生成成功及范围分享重新生成" loading="lazy"></a><figcaption>完成 · 固定内容快照，分享／保存与重新生成</figcaption></figure>
+</div></section>
+<section id="accessibility"><h2>大字号、键盘与宽屏</h2><p>文字随动态字号放大，长说明可滚动，主操作保持可达。译名编辑在软件键盘出现后自动滚到输入位置。iPad 横竖屏回归通过；分屏与完整 VoiceOver 留待人工复验。</p>
+<div class="gallery">
+<figure><a href="screenshots/18-iphone-name-keyboard-largest.png"><img src="screenshots/18-iphone-name-keyboard-largest.png" alt="最大辅助字号软件键盘与译名保存" loading="lazy"></a><figcaption>完整 iPhone · accessibility5，软件键盘、输入与保存</figcaption></figure>
+<figure><a href="screenshots/19-iphone-paste-largest.png"><img src="screenshots/19-iphone-paste-largest.png" alt="最大辅助字号粘贴文本主操作" loading="lazy"></a><figcaption>完整 iPhone · 最大字号；此图为输入工具栏，不能证明粘贴页软件键盘</figcaption></figure>
+<figure><a href="screenshots/16-layout-paste-320-largest.png"><img src="screenshots/16-layout-paste-320-largest.png" alt="320pt UIHosting 最大字号粘贴布局" loading="lazy"></a><figcaption>指定宽度布局 · 320 pt UIHosting，主操作换行；非完整设备</figcaption></figure>
+<figure class="wide"><a href="screenshots/03-ipad-configuration.png"><img src="screenshots/03-ipad-configuration.png" alt="iPad 横屏设置居中窄列" loading="lazy"></a><figcaption>完整 iPad 横屏 · 560 pt 表单，风格前置、职责收起</figcaption></figure>
+<figure class="wide"><a href="screenshots/26-ipad-reader-landscape.png"><img src="screenshots/26-ipad-reader-landscape.png" alt="iPad 横屏阅读居中正文" loading="lazy"></a><figcaption>完整 iPad 横屏 · 720 pt 阅读内容</figcaption></figure>
+<figure><a href="screenshots/23-ipad-configuration-portrait.png"><img src="screenshots/23-ipad-configuration-portrait.png" alt="iPad 竖屏设置" loading="lazy"></a><figcaption>完整 iPad 竖屏 · 同一设置与费用入口</figcaption></figure>
+</div></section>
+<section id="verification"><h2>本轮验证与实际边界</h2>
+<div class="table-wrap"><table><thead><tr><th scope="col">验证</th><th scope="col">实际结果</th></tr></thead><tbody>
+<tr><td>TranslationCore</td><td class="pass">142 项通过</td></tr><tr><td>App 单测</td><td class="pass">46 项通过</td></tr><tr><td>iPhone UI</td><td class="pass">12 条独立用例通过</td></tr><tr><td>iPad UI</td><td class="pass">1 条横／竖屏用例通过</td></tr><tr><td>总计</td><td>201 项，合并本轮各次回归的独立用例，相关复测不重复计数；10 月 9 日的历史 160 项另存。</td></tr><tr><td>构建</td><td class="pass">增量 Debug / Release Simulator 构建通过</td></tr><tr><td>StoreKit</td><td>Xcode 本地配置的三个商品及价格读取、刷新失败保留通过；商品加载／空结果／超时／异常与重试由单测覆盖。未进行真实交易。</td></tr><tr><td>数据与权限</td><td>草稿恢复、损坏文件保护、失败重试、重复入库、OCR 源文件保留、并行更新、API 失败保留旧连接、目录开放边界、阅读锚点、部分终稿、生成快照、五格式回读及已购译本权限均有测试覆盖。</td></tr>
+</tbody></table></div>
+<p>固定复用 <code>/tmp/bookllm-ios-dev</code>，保持原设备。测试只重置 Debug 隔离记录。交付时两台模拟器均用正常参数启动，iPhone 原书库已通过原生截图与 UI 状态确认。</p>
+<details><summary>正常模式书库证据</summary><div class="gallery"><figure><a href="screenshots/22-normal-app.png"><img src="screenshots/22-normal-app.png" alt="正常启动保留原文稿" loading="lazy"></a><figcaption>正常启动 · 原文稿保留；未启用测试参数或绕过权益</figcaption></figure></div></details>
+<div class="callout"><p><strong>尚待外部配置或人工复验：</strong>点数云服务尚未配置；真实 Apple 登录、Sandbox／Production 支付、在线模型、发布／购买与真机仍未验证。各格式系统选择器导入、扫描／混合 PDF 完整交互仍有缺口。</p><p>Mac 在末段锁定，本轮完整 VoiceOver、减少动态效果实操、iPad 分屏及最终桌面原生窗口可见性未复验；已请求用户手动解锁。历史检查没有计入本轮通过。</p><p>测试日志仍有 <code>Invalid frame dimension (negative or non-finite).</code> 运行时警告，来源未定位，相关用例通过且未观察到流程阻断；保留为待查观察项。</p></div>
+<p class="muted">截图采用 iPhone 18 Pro 402×874 pt、iPad Pro 13-inch（M5）横／竖屏，iOS／iPadOS 27.0 Simulator。320／375／390／430／768 pt UIHosting 布局证据另行标注。旋转过渡中出现黑边的 XCTest 附件未用于最终画廊，横屏采用稳定后的 simctl 原图。软件键盘证据不替代真机或 VoiceOver 验收。</p>
+<nav aria-label="验证记录"><a href="../paper-ui/verification.md">完整验证记录</a><a href="../../../design-qa.md">视觉对照记录</a><a href="../../../progress.html">项目进度</a><a href="logs/final-tests.log">App 与相关回归日志</a><a href="logs/export-tests.log">最终导出复测</a><a href="logs/ipad-tests.log">iPad 回归</a><a href="logs/release-build.log">Release 构建</a><a href="https://developer.apple.com/documentation/storekit/testing-at-all-stages-of-development-with-xcode-and-the-sandbox">Apple 测试环境说明</a></nav>
+</section><footer><p class="muted">实施与证据记录于 2026-10-10 · 本页为本地静态报告，不连接模型或交易服务。</p></footer>
+</main></body></html>

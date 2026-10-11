@@ -1,0 +1,155 @@
+{
+  "recordedAt": "2026-10-10",
+  "images": [
+    {
+      "file": "01-ipad-library.png",
+      "widthPixels": 2752,
+      "heightPixels": 2064,
+      "kind": "native simulator device screenshot"
+    },
+    {
+      "file": "02-ipad-import.png",
+      "widthPixels": 2752,
+      "heightPixels": 2064,
+      "kind": "native simulator device screenshot"
+    },
+    {
+      "file": "03-ipad-configuration.png",
+      "widthPixels": 2752,
+      "heightPixels": 2064,
+      "kind": "native simulator device screenshot"
+    },
+    {
+      "file": "04-iphone-library.png",
+      "widthPixels": 1206,
+      "heightPixels": 2622,
+      "kind": "native simulator device screenshot"
+    },
+    {
+      "file": "05-iphone-configuration.png",
+      "widthPixels": 1206,
+      "heightPixels": 2622,
+      "kind": "native simulator device screenshot"
+    },
+    {
+      "file": "06-iphone-progress.png",
+      "widthPixels": 1206,
+      "heightPixels": 2622,
+      "kind": "native simulator device screenshot"
+    },
+    {
+      "file": "07-iphone-reader.png",
+      "widthPixels": 1206,
+      "heightPixels": 2622,
+      "kind": "native simulator device screenshot"
+    },
+    {
+      "file": "08-iphone-bilingual.png",
+      "widthPixels": 1206,
+      "heightPixels": 2622,
+      "kind": "native simulator device screenshot"
+    },
+    {
+      "file": "09-iphone-directory.png",
+      "widthPixels": 1206,
+      "heightPixels": 2622,
+      "kind": "native simulator device screenshot"
+    },
+    {
+      "file": "10-iphone-export-all.png",
+      "widthPixels": 1206,
+      "heightPixels": 2622,
+      "kind": "native simulator device screenshot"
+    },
+    {
+      "file": "11-iphone-export-ready.png",
+      "widthPixels": 1206,
+      "heightPixels": 2622,
+      "kind": "native simulator device screenshot"
+    },
+    {
+      "file": "12-iphone-export-current.png",
+      "widthPixels": 1206,
+      "heightPixels": 2622,
+      "kind": "native simulator device screenshot"
+    },
+    {
+      "file": "13-iphone-paste-restored.png",
+      "widthPixels": 1206,
+      "heightPixels": 2622,
+      "kind": "native simulator device screenshot"
+    },
+    {
+      "file": "14-iphone-api.png",
+      "widthPixels": 1206,
+      "heightPixels": 2622,
+      "kind": "native simulator device screenshot"
+    },
+    {
+      "file": "15-layout-name-320-largest.png",
+      "widthPixels": 960,
+      "heightPixels": 2532,
+      "kind": "UIHosting specified-width layout"
+    },
+    {
+      "file": "16-layout-paste-320-largest.png",
+      "widthPixels": 960,
+      "heightPixels": 2532,
+      "kind": "UIHosting specified-width layout"
+    },
+    {
+      "file": "17-layout-configuration-320-largest.png",
+      "widthPixels": 960,
+      "heightPixels": 2532,
+      "kind": "UIHosting specified-width layout"
+    },
+    {
+      "file": "18-iphone-name-keyboard-largest.png",
+      "widthPixels": 1206,
+      "heightPixels": 2622,
+      "kind": "native simulator device screenshot"
+    },
+    {
+      "file": "19-iphone-paste-largest.png",
+      "widthPixels": 1206,
+      "heightPixels": 2622,
+      "kind": "native simulator device screenshot"
+    },
+    {
+      "file": "20-iphone-name-keyboard.png",
+      "widthPixels": 1206,
+      "heightPixels": 2622,
+      "kind": "native simulator device screenshot"
+    },
+    {
+      "file": "21-iphone-configuration-large.png",
+      "widthPixels": 1206,
+      "heightPixels": 2622,
+      "kind": "native simulator device screenshot"
+    },
+    {
+      "file": "22-normal-app.png",
+      "widthPixels": 1206,
+      "heightPixels": 2622,
+      "kind": "native simulator device screenshot"
+    },
+    {
+      "file": "23-ipad-configuration-portrait.png",
+      "widthPixels": 2064,
+      "heightPixels": 2752,
+      "kind": "native simulator device screenshot"
+    },
+    {
+      "file": "24-ipad-reader-portrait.png",
+      "widthPixels": 2064,
+      "heightPixels": 2752,
+      "kind": "native simulator device screenshot"
+    },
+    {
+      "file": "26-ipad-reader-landscape.png",
+      "widthPixels": 2752,
+      "heightPixels": 2064,
+      "kind": "native simulator device screenshot"
+    }
+  ]
+}

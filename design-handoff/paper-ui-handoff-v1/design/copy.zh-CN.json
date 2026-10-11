@@ -1,0 +1,95 @@
+{
+  "navigation": {
+    "library": "书库",
+    "import": "导入文稿",
+    "account": "账户与偏好",
+    "names": "译名",
+    "progress": "进度"
+  },
+  "library": {
+    "all": "全部",
+    "processing": "处理中",
+    "complete": "已完成",
+    "empty": "还没有文稿",
+    "searchPlaceholder": "搜索书名或文稿类型",
+    "noResults": "没有找到文稿",
+    "notStarted": "未开始翻译",
+    "running": "第 {chapter} 章 · {stage}",
+    "done": "已完成 {count} / {total} 章",
+    "unknownTotal": "已完成 {count} 章 · 处理中",
+    "paused": "已暂停 · 第 {chapter} 章",
+    "pausing": "正在暂停…",
+    "retrying": "等待重试",
+    "backgroundPaused": "切回应用后可继续",
+    "insufficientCredits": "点数不足，已暂停",
+    "needsReview": "本章需要核对",
+    "failed": "处理失败，已保留完成内容",
+    "continueReading": "继续阅读",
+    "pause": "暂停",
+    "resume": "继续",
+    "setup": "设置翻译",
+    "export": "导出"
+  },
+  "quality": {
+    "title": "翻译质量",
+    "levels": [
+      "速读",
+      "精译",
+      "深校",
+      "精修"
+    ],
+    "roles": [
+      "译者",
+      "校对",
+      "语言专家",
+      "主编"
+    ],
+    "sourceLanguage": "自动识别",
+    "targetLanguage": "翻译为",
+    "start": "开始翻译",
+    "more": "更多设置",
+    "autoNames": "译名自动保持一致，需要时可在本书菜单中修改。",
+    "integrity": "完整性检查"
+  },
+  "roles": {
+    "translator": "依据原文与风格完成初译，自动积累并复用译名，保留段落、人物与情节。",
+    "proofreader": "逐段对照原文，检查漏译、错译、名称、数字与术语一致性。",
+    "linguist": "核查习语、双关、人物口吻、代词指向与编者注。",
+    "editor": "整合校对与语言专家意见，依据原文解决冲突，协调节奏与人物声音。"
+  },
+  "names": {
+    "title": "译名",
+    "intro": "自动保持一致，需要时再修改。",
+    "edit": "修改",
+    "editTitle": "修改译名",
+    "source": "原词",
+    "target": "译名",
+    "context": "查看原文语境",
+    "scope": "仅本书",
+    "hint": "用于后续处理。已完成章节不自动重译，保存不会调用模型或扣点。",
+    "cancel": "取消",
+    "save": "保存",
+    "saving": "保存中…",
+    "saved": "译名已保存，用于后续处理。",
+    "emptyValue": "请输入译名。",
+    "saveFailed": "保存失败，修改仍保留，请重试。",
+    "empty": "译名会随翻译积累",
+    "emptyHelp": "不用提前整理，可以直接开始翻译。"
+  },
+  "reader": {
+    "translated": "译文",
+    "original": "原文",
+    "bilingual": "对照",
+    "catalog": "目录",
+    "settings": "阅读设置",
+    "draft": "初译生成中 · 尚未完成必要检查"
+  },
+  "import": {
+    "files": "从文件导入",
+    "paste": "粘贴文本",
+    "formats": "EPUB · PDF · DOCX · TXT · Markdown",
+    "pdfNote": "扫描 PDF 可进入本地文字识别与核对",
+    "localOcr": "设备内识别，不扣点"
+  },
+  "localizationNote": "Use existing localization keys; these are copy values, not a mandatory new localization framework."
+}

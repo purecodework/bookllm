@@ -1,0 +1,291 @@
+--- before/JobView.swift
++++ after/JobView.swift
+@@ -129,8 +129,11 @@
+     private func configuration(_ job: BookJob) -> some View {
+         VStack(alignment: .leading, spacing: 20) {
+             HStack(alignment: .top) {
+-                VStack(alignment: .leading, spacing: 8) { Text("自动识别").font(.caption).foregroundStyle(Ink.muted); Text(job.sourceLanguage ?? "自动").font(PaperType.reading(20)) }
+-                Spacer(); Image(systemName: "arrow.right").font(.caption).foregroundStyle(Ink.muted).padding(.top, 24); Spacer()
++                VStack(alignment: .leading, spacing: 8) {
++                    Text("原文语言 · 自动识别").font(.caption).foregroundStyle(Ink.muted)
++                    Text(job.sourceLanguage ?? "自动").font(PaperType.reading(20)).frame(minHeight: 44, alignment: .leading)
++                }
++                Spacer(); Image(systemName: "arrow.right").font(.caption).foregroundStyle(Ink.muted).padding(.top, 40).accessibilityHidden(true); Spacer()
+                 VStack(alignment: .leading, spacing: 8) {
+                     Text("翻译为").font(.caption).foregroundStyle(Ink.muted)
+                     Picker("目标语言", selection: binding(\.options.targetLanguage)) {
+--- before/LibraryView.swift
++++ after/LibraryView.swift
+@@ -200,7 +200,9 @@
+     }
+     @ViewBuilder private func rowActions(_ job: BookJob) -> some View {
+         if job.canRead || (job.options.quality == .fast && studio.activeID == job.id) {
+-            NavigationLink(value: ReaderRoute(id: job.id)) { Text("继续阅读 →").frame(minHeight: 44) }
++            NavigationLink(value: ReaderRoute(id: job.id)) {
++                Label(job.readingAnchor == nil ? "开始阅读" : "继续阅读", systemImage: "arrow.right").frame(minHeight: 44)
++            }.accessibilityIdentifier("library-read-" + job.id)
+         }
+         if job.status == .draft {
+             Button("设置翻译") { openBook(job) }.frame(minHeight: 44)
+@@ -210,7 +212,7 @@
+             if studio.activeID == job.id {
+                 Button(studio.pauseRequestedID == job.id ? "正在暂停…" : "暂停") { studio.pause() }.disabled(studio.pauseRequestedID == job.id).frame(minWidth: 44, minHeight: 44)
+             } else {
+-                Button(job.status == .paused ? "继续" : "处理") {
++                Button(job.status == .paused ? "继续翻译" : "查看详情") {
+                     let ready = job.usesOwnAPI ? studio.canUseOwnAPI(account: account, purchases: purchases) && studio.connectionIssue == nil : account.isConfigured && account.isLoggedIn
+                     if job.status == .paused && ready { studio.begin(job.id, account: account, purchases: purchases) }
+                     else { openBook(job) }
+--- before/OnboardingView.swift
++++ after/OnboardingView.swift
+@@ -1,48 +1,88 @@
+ import SwiftUI
+ 
+ struct OnboardingView: View {
++    var reviewing = false
+     @Environment(StudioStore.self) private var studio
++    @Environment(CloudAccount.self) private var account
+     @Environment(\.dismiss) private var dismiss
++    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+     @AppStorage("onboardingCompleted") private var completed = false
+     @State private var page = 0
+     @State private var own = false
+     var body: some View {
+-        VStack(alignment: .leading, spacing: 28) {
+-            HStack { Text("译间").font(.system(size: 20, weight: .medium, design: .serif)); Spacer(); Text("\(page + 1) / 3").font(.caption).foregroundStyle(Ink.muted) }
+-            Spacer()
+-            Image(systemName: page == 0 ? "book.closed" : page == 1 ? "slider.horizontal.3" : "key.horizontal").font(.system(size: 44, weight: .light)).foregroundStyle(Ink.orange)
+-            Text(page == 0 ? "导入，开始读。" : page == 1 ? "选一种翻译强度。" : "选一种使用方式。").font(.system(size: 30, weight: .medium, design: .serif))
+-            if page == 0 {
+-                Text("EPUB、PDF、DOCX、TXT、Markdown。\n扫描 PDF 在设备内识别。识别语言与文稿类型，保留已有封面。").font(.system(size: 15)).foregroundStyle(Ink.muted).lineSpacing(7)
+-            } else if page == 1 {
+-                VStack(alignment: .leading, spacing: 16) {
+-                    intro("速读", "一边翻译，一边阅读")
+-                    intro("精译", "译者与校对，逐章阅读")
+-                    intro("深校", "加入语言专家")
+-                    intro("精修", "并行审查，主编整合整章表达")
++        VStack(spacing: 0) {
++            HStack {
++                Text("译间").font(PaperType.reading(20, relativeTo: .title3))
++                Spacer()
++                Text("\(page + 1) / 3").font(.caption).foregroundStyle(Ink.muted)
++                    .accessibilityLabel("使用介绍，第 \(page + 1) 步，共 3 步")
++                if reviewing { PaperIconButton(symbol: "xmark", label: "关闭使用介绍") { dismiss() } }
++            }.padding(.horizontal, 24).padding(.vertical, 12)
++            ScrollView {
++                VStack(alignment: .leading, spacing: 24) {
++                    Image(systemName: page == 0 ? "book.closed" : page == 1 ? "slider.horizontal.3" : "key.horizontal")
++                        .font(.system(size: 40, weight: .light)).foregroundStyle(Ink.accent).accessibilityHidden(true)
++                    Text(page == 0 ? "先导入，再翻译。" : page == 1 ? "选择翻译质量" : reviewing ? "两种使用方式" : "选择使用方式")
++                        .font(PaperType.reading(30, relativeTo: .largeTitle)).fixedSize(horizontal: false, vertical: true)
++                        .accessibilityAddTraits(.isHeader)
++                    if page == 0 {
++                        Text("从文件导入，或粘贴原文。导入后选择目标语言、质量和风格，再开始翻译。")
++                            .font(.body).lineSpacing(5)
++                        Text("支持 EPUB、PDF、DOCX、TXT 和 Markdown。扫描 PDF 在设备内识别，可先核对文字，不扣翻译点数。")
++                            .font(.subheadline).foregroundStyle(Ink.muted).lineSpacing(5)
++                    } else if page == 1 {
++                        VStack(alignment: .leading, spacing: 0) {
++                            intro("速读", "先了解内容，边译边读")
++                            intro("精译", "初译后校对，适合日常阅读")
++                            intro("深校", "增加语言专家，关注习语和口吻")
++                            intro("精修", "并行审查，再由主编整合")
++                        }
++                        Text("这些角色由模型承担。审校越多，通常用量也越多；译名自动整理，需要时可在本书菜单中修改。")
++                            .font(.subheadline).foregroundStyle(Ink.muted).lineSpacing(5)
++                    } else {
++                        mode(false, title: "按量付费", detail: account.isConfigured ? "购买翻译点数，按实际模型用量结算。" : "当前版本点数服务暂不可用，可先导入和整理文稿。")
++                        mode(true, title: "买断自带 API", detail: "一次购买解锁，使用自己的模型服务地址与密钥。模型用量由服务商另行收费。")
++                        Text(reviewing ? "这里仅介绍使用方式。需要切换时，请返回账户与设置。" : "选择不会立即购买或扣点，之后可在账户与设置中更改。")
++                            .font(.caption).foregroundStyle(Ink.muted).fixedSize(horizontal: false, vertical: true)
++                    }
++                }.frame(maxWidth: PaperLayout.formWidth, alignment: .leading).padding(.horizontal, 24).padding(.vertical, 32).frame(maxWidth: .infinity)
++            }.id(page)
++            VStack(spacing: 8) {
++                PrimaryButton(title: page == 2 ? reviewing ? "完成介绍" : "进入书库" : "继续") {
++                    if page == 2 {
++                        if !reviewing { studio.setOwnAPI(own); completed = true }
++                        dismiss()
++                    } else { withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) { page += 1 } }
+                 }
+-                Text("译名自动保持一致，需要时可在本书菜单中修改。").font(.system(size: 13)).foregroundStyle(Ink.muted)
+-            } else {
+-                mode(false, title: "按量付费", detail: "购买点数，默认 DeepSeek；按实际用量结算。")
+-                mode(true, title: "买断自带 API", detail: "一次解锁，用自己的接口与密钥；由服务商计费。")
+-            }
+-            Spacer()
+-            PrimaryButton(title: page == 2 ? "进入书库" : "继续", icon: "arrow.right") {
+-                if page == 2 { studio.ownAPI = own; UserDefaults.standard.set(own, forKey: "ownAPI"); completed = true; dismiss() }
+-                else { withAnimation(.easeInOut(duration: 0.2)) { page += 1 } }
+-            }
+-            if page > 0 { Button("上一步") { page -= 1 }.font(.system(size: 13)).frame(maxWidth: .infinity) }
+-        }.padding(28).background(Ink.paper).interactiveDismissDisabled().onAppear { own = studio.ownAPI }
++                if page > 0 { Button("上一步") { page -= 1 }.font(.subheadline).frame(maxWidth: .infinity, minHeight: 44) }
++            }.frame(maxWidth: PaperLayout.formWidth).padding(.horizontal, 24).padding(.vertical, 12).frame(maxWidth: .infinity)
++        }.background { PaperBackground(textured: false) }.foregroundStyle(Ink.text)
++            .interactiveDismissDisabled(!reviewing).onAppear { own = studio.ownAPI }
+     }
+     private func intro(_ title: String, _ detail: String) -> some View {
+-        HStack { Text(title).font(.system(size: 15, weight: .medium)).frame(width: 42, alignment: .leading); Text(detail).font(.system(size: 14)).foregroundStyle(Ink.muted) }
++        VStack(alignment: .leading, spacing: 6) {
++            Text(title).font(.headline.weight(.regular))
++            Text(detail).font(.subheadline).foregroundStyle(Ink.muted).fixedSize(horizontal: false, vertical: true)
++            PaperRule().padding(.top, 8)
++        }.padding(.vertical, 12)
+     }
+-    private func mode(_ value: Bool, title: String, detail: String) -> some View {
+-        Button { own = value } label: {
+-            HStack(alignment: .top, spacing: 12) {
+-                Image(systemName: own == value ? "checkmark.circle.fill" : "circle").foregroundStyle(own == value ? Ink.orange : Ink.muted)
+-                VStack(alignment: .leading, spacing: 8) { Text(title).font(.system(size: 16, weight: .medium)).foregroundStyle(Ink.text); Text(detail).font(.system(size: 13)).foregroundStyle(Ink.muted).multilineTextAlignment(.leading) }
+-            }.padding(18).frame(maxWidth: .infinity, alignment: .leading).background(.white.opacity(0.7), in: RoundedRectangle(cornerRadius: 18)).overlay { RoundedRectangle(cornerRadius: 18).stroke(own == value ? Ink.orange : Ink.line) }
+-        }.buttonStyle(.plain)
++    @ViewBuilder private func mode(_ value: Bool, title: String, detail: String) -> some View {
++        if reviewing { modeLabel(value, title: title, detail: detail) }
++        else {
++            Button { own = value } label: { modeLabel(value, title: title, detail: detail) }
++                .buttonStyle(PaperButtonStyle()).accessibilityAddTraits(own == value ? .isSelected : [])
++        }
++    }
++    private func modeLabel(_ value: Bool, title: String, detail: String) -> some View {
++        HStack(alignment: .top, spacing: 12) {
++            Image(systemName: reviewing ? value ? "key.horizontal" : "circle.grid.2x2" : own == value ? "checkmark.circle.fill" : "circle")
++                .foregroundStyle(Ink.accent).accessibilityHidden(true)
++            VStack(alignment: .leading, spacing: 8) {
++                Text(title).font(.headline.weight(.regular))
++                Text(detail).font(.subheadline).foregroundStyle(Ink.muted).fixedSize(horizontal: false, vertical: true)
++            }.frame(maxWidth: .infinity, alignment: .leading)
++        }.multilineTextAlignment(.leading).padding(.vertical, 18).padding(.horizontal, 16)
++            .background(!reviewing && own == value ? Ink.surface : Ink.paper, in: RoundedRectangle(cornerRadius: 7))
++            .overlay { RoundedRectangle(cornerRadius: 7).stroke(!reviewing && own == value ? Ink.accent : Ink.line, lineWidth: 0.7) }
+     }
+ }
+--- before/QualityControl.swift
++++ after/QualityControl.swift
+@@ -37,7 +37,7 @@
+     @Binding var selection: Quality
+     var body: some View {
+         VStack(alignment: .leading, spacing: 18) {
+-            Text("翻译质量").font(.system(size: 18))
++            Text("翻译质量").font(.headline.weight(.regular))
+             QualityTabs(selection: $selection)
+             Text(selection.usageSummary).font(.subheadline).fixedSize(horizontal: false, vertical: true)
+                 .accessibilityIdentifier("quality-usage-summary")
+@@ -54,7 +54,7 @@
+     private var stages: [Stage] { quality.stages.filter { $0 != .verify } }
+     var body: some View {
+         VStack(alignment: .leading, spacing: 16) {
+-            Text("参与翻译与审校").font(.caption).foregroundStyle(Ink.muted)
++            Text("参与翻译与审校的模型角色").font(.caption).foregroundStyle(Ink.muted)
+             HStack(alignment: .top, spacing: 8) {
+                 ForEach(stages, id: \.rawValue) { stage in
+                     VStack(spacing: 8) {
+@@ -117,7 +117,10 @@
+     @ScaledMetric(relativeTo: .caption) private var portraitHeight = 92.0
+     var body: some View {
+         VStack(alignment: .leading, spacing: 16) {
+-            HStack { Text(states.isEmpty ? "处理角色" : "参与者状态"); Spacer(); Text("\(stages.count) 位 · 点击查看职责") }.font(.caption).foregroundStyle(Ink.muted)
++            ViewThatFits(in: .horizontal) {
++                HStack { Text(states.isEmpty ? "模型角色" : "模型处理状态"); Spacer(); Text("点击查看职责") }
++                VStack(alignment: .leading, spacing: 6) { Text(states.isEmpty ? "模型角色" : "模型处理状态"); Text("点击查看职责") }
++            }.font(.caption).foregroundStyle(Ink.muted)
+             HStack(alignment: .top, spacing: 6) {
+                 ForEach(stages, id: \.rawValue) { stage in
+                     Button { withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) { selected = stage } } label: {
+--- before/ReaderView.swift
++++ after/ReaderView.swift
+@@ -266,7 +266,7 @@
+                                     Text(state.detail).font(.caption).foregroundStyle(Ink.muted).fixedSize(horizontal: false, vertical: true)
+                                 }
+                             }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).padding(.vertical, 14).contentShape(Rectangle())
+-                        }.buttonStyle(.plain).disabled(!state.canRead)
++                        }.buttonStyle(PaperButtonStyle()).disabled(!state.canRead)
+                             .accessibilityIdentifier("toc-chapter-\(item.id)")
+                             .accessibilityLabel("第 \(item.id + 1) 章，\(item.title)，\(state.label)，\(state.detail)")
+                             .accessibilityAddTraits(chapter == item.id ? .isSelected : [])
+--- before/SettingsView.swift
++++ after/SettingsView.swift
+@@ -32,8 +32,8 @@
+                     .onChange(of: studio.ownAPI) { _, value in studio.setOwnAPI(value) }
+             } header: { Text("使用方式") } footer: {
+                 Text("此选择用于新开始的翻译。已开始的任务保留原来的使用方式。")
+-            }.id(SettingsSection.usage)
+-            Section("购买与余额") {
++            }.listRowBackground(Ink.paper).id(SettingsSection.usage)
++            Section {
+                 if studio.ownAPI {
+                     Label(purchases.localOwnAPIUnlocked || account.ownAPIUnlocked ? "已永久解锁" : "尚未解锁", systemImage: "key.horizontal")
+                     if !purchases.localOwnAPIUnlocked && !account.ownAPIUnlocked { Button("买断解锁") { wallet = true } }
+@@ -45,7 +45,8 @@
+                     Text(account.isConfigured ? "默认 DeepSeek，按实际模型用量结算。" : "当前版本暂未连接点数翻译服务，暂不能购买点数或开始点数翻译。")
+                         .font(.caption).foregroundStyle(Ink.muted).fixedSize(horizontal: false, vertical: true)
+                 }
+-            }
++            } header: { Text("购买与余额").foregroundStyle(Ink.muted) }
++                .listRowBackground(Ink.paper)
+             if studio.ownAPI || initialSection == .api {
+                 Section {
+                     VStack(alignment: .leading, spacing: 8) {
+@@ -61,10 +62,10 @@
+                             .accessibilityLabel("模型名称").accessibilityIdentifier("api-model")
+                     }.padding(.vertical, 3)
+                     VStack(alignment: .leading, spacing: 8) {
+-                        Text("API Key").font(.caption).foregroundStyle(Ink.muted)
++                        Text("服务商密钥（API Key）").font(.caption).foregroundStyle(Ink.muted)
+                         SecureField("输入服务商提供的密钥", text: $connection.key)
+                             .textInputAutocapitalization(.never).autocorrectionDisabled()
+-                            .accessibilityLabel("API Key").accessibilityIdentifier("api-key")
++                            .accessibilityLabel("服务商密钥，API Key").accessibilityIdentifier("api-key")
+                     }.padding(.vertical, 3)
+                     if let connectionError {
+                         Text(connectionError).font(.caption).foregroundStyle(Ink.error)
+@@ -76,18 +77,18 @@
+                             connectionError = nil; saved = true
+                         } catch { connectionError = error.localizedDescription; saved = false }
+                     }.accessibilityIdentifier("save-api-connection")
+-                } header: { Text("自己的 API") } footer: {
++                } header: { Text("自己的 API").foregroundStyle(Ink.muted) } footer: {
+                     Text("默认 DeepSeek，可使用 OpenAI 兼容的 HTTPS 接口。密钥保存在本机钥匙串；保存不会调用模型或产生用量。用量由服务商计费。")
+-                }
++                }.listRowBackground(Ink.paper)
+             }
+             Section {
+                 NavigationLink("翻译风格与自定义风格") { StylesView() }
+-                NavigationLink("语言、编者注与审校") { PreferencesForm(preferences: Binding(get: { studio.defaultPreferences }, set: { studio.defaultPreferences = $0; studio.persist() })).navigationTitle("默认偏好") }
++                NavigationLink("语言与编者注") { PreferencesForm(preferences: Binding(get: { studio.defaultPreferences }, set: { studio.defaultPreferences = $0; studio.persist() })).navigationTitle("默认偏好") }
+             } header: { Text("默认偏好") } footer: {
+                 Text("用于之后导入的文稿。已入库文稿请在本书的翻译设置中调整。")
+-            }
+-            Section("账户") {
+-                Button("通过链接或 ID 打开译作") { work = true }
++            }.listRowBackground(Ink.paper)
++            Section {
++                Button("通过链接或作品编号打开译作") { work = true }
+                 if account.isLoggedIn {
+                     Label("已通过 Apple 登录", systemImage: "checkmark.circle").foregroundStyle(Ink.green)
+                     Button("刷新账户") { Task { do { try await account.refresh() } catch { studio.message = error.localizedDescription } } }
+@@ -95,11 +96,12 @@
+                 } else { AppleLoginView() }
+                 Button(purchases.isRestoring ? "正在恢复…" : "恢复购买") { Task { await purchases.restore(account: account) } }
+                     .disabled(purchases.busy)
+-            }
++            } header: { Text("账户").foregroundStyle(Ink.muted) }
++                .listRowBackground(Ink.paper)
+             Section {
+                 Button("使用介绍") { introduction = true }
+-                Text("导入与导出：EPUB、PDF、DOCX、TXT、Markdown。保留封面和正文结构；扫描 PDF 在本机自动 OCR，识别原稿可先核对；复杂页面版式可能变化。").font(.system(size: 12)).foregroundStyle(Ink.muted)
+-            }
++                Text("导入与导出：EPUB、PDF、DOCX、TXT、Markdown。保留封面和正文结构；扫描 PDF 在本机识别文字，可先核对原稿；复杂页面版式可能变化。").font(.caption).foregroundStyle(Ink.muted)
++            }.listRowBackground(Ink.paper)
+             }.scrollContentBackground(.hidden).frame(maxWidth: PaperLayout.formWidth).frame(maxWidth: .infinity)
+                 .background(Ink.paper).navigationTitle("账户与设置").navigationBarTitleDisplayMode(.inline)
+                 .task {
+@@ -112,7 +114,7 @@
+                 }
+                 .onChange(of: connection) { _, _ in saved = false; connectionError = nil }
+         }
+-            .sheet(isPresented: $work) { WorkLookupView() }.sheet(isPresented: $wallet) { WalletView() }.sheet(isPresented: $introduction) { OnboardingView() }
++            .sheet(isPresented: $work) { WorkLookupView() }.sheet(isPresented: $wallet) { WalletView() }.sheet(isPresented: $introduction) { OnboardingView(reviewing: true).modifier(PaperUITestLayout()) }
+             .alert("购买状态", isPresented: Binding(get: { !wallet && purchases.message != nil }, set: { if !$0 { purchases.message = nil } })) {
+                 Button("知道了") { purchases.message = nil }
+             } message: { Text(purchases.message ?? "") }

@@ -1,0 +1,50 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "AAF79C3B-7F79-44D5-B2FC-3D29497A7BA1",
+        "deviceName" : "iPhone 18 Pro",
+        "exportedFileName" : "AA809D01-9F48-4062-A3A4-B59CE2046D6C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "model-limits-restored_0_6D5C5CBD-C2AA-4B36-A2BA-617E9048043B.png",
+        "timestamp" : 1791613447.649
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "AAF79C3B-7F79-44D5-B2FC-3D29497A7BA1",
+        "deviceName" : "iPhone 18 Pro",
+        "exportedFileName" : "7A6FE3BE-CDCD-4DD1-995D-7441CD3F75E1.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "model-limits-invalid-save_0_41CD0295-2002-4962-991F-08FE2C0D5AC4.png",
+        "timestamp" : 1791613445.164
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "AAF79C3B-7F79-44D5-B2FC-3D29497A7BA1",
+        "deviceName" : "iPhone 18 Pro",
+        "exportedFileName" : "0E8B287A-E089-4EB5-A2C3-2413E4C3D529.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "model-limits-number-keyboard_0_9104A05B-E728-4B6B-AC9C-4C733539D812.png",
+        "timestamp" : 1791613438.741
+      }
+    ],
+    "testIdentifier" : "ExperienceFlowTests/testModelLimitsCanBeEditedAndInvalidSavePreservesConnection()",
+    "testIdentifierURL" : "test://com.apple.xcode/BookLLM/BookLLMUITests/ExperienceFlowTests/testModelLimitsCanBeEditedAndInvalidSavePreservesConnection"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "AAF79C3B-7F79-44D5-B2FC-3D29497A7BA1",
+        "deviceName" : "iPhone 18 Pro",
+        "exportedFileName" : "2CCDAB22-E223-4FE5-8720-03AB53B430C7.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "ux-api-labeled-fields_0_05541860-A6F4-49A5-8569-F81AD92B27FE.png",
+        "timestamp" : 1791613466.664
+      }
+    ],
+    "testIdentifier" : "ExperienceFlowTests/testUnavailableCloudAndUnsavedAPIEdit()",
+    "testIdentifierURL" : "test://com.apple.xcode/BookLLM/BookLLMUITests/ExperienceFlowTests/testUnavailableCloudAndUnsavedAPIEdit"
+  }
+]

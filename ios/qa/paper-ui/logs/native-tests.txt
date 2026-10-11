@@ -1,0 +1,926 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project ios/BookLLM.xcodeproj -scheme BookLLM -configuration Debug -destination "platform=iOS Simulator,id=D15522D8-D45B-4577-A32F-48CA3CBFF8D3" -derivedDataPath /tmp/bookllm-paper-build -resultBundlePath /tmp/bookllm-paper-layout-final.xcresult -collect-test-diagnostics never CODE_SIGNING_ALLOWED=NO test
+
+Build settings from command line:
+    CODE_SIGNING_ALLOWED = NO
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  TranslationCore: /Users/lbn/Desktop/code/bookllm/ios/Packages/TranslationCore @ local
+  ZIPFoundation: https://github.com/weichsel/ZIPFoundation.git @ 0.9.20
+
+Writing result bundle at path:
+	/tmp/bookllm-paper-layout-final.xcresult
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (8 targets)
+    Target 'BookLLMUITests' in project 'BookLLM'
+        ➜ Explicit dependency on target 'BookLLM' in project 'BookLLM'
+    Target 'BookLLMTests' in project 'BookLLM'
+        ➜ Explicit dependency on target 'BookLLM' in project 'BookLLM'
+        ➜ Explicit dependency on target 'TranslationCore-product' in project 'TranslationCore'
+    Target 'BookLLM' in project 'BookLLM'
+        ➜ Explicit dependency on target 'TranslationCore-product' in project 'TranslationCore'
+        ➜ Explicit dependency on target 'ZIPFoundation-product' in project 'ZIPFoundation'
+    Target 'ZIPFoundation-product' in project 'ZIPFoundation'
+        ➜ Explicit dependency on target 'ZIPFoundation' in project 'ZIPFoundation'
+        ➜ Explicit dependency on target 'ZIPFoundation_ZIPFoundation' in project 'ZIPFoundation'
+    Target 'ZIPFoundation' in project 'ZIPFoundation'
+        ➜ Explicit dependency on target 'ZIPFoundation_ZIPFoundation' in project 'ZIPFoundation'
+    Target 'ZIPFoundation_ZIPFoundation' in project 'ZIPFoundation' (no dependencies)
+    Target 'TranslationCore-product' in project 'TranslationCore'
+        ➜ Explicit dependency on target 'TranslationCore' in project 'TranslationCore'
+    Target 'TranslationCore' in project 'TranslationCore' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk /tmp/bookllm-paper-build/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+    cd /Users/lbn/Desktop/code/bookllm/ios/BookLLM.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -o /tmp/bookllm-paper-build/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+
+Copy /tmp/bookllm-paper-build/Build/Intermediates.noindex/GeneratedModuleMaps-iphonesimulator/TranslationCore.modulemap /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/TranslationCore.modulemap (in target 'TranslationCore' from project 'TranslationCore')
+    cd /Users/lbn/Desktop/code/bookllm/ios/Packages/TranslationCore
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/TranslationCore.modulemap /tmp/bookllm-paper-build/Build/Intermediates.noindex/GeneratedModuleMaps-iphonesimulator
+
+Copy /tmp/bookllm-paper-build/Build/Intermediates.noindex/GeneratedModuleMaps-iphonesimulator/ZIPFoundation.modulemap /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/ZIPFoundation.modulemap (in target 'ZIPFoundation' from project 'ZIPFoundation')
+    cd /tmp/bookllm-paper-build/SourcePackages/checkouts/ZIPFoundation
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/ZIPFoundation.modulemap /tmp/bookllm-paper-build/Build/Intermediates.noindex/GeneratedModuleMaps-iphonesimulator
+
+WriteAuxiliaryFile /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM.DependencyMetadataFileList (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    write-file /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM.DependencyMetadataFileList
+
+WriteAuxiliaryFile /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM.LinkFileList (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    write-file /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM.LinkFileList
+
+CpResource /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/ZIPFoundation_ZIPFoundation.bundle/PrivacyInfo.xcprivacy /tmp/bookllm-paper-build/SourcePackages/checkouts/ZIPFoundation/Sources/ZIPFoundation/Resources/PrivacyInfo.xcprivacy (in target 'ZIPFoundation_ZIPFoundation' from project 'ZIPFoundation')
+    cd /tmp/bookllm-paper-build/SourcePackages/checkouts/ZIPFoundation
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /tmp/bookllm-paper-build/SourcePackages/checkouts/ZIPFoundation/Sources/ZIPFoundation/Resources/PrivacyInfo.xcprivacy /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/ZIPFoundation_ZIPFoundation.bundle
+
+ProcessInfoPlistFile /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/ZIPFoundation_ZIPFoundation.bundle/Info.plist /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation_ZIPFoundation-b.build/empty-ZIPFoundation_ZIPFoundation.plist (in target 'ZIPFoundation_ZIPFoundation' from project 'ZIPFoundation')
+    cd /tmp/bookllm-paper-build/SourcePackages/checkouts/ZIPFoundation
+    builtin-infoPlistUtility /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation_ZIPFoundation-b.build/empty-ZIPFoundation_ZIPFoundation.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphonesimulator -o /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/ZIPFoundation_ZIPFoundation.bundle/Info.plist
+
+SwiftDriver TranslationCore normal arm64 com.apple.xcode.tools.swift.compiler (in target 'TranslationCore' from project 'TranslationCore')
+    cd /Users/lbn/Desktop/code/bookllm/ios/BookLLM.xcodeproj
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -parse-as-library -module-name TranslationCore -Onone @/tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore.SwiftFileList -DSWIFT_PACKAGE -DDEBUG -DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE -DXcode -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /tmp/bookllm-paper-build/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 6 -I /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/bookllm-paper-build/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -sdk-module-cache-path /tmp/bookllm-paper-build/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/bookllm-paper-build/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -package-name translationcore -emit-const-values -const-gather-protocols-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore_const_extract_protocols.json -Xcc -I/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/DerivedSources-normal/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/DerivedSources/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore-Swift.h -working-directory /Users/lbn/Desktop/code/bookllm/ios/BookLLM.xcodeproj -experimental-emit-module-separately -disable-cmo
+
+SwiftDriver ZIPFoundation normal arm64 com.apple.xcode.tools.swift.compiler (in target 'ZIPFoundation' from project 'ZIPFoundation')
+    cd /Users/lbn/Desktop/code/bookllm/ios/BookLLM.xcodeproj
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -parse-as-library -module-name ZIPFoundation -Onone @/tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation.SwiftFileList -DSWIFT_PACKAGE -DDEBUG -DSWIFT_MODULE_RESOURCE_BUNDLE_AVAILABLE -DXcode -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios15.0-simulator -g -module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -suppress-warnings -index-store-path /tmp/bookllm-paper-build/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/bookllm-paper-build/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -sdk-module-cache-path /tmp/bookllm-paper-build/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/bookllm-paper-build/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -package-name zipfoundation -emit-const-values -const-gather-protocols-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation_const_extract_protocols.json -Xcc -I/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/DerivedSources-normal/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/DerivedSources/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation-Swift.h -working-directory /Users/lbn/Desktop/code/bookllm/ios/BookLLM.xcodeproj -experimental-emit-module-separately -disable-cmo
+
+SwiftDriver\ Compilation\ Requirements ZIPFoundation normal arm64 com.apple.xcode.tools.swift.compiler (in target 'ZIPFoundation' from project 'ZIPFoundation')
+    cd /Users/lbn/Desktop/code/bookllm/ios/BookLLM.xcodeproj
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -parse-as-library -module-name ZIPFoundation -Onone @/tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation.SwiftFileList -DSWIFT_PACKAGE -DDEBUG -DSWIFT_MODULE_RESOURCE_BUNDLE_AVAILABLE -DXcode -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios15.0-simulator -g -module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -suppress-warnings -index-store-path /tmp/bookllm-paper-build/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/bookllm-paper-build/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -sdk-module-cache-path /tmp/bookllm-paper-build/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/bookllm-paper-build/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -package-name zipfoundation -emit-const-values -const-gather-protocols-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation_const_extract_protocols.json -Xcc -I/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/DerivedSources-normal/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/DerivedSources/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation-Swift.h -working-directory /Users/lbn/Desktop/code/bookllm/ios/BookLLM.xcodeproj -experimental-emit-module-separately -disable-cmo
+
+SwiftDriver\ Compilation ZIPFoundation normal arm64 com.apple.xcode.tools.swift.compiler (in target 'ZIPFoundation' from project 'ZIPFoundation')
+    cd /Users/lbn/Desktop/code/bookllm/ios/BookLLM.xcodeproj
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -parse-as-library -module-name ZIPFoundation -Onone @/tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation.SwiftFileList -DSWIFT_PACKAGE -DDEBUG -DSWIFT_MODULE_RESOURCE_BUNDLE_AVAILABLE -DXcode -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios15.0-simulator -g -module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -suppress-warnings -index-store-path /tmp/bookllm-paper-build/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/bookllm-paper-build/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -sdk-module-cache-path /tmp/bookllm-paper-build/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/bookllm-paper-build/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -package-name zipfoundation -emit-const-values -const-gather-protocols-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation_const_extract_protocols.json -Xcc -I/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/DerivedSources-normal/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/DerivedSources/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation-Swift.h -working-directory /Users/lbn/Desktop/code/bookllm/ios/BookLLM.xcodeproj -experimental-emit-module-separately -disable-cmo
+
+Copy /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/ZIPFoundation.swiftmodule/arm64-apple-ios-simulator.swiftdoc /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation.swiftdoc (in target 'ZIPFoundation' from project 'ZIPFoundation')
+    cd /tmp/bookllm-paper-build/SourcePackages/checkouts/ZIPFoundation
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation.swiftdoc /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/ZIPFoundation.swiftmodule/arm64-apple-ios-simulator.swiftdoc
+
+Copy /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/ZIPFoundation.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation.swiftsourceinfo (in target 'ZIPFoundation' from project 'ZIPFoundation')
+    cd /tmp/bookllm-paper-build/SourcePackages/checkouts/ZIPFoundation
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation.swiftsourceinfo /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/ZIPFoundation.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+Copy /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/ZIPFoundation.swiftmodule/arm64-apple-ios-simulator.abi.json /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation.abi.json (in target 'ZIPFoundation' from project 'ZIPFoundation')
+    cd /tmp/bookllm-paper-build/SourcePackages/checkouts/ZIPFoundation
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation.abi.json /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/ZIPFoundation.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+SwiftMergeGeneratedHeaders /tmp/bookllm-paper-build/Build/Intermediates.noindex/GeneratedModuleMaps-iphonesimulator/ZIPFoundation-Swift.h /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation-Swift.h (in target 'ZIPFoundation' from project 'ZIPFoundation')
+    cd /tmp/bookllm-paper-build/SourcePackages/checkouts/ZIPFoundation
+    builtin-swiftHeaderTool -arch arm64 /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation-Swift.h -o /tmp/bookllm-paper-build/Build/Intermediates.noindex/GeneratedModuleMaps-iphonesimulator/ZIPFoundation-Swift.h
+
+Copy /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/ZIPFoundation.swiftmodule/arm64-apple-ios-simulator.swiftmodule /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation.swiftmodule (in target 'ZIPFoundation' from project 'ZIPFoundation')
+    cd /tmp/bookllm-paper-build/SourcePackages/checkouts/ZIPFoundation
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation.swiftmodule /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/ZIPFoundation.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+Ld /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/ZIPFoundation.o normal (in target 'ZIPFoundation' from project 'ZIPFoundation')
+    cd /tmp/bookllm-paper-build/SourcePackages/checkouts/ZIPFoundation
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios15.0-simulator -r -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -O0 -w -Xlinker -no_warn_duplicate_libraries -F/tmp/bookllm-paper-build/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -filelist /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation.LinkFileList -nostdlib -Xlinker -object_path_lto -Xlinker /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation_lto.o -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation.swiftmodule -o /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/ZIPFoundation.o
+
+ExtractAppIntentsMetadata (in target 'ZIPFoundation' from project 'ZIPFoundation')
+    cd /tmp/bookllm-paper-build/SourcePackages/checkouts/ZIPFoundation
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name ZIPFoundation --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk --xcode-version 27A266a --platform-family iOS --deployment-target 15.0 --bundle-identifier zipfoundation.ZIPFoundation --output /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/ZIPFoundation.appintents --target-triple arm64-apple-ios15.0-simulator --binary-file /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/ZIPFoundation.o --dependency-file /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation_dependency_info.dat --stringsdata-file /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation.SwiftFileList --metadata-file-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/ZIPFoundation.DependencyMetadataFileList --static-metadata-file-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/ZIPFoundation.DependencyStaticMetadataFileList --swift-const-vals-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/ZIPFoundation.build/Debug-iphonesimulator/ZIPFoundation-t.build/Objects-normal/arm64/ZIPFoundation.SwiftConstValuesFileList --force --compile-time-extraction --deployment-aware-processing --no-app-shortcuts-localization
+2026-10-09 15:57:33.194 appintentsmetadataprocessor[52731:503158] Starting appintentsmetadataprocessor export
+2026-10-09 15:57:33.255 appintentsmetadataprocessor[52731:503158] Extracted no relevant App Intents symbols, skipping writing output
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ TranslationCore (in target 'TranslationCore' from project 'TranslationCore')
+
+SwiftCompile normal arm64 (in target 'TranslationCore' from project 'TranslationCore')
+    cd /Users/lbn/Desktop/code/bookllm/ios/BookLLM.xcodeproj
+    
+
+SwiftDriver\ Compilation TranslationCore normal arm64 com.apple.xcode.tools.swift.compiler (in target 'TranslationCore' from project 'TranslationCore')
+    cd /Users/lbn/Desktop/code/bookllm/ios/BookLLM.xcodeproj
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -parse-as-library -module-name TranslationCore -Onone @/tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore.SwiftFileList -DSWIFT_PACKAGE -DDEBUG -DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE -DXcode -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /tmp/bookllm-paper-build/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 6 -I /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/bookllm-paper-build/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -sdk-module-cache-path /tmp/bookllm-paper-build/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/bookllm-paper-build/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -package-name translationcore -emit-const-values -const-gather-protocols-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore_const_extract_protocols.json -Xcc -I/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/DerivedSources-normal/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/DerivedSources/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore-Swift.h -working-directory /Users/lbn/Desktop/code/bookllm/ios/BookLLM.xcodeproj -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for TranslationCore (in target 'TranslationCore' from project 'TranslationCore')
+
+SwiftDriver\ Compilation\ Requirements TranslationCore normal arm64 com.apple.xcode.tools.swift.compiler (in target 'TranslationCore' from project 'TranslationCore')
+    cd /Users/lbn/Desktop/code/bookllm/ios/BookLLM.xcodeproj
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -parse-as-library -module-name TranslationCore -Onone @/tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore.SwiftFileList -DSWIFT_PACKAGE -DDEBUG -DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE -DXcode -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /tmp/bookllm-paper-build/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 6 -I /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/bookllm-paper-build/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -sdk-module-cache-path /tmp/bookllm-paper-build/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/bookllm-paper-build/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -package-name translationcore -emit-const-values -const-gather-protocols-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore_const_extract_protocols.json -Xcc -I/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/DerivedSources-normal/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/DerivedSources/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore-Swift.h -working-directory /Users/lbn/Desktop/code/bookllm/ios/BookLLM.xcodeproj -experimental-emit-module-separately -disable-cmo
+
+Copy /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/TranslationCore.swiftmodule/arm64-apple-ios-simulator.swiftdoc /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore.swiftdoc (in target 'TranslationCore' from project 'TranslationCore')
+    cd /Users/lbn/Desktop/code/bookllm/ios/Packages/TranslationCore
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore.swiftdoc /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/TranslationCore.swiftmodule/arm64-apple-ios-simulator.swiftdoc
+
+Copy /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/TranslationCore.swiftmodule/arm64-apple-ios-simulator.swiftmodule /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore.swiftmodule (in target 'TranslationCore' from project 'TranslationCore')
+    cd /Users/lbn/Desktop/code/bookllm/ios/Packages/TranslationCore
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore.swiftmodule /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/TranslationCore.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+SwiftMergeGeneratedHeaders /tmp/bookllm-paper-build/Build/Intermediates.noindex/GeneratedModuleMaps-iphonesimulator/TranslationCore-Swift.h /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore-Swift.h (in target 'TranslationCore' from project 'TranslationCore')
+    cd /Users/lbn/Desktop/code/bookllm/ios/Packages/TranslationCore
+    builtin-swiftHeaderTool -arch arm64 /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore-Swift.h -o /tmp/bookllm-paper-build/Build/Intermediates.noindex/GeneratedModuleMaps-iphonesimulator/TranslationCore-Swift.h
+
+Copy /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/TranslationCore.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore.swiftsourceinfo (in target 'TranslationCore' from project 'TranslationCore')
+    cd /Users/lbn/Desktop/code/bookllm/ios/Packages/TranslationCore
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore.swiftsourceinfo /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/TranslationCore.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+Copy /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/TranslationCore.swiftmodule/arm64-apple-ios-simulator.abi.json /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore.abi.json (in target 'TranslationCore' from project 'TranslationCore')
+    cd /Users/lbn/Desktop/code/bookllm/ios/Packages/TranslationCore
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore.abi.json /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/TranslationCore.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Ld /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/TranslationCore.o normal (in target 'TranslationCore' from project 'TranslationCore')
+    cd /Users/lbn/Desktop/code/bookllm/ios/Packages/TranslationCore
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -r -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -O0 -Xlinker -no_warn_duplicate_libraries -F/tmp/bookllm-paper-build/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -filelist /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore.LinkFileList -nostdlib -Xlinker -object_path_lto -Xlinker /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore_lto.o -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore.swiftmodule -o /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/TranslationCore.o
+
+SwiftDriver BookLLM normal arm64 com.apple.xcode.tools.swift.compiler (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name BookLLM -Onone @/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM.SwiftFileList -DDEBUG -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /tmp/bookllm-paper-build/Index.noindex/DataStore -swift-version 6 -I /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -F /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64 -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/bookllm-paper-build/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -sdk-module-cache-path /tmp/bookllm-paper-build/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/bookllm-paper-build/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM-generated-files.hmap -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM-own-target-headers.hmap -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM-5ffb6ec4b3baee4d7e17291bf2ca8665-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM-project-headers.hmap -Xcc -I/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/DerivedSources-normal/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/DerivedSources/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/DerivedSources -emit-objc-header -emit-objc-header-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM-Swift.h -working-directory /Users/lbn/Desktop/code/bookllm/ios -experimental-emit-module-separately -disable-cmo
+
+CompileAssetCatalogVariant thinned /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app /Users/lbn/Desktop/code/bookllm/ios/Resources/Assets.xcassets (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    /Applications/Xcode.app/Contents/Developer/usr/bin/actool /Users/lbn/Desktop/code/bookllm/ios/Resources/Assets.xcassets --compile /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/assetcatalog_output/thinned --output-format human-readable-text --notices --warnings --export-dependency-info /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/assetcatalog_dependencies_thinned --output-partial-info-plist /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/assetcatalog_generated_info.plist_thinned --app-icon AppIcon --accent-color AccentColor --compress-pngs --enable-on-demand-resources YES --filter-for-thinning-device-configuration iPhone18,5 --filter-for-device-os-version 27.0 --development-region en --target-device iphone --target-device ipad --minimum-deployment-target 17.0 --platform iphonesimulator
+/* com.apple.actool.document.notices */
+/Users/lbn/Desktop/code/bookllm/ios/Resources/Assets.xcassets:./AppIcon.appiconset/[][ipad][76x76][][][1x][][][][]: notice: 76x76@1x app icons only apply to iPad apps targeting releases of iOS prior to 10.0.
+/* com.apple.actool.compilation-results */
+/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/assetcatalog_generated_info.plist_thinned
+/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/assetcatalog_output/thinned/AppIcon60x60@2x.png
+/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/assetcatalog_output/thinned/AppIcon76x76@2x~ipad.png
+/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/assetcatalog_output/thinned/Assets.car
+
+
+ExtractAppIntentsMetadata (in target 'TranslationCore' from project 'TranslationCore')
+    cd /Users/lbn/Desktop/code/bookllm/ios/Packages/TranslationCore
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name TranslationCore --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk --xcode-version 27A266a --platform-family iOS --deployment-target 17.0 --bundle-identifier translationcore.TranslationCore --output /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/TranslationCore.appintents --target-triple arm64-apple-ios17.0-simulator --binary-file /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/TranslationCore.o --dependency-file /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore_dependency_info.dat --stringsdata-file /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore.SwiftFileList --metadata-file-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/TranslationCore.DependencyMetadataFileList --static-metadata-file-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/TranslationCore.DependencyStaticMetadataFileList --swift-const-vals-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-t.build/Objects-normal/arm64/TranslationCore.SwiftConstValuesFileList --force --compile-time-extraction --deployment-aware-processing --no-app-shortcuts-localization
+2026-10-09 15:57:33.774 appintentsmetadataprocessor[52737:503182] Starting appintentsmetadataprocessor export
+2026-10-09 15:57:33.840 appintentsmetadataprocessor[52737:503182] Extracted no relevant App Intents symbols, skipping writing output
+
+Ld /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks/TranslationCore_5FD865ADA4F1FF27_PackageProduct.framework/TranslationCore_5FD865ADA4F1FF27_PackageProduct normal (in target 'TranslationCoredynamic-product' from project 'TranslationCore')
+    cd /Users/lbn/Desktop/code/bookllm/ios/Packages/TranslationCore
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -emit-library -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -Xlinker -no_warn_duplicate_libraries -L/tmp/bookllm-paper-build/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F/tmp/bookllm-paper-build/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -Fsystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -Fsystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks @/tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-product-t.build/Objects-normal/arm64/TranslationCore_5FD865ADA4F1FF27_PackageProduct.LinkFileList -Xclang-linker -install_name -Xclang-linker @rpath/TranslationCore_5FD865ADA4F1FF27_PackageProduct.framework/TranslationCore_5FD865ADA4F1FF27_PackageProduct -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker @loader_path -Xlinker -rpath -Xlinker /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks -Xlinker -dead_strip -Xlinker -object_path_lto -Xlinker /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-product-t.build/Objects-normal/arm64/TranslationCore_5FD865ADA4F1FF27_PackageProduct_lto.o -Xclang-linker -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /tmp/bookllm-paper-build/Build/Intermediates.noindex/TranslationCore.build/Debug-iphonesimulator/TranslationCore-product-t.build/Objects-normal/arm64/TranslationCore_5FD865ADA4F1FF27_PackageProduct_dependency_info.dat -link-objc-runtime -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -o /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks/TranslationCore_5FD865ADA4F1FF27_PackageProduct.framework/TranslationCore_5FD865ADA4F1FF27_PackageProduct -no-stdlib-rpath
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ BookLLM (in target 'BookLLM' from project 'BookLLM')
+
+SwiftCompile normal arm64 (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    
+
+SwiftCompile normal arm64 Compiling\ DesignSystem.swift /Users/lbn/Desktop/code/bookllm/ios/App/DesignSystem.swift (in target 'BookLLM' from project 'BookLLM')
+
+SwiftCompile normal arm64 /Users/lbn/Desktop/code/bookllm/ios/App/DesignSystem.swift (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-SwiftPerFileCompile DesignSystem.swift
+
+SwiftCompile normal arm64 Compiling\ QualityControl.swift /Users/lbn/Desktop/code/bookllm/ios/App/QualityControl.swift (in target 'BookLLM' from project 'BookLLM')
+
+SwiftCompile normal arm64 /Users/lbn/Desktop/code/bookllm/ios/App/QualityControl.swift (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-SwiftPerFileCompile QualityControl.swift
+
+SwiftCompile normal arm64 Compiling\ JobView.swift /Users/lbn/Desktop/code/bookllm/ios/App/JobView.swift (in target 'BookLLM' from project 'BookLLM')
+
+SwiftCompile normal arm64 /Users/lbn/Desktop/code/bookllm/ios/App/JobView.swift (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-SwiftPerFileCompile JobView.swift
+
+GenerateTAPI /tmp/bookllm-paper-build/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator/TranslationCore_5FD865ADA4F1FF27_PackageProduct.framework/TranslationCore_5FD865ADA4F1FF27_PackageProduct.tbd (in target 'TranslationCoredynamic-product' from project 'TranslationCore')
+    cd /Users/lbn/Desktop/code/bookllm/ios/Packages/TranslationCore
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/tapi stubify -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -F/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -L/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks/TranslationCore_5FD865ADA4F1FF27_PackageProduct.framework/TranslationCore_5FD865ADA4F1FF27_PackageProduct -o /tmp/bookllm-paper-build/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator/TranslationCore_5FD865ADA4F1FF27_PackageProduct.framework/TranslationCore_5FD865ADA4F1FF27_PackageProduct.tbd
+
+Ld /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/__preview.dylib normal (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -Os -Xlinker -no_warn_duplicate_libraries -L/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -F/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -install_name @rpath/BookLLM.debug.dylib -Xlinker -dead_strip -rdynamic -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM_dependency_info.dat -o /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/__preview.dylib
+
+CpResource /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/PrivacyInfo.xcprivacy /Users/lbn/Desktop/code/bookllm/ios/Resources/PrivacyInfo.xcprivacy (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/lbn/Desktop/code/bookllm/ios/Resources/PrivacyInfo.xcprivacy /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app
+
+Copy /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/Frameworks/TranslationCore_5FD865ADA4F1FF27_PackageProduct.framework /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks/TranslationCore_5FD865ADA4F1FF27_PackageProduct.framework (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -remove-static-executable /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks/TranslationCore_5FD865ADA4F1FF27_PackageProduct.framework /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/Frameworks
+
+SwiftDriverJobDiscovery normal arm64 Compiling DesignSystem.swift (in target 'BookLLM' from project 'BookLLM')
+
+SwiftCompile normal arm64 Compiling\ RepairDraftView.swift /Users/lbn/Desktop/code/bookllm/ios/App/RepairDraftView.swift (in target 'BookLLM' from project 'BookLLM')
+
+SwiftCompile normal arm64 /Users/lbn/Desktop/code/bookllm/ios/App/RepairDraftView.swift (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-SwiftPerFileCompile RepairDraftView.swift
+
+SwiftCompile normal arm64 Compiling\ MarketplaceView.swift /Users/lbn/Desktop/code/bookllm/ios/App/MarketplaceView.swift (in target 'BookLLM' from project 'BookLLM')
+
+SwiftCompile normal arm64 /Users/lbn/Desktop/code/bookllm/ios/App/MarketplaceView.swift (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-SwiftPerFileCompile MarketplaceView.swift
+
+SwiftCompile normal arm64 Compiling\ ReaderView.swift /Users/lbn/Desktop/code/bookllm/ios/App/ReaderView.swift (in target 'BookLLM' from project 'BookLLM')
+
+SwiftCompile normal arm64 /Users/lbn/Desktop/code/bookllm/ios/App/ReaderView.swift (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-SwiftPerFileCompile ReaderView.swift
+
+SwiftCompile normal arm64 Compiling\ GlossaryView.swift /Users/lbn/Desktop/code/bookllm/ios/App/GlossaryView.swift (in target 'BookLLM' from project 'BookLLM')
+
+SwiftCompile normal arm64 /Users/lbn/Desktop/code/bookllm/ios/App/GlossaryView.swift (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-SwiftPerFileCompile GlossaryView.swift
+
+SwiftCompile normal arm64 Compiling\ OnboardingView.swift /Users/lbn/Desktop/code/bookllm/ios/App/OnboardingView.swift (in target 'BookLLM' from project 'BookLLM')
+
+SwiftCompile normal arm64 /Users/lbn/Desktop/code/bookllm/ios/App/OnboardingView.swift (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-SwiftPerFileCompile OnboardingView.swift
+
+SwiftCompile normal arm64 Compiling\ StylesView.swift /Users/lbn/Desktop/code/bookllm/ios/App/StylesView.swift (in target 'BookLLM' from project 'BookLLM')
+
+SwiftCompile normal arm64 /Users/lbn/Desktop/code/bookllm/ios/App/StylesView.swift (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-SwiftPerFileCompile StylesView.swift
+
+SwiftCompile normal arm64 Compiling\ ImportSessionView.swift /Users/lbn/Desktop/code/bookllm/ios/App/ImportSessionView.swift (in target 'BookLLM' from project 'BookLLM')
+
+SwiftCompile normal arm64 /Users/lbn/Desktop/code/bookllm/ios/App/ImportSessionView.swift (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-SwiftPerFileCompile ImportSessionView.swift
+
+SwiftDriverJobDiscovery normal arm64 Compiling RepairDraftView.swift (in target 'BookLLM' from project 'BookLLM')
+
+SwiftCompile normal arm64 Compiling\ LibraryView.swift /Users/lbn/Desktop/code/bookllm/ios/App/LibraryView.swift (in target 'BookLLM' from project 'BookLLM')
+
+SwiftCompile normal arm64 /Users/lbn/Desktop/code/bookllm/ios/App/LibraryView.swift (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-SwiftPerFileCompile LibraryView.swift
+
+SwiftDriverJobDiscovery normal arm64 Compiling StylesView.swift (in target 'BookLLM' from project 'BookLLM')
+
+SwiftDriverJobDiscovery normal arm64 Compiling OnboardingView.swift (in target 'BookLLM' from project 'BookLLM')
+
+SwiftDriverJobDiscovery normal arm64 Compiling GlossaryView.swift (in target 'BookLLM' from project 'BookLLM')
+
+LinkAssetCatalog /Users/lbn/Desktop/code/bookllm/ios/Resources/Assets.xcassets (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-linkAssetCatalog --thinned /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/assetcatalog_output/thinned --thinned-dependencies /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/assetcatalog_dependencies_thinned --thinned-info-plist-content /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/assetcatalog_generated_info.plist_thinned --unthinned /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/assetcatalog_output/unthinned --unthinned-dependencies /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/assetcatalog_dependencies_unthinned --unthinned-info-plist-content /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/assetcatalog_generated_info.plist_unthinned --output /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app --plist-output /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/assetcatalog_generated_info.plist
+note: Emplaced /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/AppIcon60x60@2x.png (in target 'BookLLM' from project 'BookLLM')
+note: Emplaced /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/Assets.car (in target 'BookLLM' from project 'BookLLM')
+note: Emplaced /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/AppIcon76x76@2x~ipad.png (in target 'BookLLM' from project 'BookLLM')
+
+SwiftDriverJobDiscovery normal arm64 Compiling JobView.swift (in target 'BookLLM' from project 'BookLLM')
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for BookLLM (in target 'BookLLM' from project 'BookLLM')
+
+SwiftDriver\ Compilation\ Requirements BookLLM normal arm64 com.apple.xcode.tools.swift.compiler (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name BookLLM -Onone @/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM.SwiftFileList -DDEBUG -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /tmp/bookllm-paper-build/Index.noindex/DataStore -swift-version 6 -I /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -F /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64 -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/bookllm-paper-build/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -sdk-module-cache-path /tmp/bookllm-paper-build/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/bookllm-paper-build/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM-generated-files.hmap -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM-own-target-headers.hmap -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM-5ffb6ec4b3baee4d7e17291bf2ca8665-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM-project-headers.hmap -Xcc -I/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/DerivedSources-normal/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/DerivedSources/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/DerivedSources -emit-objc-header -emit-objc-header-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM-Swift.h -working-directory /Users/lbn/Desktop/code/bookllm/ios -experimental-emit-module-separately -disable-cmo
+
+Copy /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.swiftmodule/arm64-apple-ios-simulator.swiftmodule /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM.swiftmodule (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM.swiftmodule /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+SwiftMergeGeneratedHeaders /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/DerivedSources/BookLLM-Swift.h /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM-Swift.h (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-swiftHeaderTool -arch arm64 /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM-Swift.h -o /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/DerivedSources/BookLLM-Swift.h
+
+Copy /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.swiftmodule/arm64-apple-ios-simulator.swiftdoc /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM.swiftdoc (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM.swiftdoc /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.swiftmodule/arm64-apple-ios-simulator.swiftdoc
+
+Copy /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.swiftmodule/arm64-apple-ios-simulator.abi.json /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM.abi.json (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM.abi.json /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM.swiftsourceinfo (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM.swiftsourceinfo /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+SwiftDriver BookLLMTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'BookLLMTests' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name BookLLMTests -Onone @/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests.SwiftFileList -DDEBUG -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /tmp/bookllm-paper-build/Index.noindex/DataStore -swift-version 6 -I /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -parse-as-library -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/bookllm-paper-build/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -sdk-module-cache-path /tmp/bookllm-paper-build/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/bookllm-paper-build/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/BookLLMTests-generated-files.hmap -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/BookLLMTests-own-target-headers.hmap -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/BookLLMTests-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM-5ffb6ec4b3baee4d7e17291bf2ca8665-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/BookLLMTests-project-headers.hmap -Xcc -I/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/DerivedSources-normal/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/DerivedSources/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/DerivedSources -emit-objc-header -emit-objc-header-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests-Swift.h -working-directory /Users/lbn/Desktop/code/bookllm/ios -experimental-emit-module-separately -disable-cmo
+
+Copy /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/ZIPFoundation_ZIPFoundation.bundle /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/ZIPFoundation_ZIPFoundation.bundle (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/ZIPFoundation_ZIPFoundation.bundle /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app
+
+ProcessInfoPlistFile /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/Info.plist /Users/lbn/Desktop/code/bookllm/ios/Config/Info.plist (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-infoPlistUtility /Users/lbn/Desktop/code/bookllm/ios/Config/Info.plist -producttype com.apple.product-type.application -genpkginfo /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/assetcatalog_generated_info.plist -scanforprivacyfile /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/Frameworks/TranslationCore_5FD865ADA4F1FF27_PackageProduct.framework -scanforprivacyfile /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/ZIPFoundation_ZIPFoundation.bundle -o /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/Info.plist
+
+SwiftDriverJobDiscovery normal arm64 Compiling MarketplaceView.swift (in target 'BookLLM' from project 'BookLLM')
+
+SwiftCompile normal arm64 Compiling\ PaperStoreTests.swift /Users/lbn/Desktop/code/bookllm/ios/Tests/PaperStoreTests.swift (in target 'BookLLMTests' from project 'BookLLM')
+
+SwiftCompile normal arm64 /Users/lbn/Desktop/code/bookllm/ios/Tests/PaperStoreTests.swift (in target 'BookLLMTests' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-SwiftPerFileCompile PaperStoreTests.swift
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ BookLLMTests (in target 'BookLLMTests' from project 'BookLLM')
+
+SwiftCompile normal arm64 (in target 'BookLLMTests' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for BookLLMTests (in target 'BookLLMTests' from project 'BookLLM')
+
+SwiftDriver\ Compilation\ Requirements BookLLMTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'BookLLMTests' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name BookLLMTests -Onone @/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests.SwiftFileList -DDEBUG -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /tmp/bookllm-paper-build/Index.noindex/DataStore -swift-version 6 -I /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -parse-as-library -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/bookllm-paper-build/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -sdk-module-cache-path /tmp/bookllm-paper-build/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/bookllm-paper-build/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/BookLLMTests-generated-files.hmap -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/BookLLMTests-own-target-headers.hmap -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/BookLLMTests-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM-5ffb6ec4b3baee4d7e17291bf2ca8665-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/BookLLMTests-project-headers.hmap -Xcc -I/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/DerivedSources-normal/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/DerivedSources/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/DerivedSources -emit-objc-header -emit-objc-header-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests-Swift.h -working-directory /Users/lbn/Desktop/code/bookllm/ios -experimental-emit-module-separately -disable-cmo
+
+Copy /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLMTests.swiftmodule/arm64-apple-ios-simulator.abi.json /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests.abi.json (in target 'BookLLMTests' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests.abi.json /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLMTests.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+SwiftDriverJobDiscovery normal arm64 Compiling ImportSessionView.swift (in target 'BookLLM' from project 'BookLLM')
+
+SwiftDriverJobDiscovery normal arm64 Compiling PaperStoreTests.swift (in target 'BookLLMTests' from project 'BookLLM')
+
+SwiftDriver\ Compilation BookLLMTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'BookLLMTests' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name BookLLMTests -Onone @/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests.SwiftFileList -DDEBUG -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /tmp/bookllm-paper-build/Index.noindex/DataStore -swift-version 6 -I /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -parse-as-library -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/bookllm-paper-build/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -sdk-module-cache-path /tmp/bookllm-paper-build/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/bookllm-paper-build/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/BookLLMTests-generated-files.hmap -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/BookLLMTests-own-target-headers.hmap -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/BookLLMTests-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM-5ffb6ec4b3baee4d7e17291bf2ca8665-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/BookLLMTests-project-headers.hmap -Xcc -I/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/DerivedSources-normal/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/DerivedSources/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/DerivedSources -emit-objc-header -emit-objc-header-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests-Swift.h -working-directory /Users/lbn/Desktop/code/bookllm/ios -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Compiling ReaderView.swift (in target 'BookLLM' from project 'BookLLM')
+
+SwiftDriverJobDiscovery normal arm64 Compiling QualityControl.swift (in target 'BookLLM' from project 'BookLLM')
+
+SwiftDriverJobDiscovery normal arm64 Compiling LibraryView.swift (in target 'BookLLM' from project 'BookLLM')
+
+SwiftDriver\ Compilation BookLLM normal arm64 com.apple.xcode.tools.swift.compiler (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name BookLLM -Onone @/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM.SwiftFileList -DDEBUG -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /tmp/bookllm-paper-build/Index.noindex/DataStore -swift-version 6 -I /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -F /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64 -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/bookllm-paper-build/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/bookllm-paper-build/ModuleCache.noindex -sdk-module-cache-path /tmp/bookllm-paper-build/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/bookllm-paper-build/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM-generated-files.hmap -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM-own-target-headers.hmap -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM-5ffb6ec4b3baee4d7e17291bf2ca8665-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM-project-headers.hmap -Xcc -I/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/DerivedSources-normal/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/DerivedSources/arm64 -Xcc -I/tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/DerivedSources -emit-objc-header -emit-objc-header-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM-Swift.h -working-directory /Users/lbn/Desktop/code/bookllm/ios -experimental-emit-module-separately -disable-cmo
+
+Ld /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/BookLLM.debug.dylib normal (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -Os -Xlinker -no_warn_duplicate_libraries -L/tmp/bookllm-paper-build/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -F/tmp/bookllm-paper-build/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -filelist /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM.LinkFileList -install_name @rpath/BookLLM.debug.dylib -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker @loader_path -Xlinker -rpath -Xlinker /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -Xlinker -object_path_lto -Xlinker /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM_lto.o -rdynamic -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM.swiftmodule -Xlinker -alias -Xlinker _main -Xlinker ___debug_main_executable_dylib_entry_point /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks/TranslationCore_5FD865ADA4F1FF27_PackageProduct.framework/TranslationCore_5FD865ADA4F1FF27_PackageProduct -o /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/BookLLM.debug.dylib
+
+ConstructStubExecutorLinkFileList /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM-ExecutorLinkFileList-normal-arm64.txt (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    construct-stub-executor-link-file-list /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/BookLLM.debug.dylib /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM-ExecutorLinkFileList-normal-arm64.txt
+note: Using stub executor library with Swift entry point. (in target 'BookLLM' from project 'BookLLM')
+
+Ld /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/BookLLM normal (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -Os -Xlinker -no_warn_duplicate_libraries -L/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -F/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -Xlinker -rpath -Xlinker @executable_path -Xlinker -rpath -Xlinker @loader_path -Xlinker -rpath -Xlinker /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -rdynamic -Xlinker -objc_abi_version -Xlinker 2 -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM-DebugDylibPath-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM-DebugDylibInstallName-normal-arm64.txt -Xlinker -filelist -Xlinker /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM-ExecutorLinkFileList-normal-arm64.txt /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/BookLLM.debug.dylib -o /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/BookLLM
+
+CopySwiftLibs /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/BookLLM.debug.dylib --scan-folder /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/Frameworks --scan-folder /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/PlugIns --scan-folder /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/SystemExtensions --scan-folder /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/Extensions --scan-folder /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks/TranslationCore_5FD865ADA4F1FF27_PackageProduct.framework --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+Ignoring --strip-bitcode because --sign was not passed
+
+ExtractAppIntentsMetadata (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name BookLLM --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk --xcode-version 27A266a --platform-family iOS --deployment-target 17.0 --bundle-identifier app.bookllm.ios --output /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app --target-triple arm64-apple-ios17.0-simulator --binary-file /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/BookLLM --dependency-file /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM_dependency_info.dat --stringsdata-file /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM.SwiftFileList --metadata-file-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM.DependencyMetadataFileList --static-metadata-file-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM.DependencyStaticMetadataFileList --swift-const-vals-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/Objects-normal/arm64/BookLLM.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --no-app-shortcuts-localization
+2026-10-09 15:57:38.902 appintentsmetadataprocessor[52795:503436] Starting appintentsmetadataprocessor export
+2026-10-09 15:57:38.903 appintentsmetadataprocessor[52795:503436] warning: Metadata extraction skipped, no AppIntents.framework dependency found
+
+AppIntentsSSUTraining (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsnltrainingprocessor --infoplist-path /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/Info.plist --temp-dir-path /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/ssu --bundle-id app.bookllm.ios --product-path /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app --extracted-metadata-path /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/Metadata.appintents --metadata-file-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLM.build/BookLLM.DependencyMetadataFileList --source-file /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/Info.plist --archive-ssu-assets
+2026-10-09 15:57:38.924 appintentsnltrainingprocessor[52796:503437] Parsing options for appintentsnltrainingprocessor
+2026-10-09 15:57:38.924 appintentsnltrainingprocessor[52796:503437] Starting AppIntents SSU YAML Generation
+2026-10-09 15:57:38.924 appintentsnltrainingprocessor[52796:503437] No AppShortcuts found - Skipping.
+
+Copy /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/PlugIns/BookLLMTests.xctest/ZIPFoundation_ZIPFoundation.bundle /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/ZIPFoundation_ZIPFoundation.bundle (in target 'BookLLMTests' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/ZIPFoundation_ZIPFoundation.bundle /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/PlugIns/BookLLMTests.xctest
+
+Ld /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/PlugIns/BookLLMTests.xctest/BookLLMTests normal (in target 'BookLLMTests' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -bundle -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -Os -Xlinker -no_warn_duplicate_libraries -L/tmp/bookllm-paper-build/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F/tmp/bookllm-paper-build/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -filelist /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests.LinkFileList -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker @loader_path -Xlinker -rpath -Xlinker /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks -Xlinker -rpath -Xlinker @loader_path/Frameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -bundle_loader /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/BookLLM -Xlinker -object_path_lto -Xlinker /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests_lto.o -rdynamic -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests.swiftmodule -Xlinker -needed_framework -Xlinker XCTest -framework XCTest -Xlinker -needed-lXCTestSwiftSupport -lXCTestSwiftSupport /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks/TranslationCore_5FD865ADA4F1FF27_PackageProduct.framework/TranslationCore_5FD865ADA4F1FF27_PackageProduct /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/BookLLM.debug.dylib -o /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/PlugIns/BookLLMTests.xctest/BookLLMTests
+
+Copy /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/PlugIns/BookLLMTests.xctest/Frameworks/TranslationCore_5FD865ADA4F1FF27_PackageProduct.framework /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks/TranslationCore_5FD865ADA4F1FF27_PackageProduct.framework (in target 'BookLLMTests' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -remove-static-executable /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks/TranslationCore_5FD865ADA4F1FF27_PackageProduct.framework /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/PlugIns/BookLLMTests.xctest/Frameworks
+
+ProcessInfoPlistFile /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/PlugIns/BookLLMTests.xctest/Info.plist /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/empty-BookLLMTests.plist (in target 'BookLLMTests' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-infoPlistUtility /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/empty-BookLLMTests.plist -producttype com.apple.product-type.bundle.unit-test -expandbuildsettings -format binary -platform iphonesimulator -scanforprivacyfile /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/PlugIns/BookLLMTests.xctest/ZIPFoundation_ZIPFoundation.bundle -o /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/PlugIns/BookLLMTests.xctest/Info.plist
+
+ExtractAppIntentsMetadata (in target 'BookLLMTests' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name BookLLMTests --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk --xcode-version 27A266a --platform-family iOS --deployment-target 17.0 --bundle-identifier app.bookllm.ios.BookLLMTests --output /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/PlugIns/BookLLMTests.xctest --target-triple arm64-apple-ios17.0-simulator --binary-file /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/PlugIns/BookLLMTests.xctest/BookLLMTests --dependency-file /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests_dependency_info.dat --stringsdata-file /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests.SwiftFileList --metadata-file-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/BookLLMTests.DependencyMetadataFileList --static-metadata-file-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/BookLLMTests.DependencyStaticMetadataFileList --swift-const-vals-list /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/Objects-normal/arm64/BookLLMTests.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --no-app-shortcuts-localization
+2026-10-09 15:57:39.261 appintentsmetadataprocessor[52799:503454] Starting appintentsmetadataprocessor export
+2026-10-09 15:57:39.263 appintentsmetadataprocessor[52799:503454] warning: Metadata extraction skipped, no AppIntents.framework dependency found
+
+CopySwiftLibs /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/PlugIns/BookLLMTests.xctest (in target 'BookLLMTests' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/PlugIns/BookLLMTests.xctest/BookLLMTests --scan-folder /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/PlugIns/BookLLMTests.xctest/Frameworks --scan-folder /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/PlugIns/BookLLMTests.xctest/PlugIns --scan-folder /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/PlugIns/BookLLMTests.xctest/SystemExtensions --scan-folder /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/PlugIns/BookLLMTests.xctest/Extensions --scan-folder /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/PackageFrameworks/TranslationCore_5FD865ADA4F1FF27_PackageProduct.framework --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app/PlugIns/BookLLMTests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /tmp/bookllm-paper-build/Build/Intermediates.noindex/BookLLM.build/Debug-iphonesimulator/BookLLMTests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+Ignoring --strip-bitcode because --sign was not passed
+
+Validate /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app (in target 'BookLLM' from project 'BookLLM')
+    cd /Users/lbn/Desktop/code/bookllm/ios
+    builtin-validationUtility /tmp/bookllm-paper-build/Build/Products/Debug-iphonesimulator/BookLLM.app -shallow-bundle -infoplist-subpath Info.plist
+
+PruneExplicitPrecompiledModules /tmp/bookllm-paper-build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /tmp/bookllm-paper-build/SDKExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /tmp/bookllm-paper-build/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+2026-10-09 15:57:45.040107+1100 BookLLM[52803:503631] [Type Declaration Issues] Type "org.openxmlformats.wordprocessingml.document" was expected to be declared and imported in the Info.plist of BookLLM.app, but it was not found.
+2026-10-09 15:57:45.221203+1100 BookLLM[52803:503631] [Type Declaration Issues] Type "org.openxmlformats.wordprocessingml.document" was expected to be declared and imported in the Info.plist of BookLLM.app, but it was not found.
+2026-10-09 15:57:45.338652+1100 BookLLM[52803:503631] [XPCErrors] non-launching port is incompatible with service identifier "com.apple.PointerUI.pointeruid.default-service"
+2026-10-09 15:57:45.421979+1100 BookLLM[52803:503631] [Type Declaration Issues] Type "org.openxmlformats.wordprocessingml.document" was expected to be declared and imported in the Info.plist of BookLLM.app, but it was not found.
+2026-10-09 15:57:45.427616+1100 BookLLM[52803:503631] [API] cannot add handler to 0 from 0 - dropping
+2026-10-09 15:57:45.437736+1100 BookLLM[52803:503631] [API] cannot add handler to 0 from 0 - dropping
+Test Suite 'All tests' started at 2026-10-09 15:57:45.450.
+Test Suite 'BookLLMTests.xctest' started at 2026-10-09 15:57:45.451.
+Test Suite 'PaperCompatibilityTests' started at 2026-10-09 15:57:45.451.
+Test Case '-[BookLLMTests.PaperCompatibilityTests testManualRepairPauseClearsPendingUIAndPreservesRequestOnResume]' started.
+Test Case '-[BookLLMTests.PaperCompatibilityTests testManualRepairPauseClearsPendingUIAndPreservesRequestOnResume]' passed (0.048 seconds).
+Test Case '-[BookLLMTests.PaperCompatibilityTests testPurchasedMetadataDoesNotInventSourceOrTranslationQuality]' started.
+Test Case '-[BookLLMTests.PaperCompatibilityTests testPurchasedMetadataDoesNotInventSourceOrTranslationQuality]' passed (0.002 seconds).
+Test Case '-[BookLLMTests.PaperCompatibilityTests testUnreadableLibraryCannotBeOverwrittenByImport]' started.
+Test Case '-[BookLLMTests.PaperCompatibilityTests testUnreadableLibraryCannotBeOverwrittenByImport]' passed (0.008 seconds).
+Test Suite 'PaperCompatibilityTests' passed at 2026-10-09 15:57:45.513.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.058 (0.062) seconds
+Test Suite 'PaperLiveStoreTests' started at 2026-10-09 15:57:45.513.
+Test Case '-[BookLLMTests.PaperLiveStoreTests testLiveStoreUpdatesOnlyLaterUnfrozenChapterAndUsesAutomaticMode]' started.
+Test Case '-[BookLLMTests.PaperLiveStoreTests testLiveStoreUpdatesOnlyLaterUnfrozenChapterAndUsesAutomaticMode]' passed (0.103 seconds).
+Test Suite 'PaperLiveStoreTests' passed at 2026-10-09 15:57:45.616.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.103 (0.103) seconds
+Test Suite 'PaperReaderStructureTests' started at 2026-10-09 15:57:45.616.
+Test Case '-[BookLLMTests.PaperReaderStructureTests testParagraphsDoNotInheritChapterHeadingTypography]' started.
+Test Case '-[BookLLMTests.PaperReaderStructureTests testParagraphsDoNotInheritChapterHeadingTypography]' passed (0.001 seconds).
+Test Case '-[BookLLMTests.PaperReaderStructureTests testPoemLineBreaksTablesAndLongCodeFencesRemainIntact]' started.
+Test Case '-[BookLLMTests.PaperReaderStructureTests testPoemLineBreaksTablesAndLongCodeFencesRemainIntact]' passed (0.001 seconds).
+Test Suite 'PaperReaderStructureTests' passed at 2026-10-09 15:57:45.619.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'PaperStoreTests' started at 2026-10-09 15:57:45.619.
+Test Case '-[BookLLMTests.PaperStoreTests testAllExportsContainRealContentAndCanBeReadBack]' started.
+2026-10-09 15:57:45.947211+1100 BookLLM[52803:503631] [API] cannot add handler to 0 from 0 - dropping
+Test Case '-[BookLLMTests.PaperStoreTests testAllExportsContainRealContentAndCanBeReadBack]' passed (1.002 seconds).
+Test Case '-[BookLLMTests.PaperStoreTests testBlankNameAndDiskFailureKeepOriginalPreference]' started.
+Test Case '-[BookLLMTests.PaperStoreTests testBlankNameAndDiskFailureKeepOriginalPreference]' passed (0.002 seconds).
+Test Case '-[BookLLMTests.PaperStoreTests testIncompleteFinalChapterCannotBecomeReadable]' started.
+Test Case '-[BookLLMTests.PaperStoreTests testIncompleteFinalChapterCannotBecomeReadable]' passed (0.001 seconds).
+Test Case '-[BookLLMTests.PaperStoreTests testNameSaveSurvivesRestartAndDoesNotChangeContentOrOtherBook]' started.
+Test Case '-[BookLLMTests.PaperStoreTests testNameSaveSurvivesRestartAndDoesNotChangeContentOrOtherBook]' passed (0.002 seconds).
+Test Case '-[BookLLMTests.PaperStoreTests testOldManualTaskLoadsWithoutStartingOrLosingNames]' started.
+Test Case '-[BookLLMTests.PaperStoreTests testOldManualTaskLoadsWithoutStartingOrLosingNames]' passed (0.002 seconds).
+Test Case '-[BookLLMTests.PaperStoreTests testParallelRolesUseActualEventsAndChapterScope]' started.
+Test Case '-[BookLLMTests.PaperStoreTests testParallelRolesUseActualEventsAndChapterScope]' passed (0.001 seconds).
+Test Suite 'PaperStoreTests' passed at 2026-10-09 15:57:46.629.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 1.009 (1.010) seconds
+Test Suite 'PaperTypographyTests' started at 2026-10-09 15:57:46.629.
+Test Case '-[BookLLMTests.PaperTypographyTests testNativeViewportSnapshots]' started.
+PAPER_READING_FONTS: ["HiraMinProN-W3", "HiraMinProN-W6"]
+2026-10-09 15:57:46.900258+1100 BookLLM[52803:503631] [API] cannot add handler to 0 from 0 - dropping
+2026-10-09 15:57:47.365815+1100 BookLLM[52803:503631] [API] cannot add handler to 0 from 0 - dropping
+2026-10-09 15:57:47.897014+1100 BookLLM[52803:503631] [API] cannot add handler to 0 from 0 - dropping
+2026-10-09 15:57:48.430323+1100 BookLLM[52803:503631] [API] cannot add handler to 0 from 0 - dropping
+2026-10-09 15:57:48.997000+1100 BookLLM[52803:503631] [API] cannot add handler to 0 from 0 - dropping
+Test Case '-[BookLLMTests.PaperTypographyTests testNativeViewportSnapshots]' passed (3.104 seconds).
+Test Suite 'PaperTypographyTests' passed at 2026-10-09 15:57:49.734.
+	 Executed 1 test, with 0 failures (0 unexpected) in 3.104 (3.105) seconds
+Test Suite 'BookLLMTests.xctest' passed at 2026-10-09 15:57:49.734.
+	 Executed 13 tests, with 0 failures (0 unexpected) in 4.275 (4.283) seconds
+Test Suite 'All tests' passed at 2026-10-09 15:57:49.735.
+	 Executed 13 tests, with 0 failures (0 unexpected) in 4.275 (4.285) seconds
+2026-10-09 15:57:51.618306+1100 BookLLMUITests-Runner[52821:504130] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'All tests' started at 2026-10-09 15:57:55.058.
+Test Suite 'BookLLMUITests.xctest' started at 2026-10-09 15:57:55.058.
+Test Suite 'PaperFlowTests' started at 2026-10-09 15:57:55.058.
+Test Case '-[BookLLMUITests.PaperFlowTests testCompletedReaderAndOriginalMode]' started.
+    t =     0.00s Start Test at 2026-10-09 15:57:55.062
+    t =     0.03s Set Up
+    t =     0.03s Open app.bookllm.ios
+    t =     0.03s     Launch app.bookllm.ios
+2026-10-09 15:57:55.157 xcodebuild[52716:502986] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-09 15:57:55.157 xcodebuild[52716:502986] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     0.31s         Setting up automation session
+objc[52821]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.X55wQq/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x1068a0398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.X55wQq/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10a698310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     3.73s         Wait for app.bookllm.ios to idle
+<unknown>:0: warning: -[BookLLMUITests.PaperFlowTests testCompletedReaderAndOriginalMode] : Type "org.openxmlformats.wordprocessingml.document" was expected to be declared and imported in the Info.plist of BookLLM.app, but it was not found.
+    t =     5.80s Waiting 10.0s for "导入文稿" Button to exist
+    t =     6.84s     Checking `Expect predicate `existsNoRetry == 1` for object "导入文稿" Button`
+    t =     6.84s         Checking existence of `"导入文稿" Button`
+    t =     6.98s Tap "继续阅读 →" Button
+    t =     6.98s     Wait for app.bookllm.ios to idle
+    t =     6.98s     Find the "继续阅读 →" Button
+    t =     7.01s     Check for interrupting elements affecting "继续阅读 →" Button
+    t =     7.03s     Synthesize event
+    t =     7.37s     Wait for app.bookllm.ios to idle
+    t =     7.44s Waiting 5.0s for "原文" Button to exist
+    t =     8.48s     Checking `Expect predicate `existsNoRetry == 1` for object "原文" Button`
+    t =     8.48s         Checking existence of `"原文" Button`
+    t =     8.53s Find the Target Application 'app.bookllm.ios'
+    t =     8.65s Added attachment named '04-reader-fullpage'
+    t =     8.65s Tap "原文" Button
+    t =     8.65s     Wait for app.bookllm.ios to idle
+    t =     8.66s     Find the "原文" Button
+    t =     8.69s     Check for interrupting elements affecting "原文" Button
+    t =     8.72s     Synthesize event
+    t =     9.01s     Wait for app.bookllm.ios to idle
+    t =     9.02s Waiting 5.0s for "Elizabeth opened a letter." StaticText to exist
+    t =    10.06s     Checking `Expect predicate `existsNoRetry == 1` for object "Elizabeth opened a letter." StaticText`
+    t =    10.06s         Checking existence of `"Elizabeth opened a letter." StaticText`
+    t =    10.09s Tap "译文" Button
+    t =    10.09s     Wait for app.bookllm.ios to idle
+    t =    10.10s     Find the "译文" Button
+    t =    10.12s     Check for interrupting elements affecting "译文" Button
+    t =    10.15s     Synthesize event
+    t =    10.45s     Wait for app.bookllm.ios to idle
+    t =    10.46s Checking existence of `StaticText (First Match)`
+    t =    10.50s Tap "阅读字号" Button
+    t =    10.50s     Wait for app.bookllm.ios to idle
+    t =    10.50s     Find the "阅读字号" Button
+    t =    10.53s     Check for interrupting elements affecting "阅读字号" Button
+    t =    10.56s     Synthesize event
+    t =    10.85s     Wait for app.bookllm.ios to idle
+    t =    11.99s Tap "更大字号" Button
+    t =    11.99s     Wait for app.bookllm.ios to idle
+    t =    12.00s     Find the "更大字号" Button
+    t =    12.03s     Check for interrupting elements affecting "更大字号" Button
+    t =    12.07s     Synthesize event
+    t =    12.36s     Wait for app.bookllm.ios to idle
+    t =    13.80s Find the StaticText (First Match)
+    t =    13.84s Tear Down
+Test Case '-[BookLLMUITests.PaperFlowTests testCompletedReaderAndOriginalMode]' passed (14.115 seconds).
+Test Case '-[BookLLMUITests.PaperFlowTests testLargeTypeKeepsPrimaryActionReachable]' started.
+    t =     0.00s Start Test at 2026-10-09 15:58:09.177
+    t =     0.02s Set Up
+    t =     0.03s Open app.bookllm.ios
+    t =     0.03s     Launch app.bookllm.ios
+    t =     0.03s         Terminate app.bookllm.ios:52837
+2026-10-09 15:58:10.276 xcodebuild[52716:502986] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-09 15:58:10.276 xcodebuild[52716:502986] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.32s         Setting up automation session
+    t =     4.59s         Wait for app.bookllm.ios to idle
+<unknown>:0: warning: -[BookLLMUITests.PaperFlowTests testLargeTypeKeepsPrimaryActionReachable] : Type "org.openxmlformats.wordprocessingml.document" was expected to be declared and imported in the Info.plist of BookLLM.app, but it was not found.
+    t =     6.68s Waiting 10.0s for "设置翻译" Button to exist
+    t =     7.72s     Checking `Expect predicate `existsNoRetry == 1` for object "设置翻译" Button`
+    t =     7.72s         Checking existence of `"设置翻译" Button`
+    t =     7.85s Tap "设置翻译" Button
+    t =     7.85s     Wait for app.bookllm.ios to idle
+    t =     7.85s     Find the "设置翻译" Button
+    t =     7.88s     Check for interrupting elements affecting "设置翻译" Button
+    t =     7.91s     Synthesize event
+    t =     8.24s     Wait for app.bookllm.ios to idle
+    t =     8.40s Waiting 5.0s for "开始翻译" Button to exist
+    t =     9.44s     Checking `Expect predicate `existsNoRetry == 1` for object "开始翻译" Button`
+    t =     9.44s         Checking existence of `"开始翻译" Button`
+    t =     9.50s Find the "开始翻译" Button
+    t =     9.54s Find the Target Application 'app.bookllm.ios'
+    t =     9.67s Added attachment named 'large-type'
+    t =     9.67s Find the "精修" Button
+    t =     9.72s Find the "精修" Button
+    t =     9.77s Find the "精修" Button
+    t =     9.81s Find the "精修" Button
+    t =     9.86s Tap "精译" Button
+    t =     9.86s     Wait for app.bookllm.ios to idle
+    t =     9.86s     Find the "精译" Button
+    t =     9.90s     Check for interrupting elements affecting "精译" Button
+    t =     9.93s     Synthesize event
+    t =    10.23s     Wait for app.bookllm.ios to idle
+    t =    10.23s Checking existence of `"主编" Button`
+    t =    10.27s Find the "开始翻译" Button
+    t =    10.34s Tear Down
+Test Case '-[BookLLMUITests.PaperFlowTests testLargeTypeKeepsPrimaryActionReachable]' passed (10.555 seconds).
+Test Case '-[BookLLMUITests.PaperFlowTests testNameEditingAndKeyboardValidation]' started.
+    t =     0.00s Start Test at 2026-10-09 15:58:19.733
+    t =     0.02s Set Up
+    t =     0.02s Open app.bookllm.ios
+    t =     0.02s     Launch app.bookllm.ios
+    t =     0.02s         Terminate app.bookllm.ios:52922
+2026-10-09 15:58:20.824 xcodebuild[52716:502986] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-09 15:58:20.824 xcodebuild[52716:502986] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.30s         Setting up automation session
+    t =     4.75s         Wait for app.bookllm.ios to idle
+<unknown>:0: warning: -[BookLLMUITests.PaperFlowTests testNameEditingAndKeyboardValidation] : Type "org.openxmlformats.wordprocessingml.document" was expected to be declared and imported in the Info.plist of BookLLM.app, but it was not found.
+    t =     6.80s Waiting 10.0s for "导入文稿" Button to exist
+    t =     7.84s     Checking `Expect predicate `existsNoRetry == 1` for object "导入文稿" Button`
+    t =     7.84s         Checking existence of `"导入文稿" Button`
+    t =     7.94s Tap "午后的花园 的菜单" Button
+    t =     7.95s     Wait for app.bookllm.ios to idle
+    t =     7.95s     Find the "午后的花园 的菜单" Button
+    t =     7.98s     Check for interrupting elements affecting "午后的花园 的菜单" Button
+    t =     8.00s     Synthesize event
+    t =     8.33s     Wait for app.bookllm.ios to idle
+    t =     9.50s Tap "译名" Button
+    t =     9.50s     Wait for app.bookllm.ios to idle
+    t =     9.51s     Find the "译名" Button
+    t =     9.56s     Check for interrupting elements affecting "译名" Button
+    t =     9.59s     Synthesize event
+    t =     9.89s     Wait for app.bookllm.ios to idle
+    t =    11.34s Waiting 5.0s for "修改 Elizabeth 的译名" Button to exist
+    t =    12.37s     Checking `Expect predicate `existsNoRetry == 1` for object "修改 Elizabeth 的译名" Button`
+    t =    12.37s         Checking existence of `"修改 Elizabeth 的译名" Button`
+    t =    12.43s Find the Target Application 'app.bookllm.ios'
+    t =    12.55s Added attachment named '06-names'
+    t =    12.55s Tap "修改 Elizabeth 的译名" Button
+    t =    12.55s     Wait for app.bookllm.ios to idle
+    t =    12.55s     Find the "修改 Elizabeth 的译名" Button
+    t =    12.59s     Check for interrupting elements affecting "修改 Elizabeth 的译名" Button
+    t =    12.62s     Synthesize event
+    t =    12.92s     Wait for app.bookllm.ios to idle
+    t =    13.38s Waiting 5.0s for "译名" TextField to exist
+    t =    14.41s     Checking `Expect predicate `existsNoRetry == 1` for object "译名" TextField`
+    t =    14.41s         Checking existence of `"译名" TextField`
+    t =    14.47s Tap "译名" TextField
+    t =    14.47s     Wait for app.bookllm.ios to idle
+    t =    14.48s     Find the "译名" TextField
+    t =    14.53s     Check for interrupting elements affecting "请输入译名" TextField
+    t =    14.58s     Synthesize event
+    t =    14.88s     Wait for app.bookllm.ios to idle
+    t =    15.74s Find the "请输入译名" TextField
+    t =    15.86s Type '' into "请输入译名" TextField
+    t =    15.86s     Wait for app.bookllm.ios to idle
+    t =    15.86s     Find the "请输入译名" TextField
+    t =    15.93s     Check for interrupting elements affecting "请输入译名" TextField
+    t =    16.00s     Synthesize event
+    t =    16.28s     Wait for app.bookllm.ios to idle
+    t =    16.57s Tap "保存" Button
+    t =    16.57s     Wait for app.bookllm.ios to idle
+    t =    16.58s     Find the "保存" Button
+    t =    16.65s     Check for interrupting elements affecting "保存" Button
+    t =    16.71s     Synthesize event
+    t =    17.00s     Wait for app.bookllm.ios to idle
+    t =    17.01s Checking existence of `"请输入译名。" StaticText`
+    t =    17.07s Find the Target Application 'app.bookllm.ios'
+    t =    17.22s Added attachment named '07-edit-name-keyboard'
+    t =    17.22s Type '莉莎' into "请输入译名" TextField
+    t =    17.22s     Wait for app.bookllm.ios to idle
+    t =    17.39s     Find the "请输入译名" TextField
+    t =    17.49s     Check for interrupting elements affecting "请输入译名" TextField
+    t =    17.58s     Synthesize event
+    t =    17.83s     Wait for app.bookllm.ios to idle
+    t =    18.37s Tap "保存" Button
+    t =    18.37s     Wait for app.bookllm.ios to idle
+    t =    18.38s     Find the "保存" Button
+    t =    18.44s     Check for interrupting elements affecting "保存" Button
+    t =    18.50s     Synthesize event
+    t =    18.80s     Wait for app.bookllm.ios to idle
+    t =    19.22s Waiting 5.0s for "莉莎" StaticText to exist
+    t =    20.25s     Checking `Expect predicate `existsNoRetry == 1` for object "莉莎" StaticText`
+    t =    20.25s         Checking existence of `"莉莎" StaticText`
+    t =    20.29s Checking existence of `"已修改" StaticText`
+    t =    20.33s Tear Down
+Test Case '-[BookLLMUITests.PaperFlowTests testNameEditingAndKeyboardValidation]' passed (20.583 seconds).
+Test Case '-[BookLLMUITests.PaperFlowTests testProgressReaderReturnAndPauseConfirmation]' started.
+    t =     0.00s Start Test at 2026-10-09 15:58:40.320
+    t =     0.03s Set Up
+    t =     0.03s Open app.bookllm.ios
+    t =     0.03s     Launch app.bookllm.ios
+    t =     0.03s         Terminate app.bookllm.ios:52982
+2026-10-09 15:58:41.412 xcodebuild[52716:502986] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-09 15:58:41.412 xcodebuild[52716:502986] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.31s         Setting up automation session
+    t =     4.61s         Wait for app.bookllm.ios to idle
+<unknown>:0: warning: -[BookLLMUITests.PaperFlowTests testProgressReaderReturnAndPauseConfirmation] : Type "org.openxmlformats.wordprocessingml.document" was expected to be declared and imported in the Info.plist of BookLLM.app, but it was not found.
+    t =     6.60s Waiting 10.0s for "导入文稿" Button to exist
+    t =     7.62s     Checking `Expect predicate `existsNoRetry == 1` for object "导入文稿" Button`
+    t =     7.62s         Checking existence of `"导入文稿" Button`
+    t =     7.73s Waiting 5.0s for "校对与语言专家并行审校" StaticText to exist
+    t =     8.76s     Checking `Expect predicate `existsNoRetry == 1` for object "校对与语言专家并行审校" StaticText`
+    t =     8.77s         Checking existence of `"校对与语言专家并行审校" StaticText`
+    t =     8.80s Tap "进度" Button
+    t =     8.80s     Wait for app.bookllm.ios to idle
+    t =     8.80s     Find the "进度" Button
+    t =     8.83s     Check for interrupting elements affecting "进度" Button
+    t =     8.86s     Synthesize event
+    t =     9.20s     Wait for app.bookllm.ios to idle
+    t =     9.34s Waiting 5.0s for "校对，处理中" Button to exist
+    t =    10.37s     Checking `Expect predicate `existsNoRetry == 1` for object "校对，处理中" Button`
+    t =    10.37s         Checking existence of `"校对，处理中" Button`
+    t =    10.45s Checking existence of `"语言专家，处理中" Button`
+    t =    10.50s Find the Target Application 'app.bookllm.ios'
+    t =    10.63s Added attachment named '03-progress'
+    t =    10.63s Tap "阅读已完成章节" Button
+    t =    10.63s     Wait for app.bookllm.ios to idle
+    t =    10.64s     Find the "阅读已完成章节" Button
+    t =    10.69s     Check for interrupting elements affecting "阅读已完成章节" Button
+    t =    10.74s     Synthesize event
+    t =    11.04s     Wait for app.bookllm.ios to idle
+    t =    11.45s Waiting 5.0s for "对照" Button to exist
+    t =    12.49s     Checking `Expect predicate `existsNoRetry == 1` for object "对照" Button`
+    t =    12.49s         Checking existence of `"对照" Button`
+    t =    12.55s Find the Target Application 'app.bookllm.ios'
+    t =    12.69s Added attachment named '04-reader'
+    t =    12.69s Tap "对照" Button
+    t =    12.69s     Wait for app.bookllm.ios to idle
+    t =    12.69s     Find the "对照" Button
+    t =    12.74s     Check for interrupting elements affecting "对照" Button
+    t =    12.78s     Synthesize event
+    t =    13.08s     Wait for app.bookllm.ios to idle
+    t =    13.81s Find the "对照" Button
+    t =    13.86s Find the Target Application 'app.bookllm.ios'
+    t =    14.00s Added attachment named '05-bilingual'
+    t =    14.00s Tap "阅读字号" Button
+    t =    14.00s     Wait for app.bookllm.ios to idle
+    t =    14.00s     Find the "阅读字号" Button
+    t =    14.05s     Check for interrupting elements affecting "阅读字号" Button
+    t =    14.09s     Synthesize event
+    t =    14.39s     Wait for app.bookllm.ios to idle
+    t =    15.52s Tap "更大字号" Button
+    t =    15.52s     Wait for app.bookllm.ios to idle
+    t =    15.52s     Find the "更大字号" Button
+    t =    15.58s     Check for interrupting elements affecting "更大字号" Button
+    t =    15.63s     Synthesize event
+    t =    15.92s     Wait for app.bookllm.ios to idle
+    t =    17.37s Tap Button (Element at index 0)
+    t =    17.37s     Wait for app.bookllm.ios to idle
+    t =    17.37s     Find the Button (Element at index 0)
+    t =    17.42s     Check for interrupting elements affecting "BackButton" Button
+    t =    17.47s     Synthesize event
+    t =    17.77s     Wait for app.bookllm.ios to idle
+    t =    18.07s Waiting 5.0s for "暂停翻译" Button to exist
+    t =    19.10s     Checking `Expect predicate `existsNoRetry == 1` for object "暂停翻译" Button`
+    t =    19.10s         Checking existence of `"暂停翻译" Button`
+    t =    19.16s Tap "暂停翻译" Button
+    t =    19.16s     Wait for app.bookllm.ios to idle
+    t =    19.16s     Find the "暂停翻译" Button
+    t =    19.22s     Check for interrupting elements affecting "暂停翻译" Button
+    t =    19.27s     Synthesize event
+    t =    19.57s     Wait for app.bookllm.ios to idle
+    t =    20.29s Waiting 5.0s for "继续翻译" Button to exist
+    t =    21.33s     Checking `Expect predicate `existsNoRetry == 1` for object "继续翻译" Button`
+    t =    21.33s         Checking existence of `"继续翻译" Button`
+    t =    21.39s Tap "关闭本书详情" Button
+    t =    21.39s     Wait for app.bookllm.ios to idle
+    t =    21.39s     Find the "关闭本书详情" Button
+    t =    21.44s     Check for interrupting elements affecting "xmark" Button
+    t =    21.49s     Synthesize event
+    t =    21.79s     Wait for app.bookllm.ios to idle
+    t =    22.16s Waiting 5.0s for "导入文稿" Button to exist
+    t =    23.18s     Checking `Expect predicate `existsNoRetry == 1` for object "导入文稿" Button`
+    t =    23.18s         Checking existence of `"导入文稿" Button`
+    t =    23.21s Tear Down
+Test Case '-[BookLLMUITests.PaperFlowTests testProgressReaderReturnAndPauseConfirmation]' passed (23.455 seconds).
+Test Case '-[BookLLMUITests.PaperFlowTests testQualityRolesSearchAndImportNavigation]' started.
+    t =     0.00s Start Test at 2026-10-09 15:59:03.778
+    t =     0.03s Set Up
+    t =     0.03s Open app.bookllm.ios
+    t =     0.03s     Launch app.bookllm.ios
+    t =     0.03s         Terminate app.bookllm.ios:53061
+2026-10-09 15:59:04.859 xcodebuild[52716:502986] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-09 15:59:04.859 xcodebuild[52716:502986] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.30s         Setting up automation session
+    t =     4.59s         Wait for app.bookllm.ios to idle
+<unknown>:0: warning: -[BookLLMUITests.PaperFlowTests testQualityRolesSearchAndImportNavigation] : Type "org.openxmlformats.wordprocessingml.document" was expected to be declared and imported in the Info.plist of BookLLM.app, but it was not found.
+    t =     6.50s Waiting 10.0s for "导入文稿" Button to exist
+    t =     7.52s     Checking `Expect predicate `existsNoRetry == 1` for object "导入文稿" Button`
+    t =     7.52s         Checking existence of `"导入文稿" Button`
+    t =     7.64s Find the Target Application 'app.bookllm.ios'
+    t =     7.76s Added attachment named '01-library'
+    t =     7.76s Tap "设置翻译" Button
+    t =     7.76s     Wait for app.bookllm.ios to idle
+    t =     7.76s     Find the "设置翻译" Button
+    t =     7.79s     Check for interrupting elements affecting "设置翻译" Button
+    t =     7.82s     Synthesize event
+    t =     8.15s     Wait for app.bookllm.ios to idle
+    t =     8.30s Waiting 5.0s for "主编" Button to exist
+    t =     9.33s     Checking `Expect predicate `existsNoRetry == 1` for object "主编" Button`
+    t =     9.33s         Checking existence of `"主编" Button`
+    t =     9.39s Find the Target Application 'app.bookllm.ios'
+    t =     9.52s Added attachment named '02-quality-premium'
+    t =     9.52s Tap "速读" Button
+    t =     9.52s     Wait for app.bookllm.ios to idle
+    t =     9.52s     Find the "速读" Button
+    t =     9.56s     Check for interrupting elements affecting "速读" Button
+    t =     9.60s     Synthesize event
+    t =     9.90s     Wait for app.bookllm.ios to idle
+    t =     9.90s Checking existence of `"主编" Button`
+    t =     9.94s Checking existence of `"校对" Button`
+    t =     9.97s Find the Target Application 'app.bookllm.ios'
+    t =    10.10s Added attachment named '02-quality-fast'
+    t =    10.10s Tap "精译" Button
+    t =    10.10s     Wait for app.bookllm.ios to idle
+    t =    10.11s     Find the "精译" Button
+    t =    10.15s     Check for interrupting elements affecting "精译" Button
+    t =    10.19s     Synthesize event
+    t =    10.48s     Wait for app.bookllm.ios to idle
+    t =    10.49s Checking existence of `"校对" Button`
+    t =    10.53s Checking existence of `"语言专家" Button`
+    t =    10.56s Tap "深校" Button
+    t =    10.56s     Wait for app.bookllm.ios to idle
+    t =    10.57s     Find the "深校" Button
+    t =    10.60s     Check for interrupting elements affecting "深校" Button
+    t =    10.64s     Synthesize event
+    t =    10.94s     Wait for app.bookllm.ios to idle
+    t =    10.94s Checking existence of `"语言专家" Button`
+    t =    10.98s Checking existence of `"主编" Button`
+    t =    11.02s Tap "精修" Button
+    t =    11.02s     Wait for app.bookllm.ios to idle
+    t =    11.02s     Find the "精修" Button
+    t =    11.06s     Check for interrupting elements affecting "精修" Button
+    t =    11.10s     Synthesize event
+    t =    11.40s     Wait for app.bookllm.ios to idle
+    t =    11.40s Tap "速读" Button
+    t =    11.40s     Wait for app.bookllm.ios to idle
+    t =    11.40s     Find the "速读" Button
+    t =    11.45s     Check for interrupting elements affecting "速读" Button
+    t =    11.48s     Synthesize event
+    t =    11.78s     Wait for app.bookllm.ios to idle
+    t =    11.78s Tap "精修" Button
+    t =    11.78s     Wait for app.bookllm.ios to idle
+    t =    11.79s     Find the "精修" Button
+    t =    11.83s     Check for interrupting elements affecting "精修" Button
+    t =    11.87s     Synthesize event
+    t =    12.17s     Wait for app.bookllm.ios to idle
+    t =    12.17s Tap "速读" Button
+    t =    12.17s     Wait for app.bookllm.ios to idle
+    t =    12.18s     Find the "速读" Button
+    t =    12.22s     Check for interrupting elements affecting "速读" Button
+    t =    12.26s     Synthesize event
+    t =    12.56s     Wait for app.bookllm.ios to idle
+    t =    12.56s Tap "精修" Button
+    t =    12.56s     Wait for app.bookllm.ios to idle
+    t =    12.57s     Find the "精修" Button
+    t =    12.60s     Check for interrupting elements affecting "精修" Button
+    t =    12.64s     Synthesize event
+    t =    12.94s     Wait for app.bookllm.ios to idle
+    t =    12.94s Checking existence of `"主编" Button`
+    t =    12.99s Tap Button (Element at index 0)
+    t =    12.99s     Wait for app.bookllm.ios to idle
+    t =    12.99s     Find the Button (Element at index 0)
+    t =    13.03s     Check for interrupting elements affecting "BackButton" Button
+    t =    13.07s     Synthesize event
+    t =    13.37s     Wait for app.bookllm.ios to idle
+    t =    13.68s Waiting 5.0s for "导入文稿" Button to exist
+    t =    14.71s     Checking `Expect predicate `existsNoRetry == 1` for object "导入文稿" Button`
+    t =    14.72s         Checking existence of `"导入文稿" Button`
+    t =    14.75s Tap "搜索文稿" Button
+    t =    14.75s     Wait for app.bookllm.ios to idle
+    t =    14.75s     Find the "搜索文稿" Button
+    t =    14.77s     Check for interrupting elements affecting "magnifyingglass" Button
+    t =    14.80s     Synthesize event
+    t =    15.09s     Wait for app.bookllm.ios to idle
+    t =    15.10s Tap "搜索书名" TextField
+    t =    15.10s     Wait for app.bookllm.ios to idle
+    t =    15.10s     Find the "搜索书名" TextField
+    t =    15.13s     Check for interrupting elements affecting "搜索书名" TextField
+    t =    15.15s     Synthesize event
+    t =    15.45s     Wait for app.bookllm.ios to idle
+    t =    15.79s Type 'no-match' into "搜索书名" TextField
+    t =    15.79s     Wait for app.bookllm.ios to idle
+    t =    16.15s     Find the "搜索书名" TextField
+    t =    16.24s     Check for interrupting elements affecting "搜索书名" TextField
+    t =    16.28s     Synthesize event
+    t =    16.63s     Wait for app.bookllm.ios to idle
+    t =    16.82s Checking existence of `"没有找到文稿" StaticText`
+    t =    16.85s Tap "清除搜索" Button
+    t =    16.85s     Wait for app.bookllm.ios to idle
+    t =    16.86s     Find the "清除搜索" Button
+    t =    16.90s     Check for interrupting elements affecting "xmark" Button
+    t =    16.93s     Synthesize event
+    t =    17.22s     Wait for app.bookllm.ios to idle
+    t =    17.24s Checking existence of `"远山来信" Button`
+    t =    17.30s Tap "导入文稿" Button
+    t =    17.30s     Wait for app.bookllm.ios to idle
+    t =    17.59s     Find the "导入文稿" Button
+    t =    17.65s     Check for interrupting elements affecting "plus" Button
+    t =    17.69s     Synthesize event
+    t =    17.99s     Wait for app.bookllm.ios to idle
+    t =    18.72s Waiting 5.0s for "选择文件" Button to exist
+    t =    19.75s     Checking `Expect predicate `existsNoRetry == 1` for object "选择文件" Button`
+    t =    19.75s         Checking existence of `"选择文件" Button`
+    t =    19.80s Checking existence of `"扫描纸张" Button`
+    t =    19.83s Find the Target Application 'app.bookllm.ios'
+    t =    19.97s Added attachment named '08-import'
+    t =    19.97s Tear Down
+Test Case '-[BookLLMUITests.PaperFlowTests testQualityRolesSearchAndImportNavigation]' passed (20.215 seconds).
+Test Suite 'PaperFlowTests' passed at 2026-10-09 15:59:23.994.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 88.923 (88.936) seconds
+Test Suite 'BookLLMUITests.xctest' passed at 2026-10-09 15:59:23.995.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 88.923 (88.937) seconds
+Test Suite 'All tests' passed at 2026-10-09 15:59:23.996.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 88.923 (88.938) seconds
+2026-10-09 15:59:24.322 xcodebuild[52716:502986] [MT] IDETestOperationsObserverDebug: 105.007 elapsed -- Testing started completed.
+2026-10-09 15:59:24.322 xcodebuild[52716:502986] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-09 15:59:24.322 xcodebuild[52716:502986] [MT] IDETestOperationsObserverDebug: 105.007 sec, +105.007 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/bookllm-paper-layout-final.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

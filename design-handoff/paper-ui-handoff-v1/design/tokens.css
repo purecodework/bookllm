@@ -1,0 +1,16 @@
+/* Semantic design reference. Adapt to existing native components; do not add a web runtime. */
+:root {
+ --paper: #F6F4EE; --ink: #302F2C; --text-secondary: #666A60;
+ --accent: #525F50; --divider: #D5D4CC; --progress-track: #D7DCCF;
+ --attention: #806449; --error: #975044; --on-accent: #FFFFFF;
+ --page-gutter: 24px; --touch-target: 44px; --button-height: 48px;
+ --button-radius: 7px; --sheet-radius: 18px; --reading-size: 20px;
+ --reading-line-height: 1.8; --ui-small: 12px; --role-height: 94px;
+ --ease-out: cubic-bezier(.22,1,.36,1); --motion-role-enter: 600ms;
+ --motion-role-reflow: 520ms; --motion-indicator: 320ms;
+ --motion-sheet: 320ms; --motion-state: 180ms; --motion-progress: 500ms;
+}
+@media (max-width: 359px) { :root { --page-gutter: 19px; } }
+@media (prefers-reduced-motion: reduce) {
+ *, *::before, *::after { animation: none !important; transition: none !important; }
+}

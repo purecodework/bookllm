@@ -1,0 +1,218 @@
+[
+  {
+    "name": "ux-layout-name-768-ipad-type",
+    "test": "UXLayoutTests/testNarrowAndLargestTypeLayouts()",
+    "device": "iPhone 18 Pro",
+    "kind": "UIHosting布局快照"
+  },
+  {
+    "name": "ux-layout-paste-768-ipad-type",
+    "test": "UXLayoutTests/testNarrowAndLargestTypeLayouts()",
+    "device": "iPhone 18 Pro",
+    "kind": "UIHosting布局快照"
+  },
+  {
+    "name": "ux-layout-configuration-768-ipad-type",
+    "test": "UXLayoutTests/testNarrowAndLargestTypeLayouts()",
+    "device": "iPhone 18 Pro",
+    "kind": "UIHosting布局快照"
+  },
+  {
+    "name": "ux-layout-name-320-largest",
+    "test": "UXLayoutTests/testNarrowAndLargestTypeLayouts()",
+    "device": "iPhone 18 Pro",
+    "kind": "UIHosting布局快照"
+  },
+  {
+    "name": "ux-layout-paste-320-largest",
+    "test": "UXLayoutTests/testNarrowAndLargestTypeLayouts()",
+    "device": "iPhone 18 Pro",
+    "kind": "UIHosting布局快照"
+  },
+  {
+    "name": "ux-layout-configuration-320-largest",
+    "test": "UXLayoutTests/testNarrowAndLargestTypeLayouts()",
+    "device": "iPhone 18 Pro",
+    "kind": "UIHosting布局快照"
+  },
+  {
+    "name": "ux-layout-name-320-default",
+    "test": "UXLayoutTests/testNarrowAndLargestTypeLayouts()",
+    "device": "iPhone 18 Pro",
+    "kind": "UIHosting布局快照"
+  },
+  {
+    "name": "ux-layout-paste-320-default",
+    "test": "UXLayoutTests/testNarrowAndLargestTypeLayouts()",
+    "device": "iPhone 18 Pro",
+    "kind": "UIHosting布局快照"
+  },
+  {
+    "name": "ux-layout-configuration-320-default",
+    "test": "UXLayoutTests/testNarrowAndLargestTypeLayouts()",
+    "device": "iPhone 18 Pro",
+    "kind": "UIHosting布局快照"
+  },
+  {
+    "name": "ux-all-chapters",
+    "test": "ExperienceFlowTests/testDirectoryShowsUnavailableChapterAndFullScreenReturn()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "ux-largest-name-editing",
+    "test": "ExperienceFlowTests/testLargestTypeKeepsEditorsAndPrimaryActionsReachable()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "ux-largest-paste-editing",
+    "test": "ExperienceFlowTests/testLargestTypeKeepsEditorsAndPrimaryActionsReachable()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "polish-largest-introduction-modes",
+    "test": "ExperienceFlowTests/testLargestTypeUsageIntroductionKeepsNavigationReachable()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "polish-largest-introduction-quality",
+    "test": "ExperienceFlowTests/testLargestTypeUsageIntroductionKeepsNavigationReachable()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "polish-largest-introduction-import",
+    "test": "ExperienceFlowTests/testLargestTypeUsageIntroductionKeepsNavigationReachable()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "ux-export-ready",
+    "test": "ExperienceFlowTests/testLibraryExportDefaultsToWholeBookAndDoesNotOpenReader()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "ux-export-whole-book",
+    "test": "ExperienceFlowTests/testLibraryExportDefaultsToWholeBookAndDoesNotOpenReader()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "ux-name-effect-keyboard",
+    "test": "ExperienceFlowTests/testNameEffectIsVisibleBeforeSave()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "ux-paste-restored",
+    "test": "ExperienceFlowTests/testPasteDraftSurvivesCloseAndRestartThenAddsOnce()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "ux-paste-software-keyboard",
+    "test": "ExperienceFlowTests/testPasteDraftSurvivesCloseAndRestartThenAddsOnce()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "ux-export-current-chapter",
+    "test": "ExperienceFlowTests/testReaderExportDefaultsToCurrentChapter()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "ux-api-labeled-fields",
+    "test": "ExperienceFlowTests/testUnavailableCloudAndUnsavedAPIEdit()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "polish-introduction-modes",
+    "test": "ExperienceFlowTests/testUsageIntroductionCanCloseAndNeverChangesUsageMode()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "polish-introduction-quality",
+    "test": "ExperienceFlowTests/testUsageIntroductionCanCloseAndNeverChangesUsageMode()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "polish-introduction-import",
+    "test": "ExperienceFlowTests/testUsageIntroductionCanCloseAndNeverChangesUsageMode()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "04-reader-fullpage",
+    "test": "PaperFlowTests/testCompletedReaderAndOriginalMode()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "large-type",
+    "test": "PaperFlowTests/testLargeTypeKeepsPrimaryActionReachable()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "07-edit-name-keyboard",
+    "test": "PaperFlowTests/testNameEditingAndKeyboardValidation()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "06-names",
+    "test": "PaperFlowTests/testNameEditingAndKeyboardValidation()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "05-bilingual",
+    "test": "PaperFlowTests/testProgressReaderReturnAndPauseConfirmation()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "04-reader",
+    "test": "PaperFlowTests/testProgressReaderReturnAndPauseConfirmation()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "03-progress",
+    "test": "PaperFlowTests/testProgressReaderReturnAndPauseConfirmation()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "08-import",
+    "test": "PaperFlowTests/testQualityRolesSearchAndImportNavigation()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "02-quality-fast",
+    "test": "PaperFlowTests/testQualityRolesSearchAndImportNavigation()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "02-quality-premium",
+    "test": "PaperFlowTests/testQualityRolesSearchAndImportNavigation()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  },
+  {
+    "name": "01-library",
+    "test": "PaperFlowTests/testQualityRolesSearchAndImportNavigation()",
+    "device": "iPhone 18 Pro",
+    "kind": "完整设备截图"
+  }
+]

@@ -1,0 +1,35 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "AAF79C3B-7F79-44D5-B2FC-3D29497A7BA1",
+        "deviceName" : "iPhone 18 Pro",
+        "exportedFileName" : "7B00D253-3FA7-45E4-BDA7-17E0A5DE743D.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "model-limits-restored_0_1B084C1E-AE95-4A0C-89EA-63121318ADCE.png",
+        "timestamp" : 1791613621.124
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "AAF79C3B-7F79-44D5-B2FC-3D29497A7BA1",
+        "deviceName" : "iPhone 18 Pro",
+        "exportedFileName" : "5DFFF127-6BC3-45E4-902F-A1844F215B43.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "model-limits-invalid-save_0_F98968C4-0581-4BF0-8ECD-072D90EEB82B.png",
+        "timestamp" : 1791613618.639
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "AAF79C3B-7F79-44D5-B2FC-3D29497A7BA1",
+        "deviceName" : "iPhone 18 Pro",
+        "exportedFileName" : "449F2ADA-97FA-414E-8AE2-19636DDD345A.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "model-limits-number-keyboard_0_A056C319-6BBD-40CB-90D4-B45A87EF7410.png",
+        "timestamp" : 1791613612.605
+      }
+    ],
+    "testIdentifier" : "ExperienceFlowTests/testModelLimitsCanBeEditedAndInvalidSavePreservesConnection()",
+    "testIdentifierURL" : "test://com.apple.xcode/BookLLM/BookLLMUITests/ExperienceFlowTests/testModelLimitsCanBeEditedAndInvalidSavePreservesConnection"
+  }
+]

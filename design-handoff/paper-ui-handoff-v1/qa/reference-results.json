@@ -1,0 +1,388 @@
+{
+  "scope": "HTML reference only; no production application tested",
+  "rendering": "local Chromium, inline content; no network navigation",
+  "checks": [
+    {
+      "test": "Library is the default screen",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "No separate task navigation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "No manual glossary gate",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Assets are loaded",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Pause retains progress",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Resume retains progress",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Processing filter",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Complete filter",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Premium parallel roles",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Read from progress",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Back restores book progress sheet",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Optional names from book menu",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Empty name prevented",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Name edit saved",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Saving a name does not start a task",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Cancel preserves stored name",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Quality tier role count 0",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Quality tier role count 1",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Quality tier role count 2",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Quality tier role count 3",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "No terminology modes in setup",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "All eight style presets retained",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Target language selectable",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Bilingual content shown",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Reading font size updates",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Reduced motion flag",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Document only file picker",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "New task starts without manual confirmation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Names are optional for new books",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "No horizontal document overflow at 320",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Progress sheet reachable at 320",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "No horizontal document overflow at 375",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Progress sheet reachable at 375",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "No horizontal document overflow at 430",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Progress sheet reachable at 430",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "No horizontal document overflow at 768",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Progress sheet reachable at 768",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "No JavaScript runtime errors",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "passed": true,
+  "screenshots": [
+    {
+      "file": "references/01-library.png",
+      "viewportCSS": [
+        390,
+        844
+      ],
+      "pixelSize": [
+        780,
+        1688
+      ],
+      "dpr": 2,
+      "animations": "finished for capture"
+    },
+    {
+      "file": "references/03-progress.png",
+      "viewportCSS": [
+        390,
+        844
+      ],
+      "pixelSize": [
+        780,
+        1688
+      ],
+      "dpr": 2,
+      "animations": "finished for capture"
+    },
+    {
+      "file": "references/06-names.png",
+      "viewportCSS": [
+        390,
+        844
+      ],
+      "pixelSize": [
+        780,
+        1688
+      ],
+      "dpr": 2,
+      "animations": "finished for capture"
+    },
+    {
+      "file": "references/07-edit-name.png",
+      "viewportCSS": [
+        390,
+        844
+      ],
+      "pixelSize": [
+        780,
+        1688
+      ],
+      "dpr": 2,
+      "animations": "finished for capture"
+    },
+    {
+      "file": "references/02-quality-premium.png",
+      "viewportCSS": [
+        390,
+        844
+      ],
+      "pixelSize": [
+        780,
+        1688
+      ],
+      "dpr": 2,
+      "animations": "finished for capture"
+    },
+    {
+      "file": "references/02-quality-tier-0.png",
+      "viewportCSS": [
+        390,
+        844
+      ],
+      "pixelSize": [
+        780,
+        1688
+      ],
+      "dpr": 2,
+      "animations": "finished for capture"
+    },
+    {
+      "file": "references/02-quality-tier-1.png",
+      "viewportCSS": [
+        390,
+        844
+      ],
+      "pixelSize": [
+        780,
+        1688
+      ],
+      "dpr": 2,
+      "animations": "finished for capture"
+    },
+    {
+      "file": "references/02-quality-tier-2.png",
+      "viewportCSS": [
+        390,
+        844
+      ],
+      "pixelSize": [
+        780,
+        1688
+      ],
+      "dpr": 2,
+      "animations": "finished for capture"
+    },
+    {
+      "file": "references/02-quality-options.png",
+      "viewportCSS": [
+        390,
+        844
+      ],
+      "pixelSize": [
+        780,
+        1688
+      ],
+      "dpr": 2,
+      "animations": "finished for capture"
+    },
+    {
+      "file": "references/04-reader.png",
+      "viewportCSS": [
+        390,
+        844
+      ],
+      "pixelSize": [
+        780,
+        1688
+      ],
+      "dpr": 2,
+      "animations": "finished for capture"
+    },
+    {
+      "file": "references/05-bilingual.png",
+      "viewportCSS": [
+        390,
+        844
+      ],
+      "pixelSize": [
+        780,
+        1688
+      ],
+      "dpr": 2,
+      "animations": "finished for capture"
+    },
+    {
+      "file": "references/08-import.png",
+      "viewportCSS": [
+        390,
+        844
+      ],
+      "pixelSize": [
+        780,
+        1688
+      ],
+      "dpr": 2,
+      "animations": "finished for capture"
+    },
+    {
+      "file": "references/10-empty-names.png",
+      "viewportCSS": [
+        390,
+        844
+      ],
+      "pixelSize": [
+        780,
+        1688
+      ],
+      "dpr": 2,
+      "animations": "finished for capture"
+    },
+    {
+      "file": "references/09-account-style-only.png",
+      "viewportCSS": [
+        390,
+        844
+      ],
+      "pixelSize": [
+        780,
+        1688
+      ],
+      "dpr": 2,
+      "animations": "finished for capture"
+    }
+  ],
+  "not_tested": [
+    "iOS native rendering and gestures",
+    "VoiceOver / native Dynamic Type",
+    "production API and payment integration",
+    "production data migration",
+    "reload persistence from file:// in this environment"
+  ]
+}

@@ -1,0 +1,65 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "AAF79C3B-7F79-44D5-B2FC-3D29497A7BA1",
+        "deviceName" : "iPhone 18 Pro",
+        "exportedFileName" : "2527A6FC-A737-4C8B-ADAB-590C8F470F06.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "ux-largest-name-editing_0_C4A44D23-4170-4462-A43B-A0085B0C5F93.png",
+        "timestamp" : 1791553988.572
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "AAF79C3B-7F79-44D5-B2FC-3D29497A7BA1",
+        "deviceName" : "iPhone 18 Pro",
+        "exportedFileName" : "FEE2B735-F8E1-4258-9A77-75A1C1BE2FE2.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "ux-largest-paste-editing_0_01B2C926-F361-4146-876D-ED6F00DF5F91.png",
+        "timestamp" : 1791553977.098
+      }
+    ],
+    "testIdentifier" : "ExperienceFlowTests/testLargestTypeKeepsEditorsAndPrimaryActionsReachable()",
+    "testIdentifierURL" : "test://com.apple.xcode/BookLLM/BookLLMUITests/ExperienceFlowTests/testLargestTypeKeepsEditorsAndPrimaryActionsReachable"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "AAF79C3B-7F79-44D5-B2FC-3D29497A7BA1",
+        "deviceName" : "iPhone 18 Pro",
+        "exportedFileName" : "96943C36-E2FD-47E0-A7EA-4243DFDAD917.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "ux-name-effect-keyboard_0_96DA4ADA-CBD6-4C33-B856-4DF765078C8B.png",
+        "timestamp" : 1791554002.667
+      }
+    ],
+    "testIdentifier" : "ExperienceFlowTests/testNameEffectIsVisibleBeforeSave()",
+    "testIdentifierURL" : "test://com.apple.xcode/BookLLM/BookLLMUITests/ExperienceFlowTests/testNameEffectIsVisibleBeforeSave"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "AAF79C3B-7F79-44D5-B2FC-3D29497A7BA1",
+        "deviceName" : "iPhone 18 Pro",
+        "exportedFileName" : "C80BCBEE-075C-4BAD-BA25-686EF58DFF54.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "07-edit-name-keyboard_0_C8D41F2C-98FB-4F14-969F-F927C7925D87.png",
+        "timestamp" : 1791554019.087
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "AAF79C3B-7F79-44D5-B2FC-3D29497A7BA1",
+        "deviceName" : "iPhone 18 Pro",
+        "exportedFileName" : "5730FD89-C0B3-413A-8A9E-764D559A2CBF.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "06-names_0_511C8B19-74CA-401F-9360-87E66003AFC9.png",
+        "timestamp" : 1791554014.842
+      }
+    ],
+    "testIdentifier" : "PaperFlowTests/testNameEditingAndKeyboardValidation()",
+    "testIdentifierURL" : "test://com.apple.xcode/BookLLM/BookLLMUITests/PaperFlowTests/testNameEditingAndKeyboardValidation"
+  }
+]
